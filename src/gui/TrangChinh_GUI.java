@@ -97,9 +97,9 @@ public class TrangChinh_GUI extends JFrame implements ActionListener {
 //        pnlContent.add(new TaoPhieuDatPhong_GUI("NV01122018001"), "Tạo Phiếu Đặt Phòng");
 //        pnlContent.add(new Phong_GUI(), "Phòng");
 //        pnlContent.add(new HoaDon_GUI(), "Hóa Đơn");
-//       pnlContent.add(new NhanVien_GUI(), "Nhân Viên");
+       pnlContent.add(new NhanVien_GUI(), "Nhân Viên");
 //       pnlContent.add(new ChiPhiPhatSinh_GUI(), "Chi Phí Phát Sinh");
-//       pnlContent.add(new Phong_GUI(), "Quản Lý Phòng");
+       pnlContent.add(new Phong_GUI(), "Quản Lý Phòng");
 //      pnlContent.add(new KhachHang_GUI(), "Khách Hàng");
 //      pnlContent.add(new KhuyenMai_GUI(), "Khuyến Mãi");
 
