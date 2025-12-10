@@ -217,6 +217,9 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 			}
 		} else if (o.equals(btnXoaRong)) {
 			xoaRongForm();
+		} else if (o.equals(btnLamMoi)) {
+			loadKhachHangToTable();
+			JOptionPane.showMessageDialog(this, "Thành công!");
 		}
 	}
 
