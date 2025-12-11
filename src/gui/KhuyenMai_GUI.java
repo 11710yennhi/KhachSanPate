@@ -103,7 +103,7 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 		JPanel khung = new JPanel();
 		khung.setLayout(new BoxLayout(khung, BoxLayout.Y_AXIS));
 		khung.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),
-				"Khuyen mai",
+				"Khuyến Mãi",
 				TitledBorder.LEFT, TitledBorder.TOP, new Font("Segoe UI", Font.BOLD, 14)));
 		
 		JPanel mainpanel = new JPanel(new GridLayout(5, 3, 1, 10));
@@ -172,6 +172,7 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 		lblgiamToiDa.setAlignmentX(Component.LEFT_ALIGNMENT);
 		txtGiamToiDa.setAlignmentX(Component.LEFT_ALIGNMENT);
 		
+		
 		p1.add(lblmaKM);
 		p1.add(txtMaKM);
 		p3.add(lbltenKM);
@@ -191,6 +192,8 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 		p10.add(lblgiamToiDa);
 		p10.add(txtGiamToiDa);
 		
+		JPanel ptam = new JPanel();
+		khung.add(ptam);
 		khung.add(mainpanel);
 //-------------button--------
 		btnThem = new JButton("Thêm");
@@ -202,9 +205,9 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
         pbtn.add(Box.createHorizontalStrut(5));
         pbtn.add(btnThem);
         pbtn.add(Box.createRigidArea(new Dimension(30, 30)));
-        pbtn.add(btnTimKiem);
-        pbtn.add(Box.createRigidArea(new Dimension(30, 30)));
         pbtn.add(btnluu);
+        pbtn.add(Box.createRigidArea(new Dimension(30, 30)));
+        pbtn.add(btnTimKiem);
         pbtn.add(Box.createRigidArea(new Dimension(1300, 30)));
         
         khung.add(pbtn);
@@ -409,47 +412,48 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 //	            }
 //	        }
 //	    }
-//	    else if (o.equals(btnluu)) {
-//	    	KhuyenMai km = getFormData();
-//	        if (km == null) return; // kiểm tra dữ liệu hợp lệ
-//
-//	        if (kmDAO.update(km)) {
-//	            JOptionPane.showMessageDialog(null, "Cập nhật khuyến mãi thành công!");
-//	            loadKhuyenMaiToTable();
-//	        } else {
-//	            JOptionPane.showMessageDialog(null, "Cập nhật thất bại!");
-//	        }
-//	    }
+	    else if (o.equals(btnluu)) {
+	    	KhuyenMai km = getFormData();
+	        if (km == null) return; // kiểm tra dữ liệu hợp lệ
+
+	        if (kmDAO.update(km)) {
+	            JOptionPane.showMessageDialog(null, "Cập nhật khuyến mãi thành công!");
+	            loadKhuyenMaiToTable();
+	        } else {
+	            JOptionPane.showMessageDialog(null, "Cập nhật thất bại!");
+	        }
+	    }
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
-//		int row = table.getSelectedRow();
-//        if (row == -1) return;
-//
-//        txtMaKM.setText(table.getValueAt(row, 1).toString());
-//        txtTenKM.setText(table.getValueAt(row, 2).toString());
-//        txtNgayTao.setText(table.getValueAt(row, 3).toString());
-//        cboLoaiKM.setSelectedItem(table.getValueAt(row, 4).toString());
-//        txtDieuKienGiam.setText(table.getValueAt(row, 5).toString());
-//        txtGiaTriGiam.setText(table.getValueAt(row, 6).toString());
-//
-//        // Xử lý ngày bắt đầu
-//        String ngayBD = table.getValueAt(row, 7).toString();
-//        if (ngayBD != null && !ngayBD.isEmpty()) {
-//            java.sql.Date d = java.sql.Date.valueOf(ngayBD);
-//            dateNgayBatDau.setDate(d);
-//        } else {
-//            dateNgayBatDau.setDate(null);
-//        }
-//
-//        // Xử lý ngày kết thúc
-//        String ngayKT = table.getValueAt(row, 8).toString();
-//        if (ngayKT != null && !ngayKT.isEmpty()) {
-//            java.sql.Date d = java.sql.Date.valueOf(ngayKT);
-//            dateNgayKetThuc.setDate(d);
-//        } else {
-//            dateNgayKetThuc.setDate(null);
-//        }
+		int row = table.getSelectedRow();
+        if (row == -1) return;
+
+        txtMaKM.setText(table.getValueAt(row, 1).toString());
+        txtTenKM.setText(table.getValueAt(row, 2).toString());
+        txtNgayTao.setText(table.getValueAt(row, 3).toString());
+        cboLoaiKM.setSelectedItem(table.getValueAt(row, 4).toString());
+        txtSoTienApDung.setText(table.getValueAt(row, 5).toString());
+        txtGiaTriGiam.setText(table.getValueAt(row, 6).toString());
+        txtGiamToiDa.setText(table.getValueAt(row, 7).toString());
+        
+        // Xử lý ngày bắt đầu
+        String ngayBD = table.getValueAt(row, 8).toString();
+        if (ngayBD != null && !ngayBD.isEmpty()) {
+            java.sql.Date d = java.sql.Date.valueOf(ngayBD);
+            dateNgayBatDau.setDate(d);
+        } else {
+            dateNgayBatDau.setDate(null);
+        }
+
+        // Xử lý ngày kết thúc
+        String ngayKT = table.getValueAt(row, 9).toString();
+        if (ngayKT != null && !ngayKT.isEmpty()) {
+            java.sql.Date d = java.sql.Date.valueOf(ngayKT);
+            dateNgayKetThuc.setDate(d);
+        } else {
+            dateNgayKetThuc.setDate(null);
+        }
 	}
 
 	@Override public void mousePressed(MouseEvent e) {}

@@ -31,8 +31,13 @@ public class KhuyenMai {
         this.giaTriGiam = giaTriGiam;
         this.giamToiDa = giamToiDa;
     }
+    
+    public KhuyenMai(String maKhuyenMai) {
+		super();
+		this.maKhuyenMai = maKhuyenMai;
+	}
 
-    public String getMaKhuyenMai() {
+	public String getMaKhuyenMai() {
         return maKhuyenMai;
     }
 

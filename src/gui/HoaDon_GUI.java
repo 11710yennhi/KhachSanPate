@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
+import com.toedter.calendar.JDateChooser;
+
 import dao.HoaDon_DAO;
 import dao.ChiTietChiPhiPhatSinh_DAO;
 import dao.ChiPhiPhatSinh_DAO;
@@ -23,6 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener {
@@ -31,7 +34,7 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
     private DefaultTableModel modelHD, modelCT;
 
     private JTextField txtTim, txtTuNgay, txtDenNgay, txtTongTien;
-
+    private JDateChooser dateNgayBatDau, dateNgayKetThuc;
     private JButton btTim, btXoa, btLoc, btXoaTrang, btHomNay, btTatCa, btInHD;
 
     private JLabel lbMaHD, lbNgay, lbPhong, lbNhanVien;
@@ -64,10 +67,21 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         add(khung, BorderLayout.CENTER);
 
         //====================== KHUNG TRÊN ============================
-        JPanel pnTop = new JPanel(new FlowLayout());
-        txtTuNgay = new JTextField(8);
-        txtDenNgay = new JTextField(8);
-
+        JPanel pnBar = new JPanel();
+        pnBar.setLayout(new BoxLayout(pnBar, BoxLayout.Y_AXIS));
+        
+        JPanel pnTop = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        
+        dateNgayBatDau = new JDateChooser();
+        dateNgayBatDau.setDateFormatString("dd/MM/yyyy");
+        dateNgayBatDau.setDate(new Date());
+        dateNgayBatDau.setPreferredSize(new Dimension(120,30));
+        
+        dateNgayKetThuc = new JDateChooser();
+        dateNgayKetThuc.setDateFormatString("dd/MM/yyyy");
+        dateNgayKetThuc.setDate(new Date());
+        dateNgayKetThuc.setPreferredSize(new Dimension(120,30));
+        
         btHomNay = new JButton("Hôm nay");
         btTatCa = new JButton("Tất cả");
         btLoc = new JButton("Lọc");
@@ -75,22 +89,11 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         pnTop.add(btTatCa);
         pnTop.add(btHomNay);
         pnTop.add(new JLabel("Từ ngày:"));
-        pnTop.add(txtTuNgay);
+        pnTop.add(dateNgayBatDau);
         pnTop.add(new JLabel("Đến ngày:"));
-        pnTop.add(txtDenNgay);
+        pnTop.add(dateNgayKetThuc);
         pnTop.add(btLoc);
-        khung.add(pnTop, BorderLayout.NORTH);
-
-        //====================== BẢNG HÓA ĐƠN ============================
-        String[] colHD = {"STT", "Mã hóa đơn", "Mã nhân viên", "Ngày lập", "Phòng", "Tổng tiền"};
-        modelHD = new DefaultTableModel(colHD, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        };
-
-        tblHoaDon = new JTable(modelHD);
-        khung.add(new JScrollPane(tblHoaDon), BorderLayout.CENTER);
-
-        //====================== KHUNG DƯỚI ============================
+        
         JPanel pnBot = new JPanel(new FlowLayout(FlowLayout.LEFT));
         txtTim = new JTextField(10);
         btTim = new JButton("Tìm");
@@ -102,8 +105,23 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         pnBot.add(btTim);
         pnBot.add(btXoa);
         pnBot.add(btXoaTrang);
+        
+        pnBar.add(pnTop);
+        pnBar.add(pnBot);
+        khung.add(pnBar, BorderLayout.NORTH);
+        
+        
+        //====================== BẢNG HÓA ĐƠN ============================
+        String[] colHD = {"STT", "Mã hóa đơn", "Mã nhân viên", "Mã khuyến mãi", "PTTT", "Tổng tiền"};
+        modelHD = new DefaultTableModel(colHD, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
 
-        khung.add(pnBot, BorderLayout.SOUTH);
+        tblHoaDon = new JTable(modelHD);
+        khung.add(new JScrollPane(tblHoaDon), BorderLayout.CENTER);
+
+        //====================== KHUNG DƯỚI ============================
+        
 
         //====================== KHUNG CHI TIẾT HÓA ĐƠN ============================
         JPanel pnCT = new JPanel();
