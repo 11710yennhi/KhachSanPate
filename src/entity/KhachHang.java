@@ -6,14 +6,14 @@ public class KhachHang {
 	private String maKhachHang;
 	private String hoTen;
 	private String soDienThoai;
-	private boolean nguoiVietNam;
+	private boolean laNguoiVietNam;
 	
 	// Constructor
 	public KhachHang(String maKhachHang, String hoTen, String soDienThoai, boolean nguoiVietNam) {
 		this.maKhachHang = maKhachHang;
 		this.hoTen = hoTen;
 		this.soDienThoai = soDienThoai;
-		this.nguoiVietNam = nguoiVietNam;
+		this.laNguoiVietNam = nguoiVietNam;
 	}
 	
 	public KhachHang(String maKhachHang) {
@@ -42,11 +42,11 @@ public class KhachHang {
 	public void setSoDienThoai(String soDienThoai) {
 		this.soDienThoai = soDienThoai;
 	}
-	public boolean isNguoiVietNam() {
-		return nguoiVietNam;
+	public boolean LaNguoiVietNam() {
+		return laNguoiVietNam;
 	}
 	public void setNguoiVietNam(boolean nguoiVietNam) {
-		this.nguoiVietNam = nguoiVietNam;
+		this.laNguoiVietNam = nguoiVietNam;
 	}
 
 	// hashCode & equals
@@ -69,6 +69,6 @@ public class KhachHang {
 	@Override
 	public String toString() {
 		return "KhachHang [maKhachHang=" + maKhachHang + ", hoTen=" + hoTen + 
-				", soDienThoai=" + soDienThoai + ", nguoiVietNam=" + nguoiVietNam + "]";
+				", soDienThoai=" + soDienThoai + ", nguoiVietNam=" + laNguoiVietNam + "]";
 	}
 }

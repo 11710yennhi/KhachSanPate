@@ -136,7 +136,7 @@ public class KhachHang_DAO {
             ps.setString(1, kh.getMaKhachHang());
             ps.setString(2, kh.getHoTen());
             ps.setString(3, kh.getSoDienThoai());
-            ps.setBoolean(4, kh.isNguoiVietNam());
+            ps.setBoolean(4, kh.LaNguoiVietNam());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -152,7 +152,7 @@ public class KhachHang_DAO {
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, kh.getHoTen());
             ps.setString(2, kh.getSoDienThoai());
-            ps.setBoolean(3, kh.isNguoiVietNam());
+            ps.setBoolean(3, kh.LaNguoiVietNam());
             ps.setString(4, kh.getMaKhachHang());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
