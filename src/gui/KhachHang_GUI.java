@@ -158,7 +158,7 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 		int stt = 1;
 		for (KhachHang kh : list) {
 			modelKH.addRow(new Object[] { stt++, kh.getMaKhachHang(), kh.getHoTen(), kh.getSoDienThoai(),
-					kh.isNguoiVietNam() ? "✓" : "✗" });
+					kh.LaNguoiVietNam() ? "✓" : "✗" });
 		}
 	}
 
@@ -200,7 +200,7 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 			if (kh != null) {
 				txtMaKH.setText(kh.getMaKhachHang());
 				txtHoTen.setText(kh.getHoTen());
-				chkLaNguoiVN.setSelected(kh.isNguoiVietNam());
+				chkLaNguoiVN.setSelected(kh.LaNguoiVietNam());
 				JOptionPane.showMessageDialog(this, "Đã tìm thấy khách hàng!");
 			} else {
 				JOptionPane.showMessageDialog(this, "Không tìm thấy khách hàng với SĐT này!");
