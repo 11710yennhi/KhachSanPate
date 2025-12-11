@@ -1,1263 +1,1942 @@
-//package gui;
-//
-//import java.awt.*;
-//import java.awt.event.*;
-//import java.text.DecimalFormat;
-//import java.time.LocalDate;
-//import java.time.ZoneId;
-//import java.time.format.DateTimeFormatter;
-//import java.time.temporal.ChronoUnit;
-//import java.util.ArrayList;
-//import java.util.Date;
-//import java.util.List;
-//
-//import javax.swing.*;
-//import javax.swing.border.*;
-//import javax.swing.table.DefaultTableModel;
-//import com.toedter.calendar.JDateChooser;
-//
-//import dao.ChiPhiPhatSinh_DAO;
-//import dao.ChiTietChiPhiPhatSinh_DAO;
-//import dao.ChiTietPhieuDatPhong_DAO;
-//import dao.HoaDon_DAO;
-//import dao.KhachHang_DAO;
-//import dao.LoaiPhong_DAO;
-//import dao.NhanVien_DAO;
-//import dao.PhieuDatPhong_DAO;
-//import dao.Phong_DAO;
-//import entity.ChiPhiPhatSinh;
-//import entity.ChiTietPhieuDatPhong;
-//import entity.KhachHang;
-//import entity.LoaiPhong;
-//import entity.NhanVien;
-//import entity.PhieuDatPhong;
-//import entity.Phong;
-//
-//public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, MouseListener {
-//    private static final long serialVersionUID = 1L;
-//
-//    // ====== KHAI BÁO TOÀN CỤC ======
-//    private JDateChooser dateNgayNhan, dateNgayTra;
-//    private JTextField txtSDT, txtTenKH, txtNgayTao, txtTienCoc, txtNV, txtTimPhong, txtMKH, txtMPDP, txtSoLuongNguoi;
-//    private JCheckBox chkVN;
-//    // <-- DefaultTableModel toàn cục (đã tách ra)
-//    private DefaultTableModel dlp, dlctps;
-//    private JComboBox<String> cboTrangThai, cboChiPhi;
-//    private JButton btnInPhieu, btnTinh, btnXoa, btnThemCP, btnXoaCP, btnLuu, btnHuy, btnTT, btnThoat, btnCapNhat,btn;
-//    private JTable tblPhong, tblChiPhi;
-//    private JLabel lblTongTien, lblTongCP, lblTongTatCa;
-//    private Color mauXanhDam, mauVangDong;
-//    private JPanel pDanhSachPhong,pCapNhat,pChonNgay, pTopPhong;
-//    private LoaiPhong_DAO dslp;
-//    private Phong_DAO dsp;
-//    private ChiTietPhieuDatPhong_DAO dsctpdp;
-//    private PhieuDatPhong_DAO pdp;
-//    private KhachHang_DAO khd;
-//    private NhanVien_DAO nvd;
-//    private ChiPhiPhatSinh_DAO cppsd;
-//    private ChiTietChiPhiPhatSinh_DAO ctcppsd;
-//    private LoaiPhong_DAO lpd;
-//    private JButton nutPhongDangChon = null;
-//
-//    public TaoPhieuDatPhong_GUI(String maNV) {
-//        setLayout(new BorderLayout());
-//        setBackground(new Color(249, 249, 249));
-//
-//         mauXanhDam = new Color(30, 61, 89);
-//         mauVangDong = new Color(212, 175, 55);
-//        Font fontTieuDe = new Font("Segoe UI Semibold", Font.PLAIN, 16);
-//        
-//        dslp= new LoaiPhong_DAO();
-//        dsp= new Phong_DAO();
-//        dsctpdp= new ChiTietPhieuDatPhong_DAO();
-//        pdp= new PhieuDatPhong_DAO();
-//        khd= new KhachHang_DAO();
-//        nvd= new NhanVien_DAO();
-//        cppsd= new ChiPhiPhatSinh_DAO();
-//        ctcppsd= new ChiTietChiPhiPhatSinh_DAO();
-//        lpd= new LoaiPhong_DAO();
-//        
-//        txtNgayTao= new JTextField();
-//        txtNV= new JTextField();
-//        txtSDT= new JTextField();
-//        txtTenKH= new JTextField();
-//        txtTienCoc= new JTextField("");
-//        txtTimPhong= new JTextField();
-//        txtMKH= new JTextField();
-//       txtMPDP= new JTextField();
-//    // ====== CHIA LÀM 2 PHẦN: TRÁI (70%) & PHẢI (30%) ======
-//       JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-//       splitPane.setDividerLocation(0.7);
-//       splitPane.setResizeWeight(0.7);
-//       splitPane.setContinuousLayout(true);
-//       splitPane.setBorder(null);
-//       splitPane.setBackground(new Color(249, 249, 249));
-//
-//       // ====== PANEL TRÁI ======
-//       JPanel pLeft = new JPanel();
-//       pLeft.setLayout(new BoxLayout(pLeft, BoxLayout.Y_AXIS));
-//       pLeft.setBackground(new Color(249, 249, 249));
-//       pLeft.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 10));
-//
-//       // --- Khung thông tin phiếu đặt phòng ---
-//       JPanel pThongTin = new JPanel(new GridBagLayout());
-//       pThongTin.setBackground(Color.WHITE);
-//       pThongTin.setBorder(BorderFactory.createTitledBorder(
-//               new LineBorder(mauXanhDam, 1, true),
-//               "Thông tin phiếu đặt phòng",
-//               TitledBorder.LEFT,
-//               TitledBorder.TOP,
-//               fontTieuDe,
-//               mauXanhDam));
-//
-//       GridBagConstraints gbc = new GridBagConstraints();
-//       gbc.insets = new Insets(8, 10, 8, 10);
-//       gbc.fill = GridBagConstraints.HORIZONTAL;
-//       gbc.weightx = 1.0;
-//       Dimension inputSize = new Dimension(140, 28);
-//
-//       // ====== HÀNG 0: Mã phiếu ======
-//       gbc.gridy = 0;
-//       gbc.gridx = 0;
-//       pThongTin.add(new JLabel("Mã phiếu:"), gbc);
-//
-//       gbc.gridx = 1;
-//       txtMPDP = new JTextField(taoMaPhieuDatPhongTuDong());
-//       txtMPDP.setPreferredSize(inputSize);
-//       txtMPDP.setEditable(false);
-//       pThongTin.add(txtMPDP, gbc);
-//
-//       // ====== HÀNG 1: Mã KH - Tên KH ======
-//       gbc.gridy = 1;
-//       gbc.gridx = 0;
-//       pThongTin.add(new JLabel("Mã KH:"), gbc);
-//
-//       gbc.gridx = 1;
-//       txtMKH = new JTextField(taoMaKhachHangTuDong());
-//       txtMKH.setEditable(false);
-//       pThongTin.add(txtMKH, gbc);
-//
-//       gbc.gridx = 2;
-//       pThongTin.add(new JLabel("Tên KH:"), gbc);
-//
-//       gbc.gridx = 3;
-//       txtTenKH = new JTextField();
-//       pThongTin.add(txtTenKH, gbc);
-//
-//       // ====== HÀNG 2: Số điện thoại - Người Việt Nam ======
-//       gbc.gridy = 2;
-//       gbc.gridx = 0;
-//       pThongTin.add(new JLabel("Số điện thoại:"), gbc);
-//
-//       gbc.gridx = 1;
-//       txtSDT = new JTextField();
-//       pThongTin.add(txtSDT, gbc);
-//
-//       gbc.gridx = 2;
-//       pThongTin.add(new JLabel("Người Việt Nam:"), gbc);
-//
-//       gbc.gridx = 3;
-//       chkVN = new JCheckBox("Có");
-//       chkVN.setBackground(Color.WHITE);
-//       chkVN.setSelected(true);
-//       pThongTin.add(chkVN, gbc);
-//
-//       // ====== HÀNG 3: Ngày tạo - Tiền cọc - Số lượng người ======
-//       gbc.gridy = 3;
-//       gbc.gridx = 0;
-//       pThongTin.add(new JLabel("Ngày tạo:"), gbc);
-//
-//       gbc.gridx = 1;
-//       txtNgayTao = new JTextField(LocalDate.now().toString());
-//       txtNgayTao.setEditable(false);
-//       pThongTin.add(txtNgayTao, gbc);
-//
-//       gbc.gridx = 2;
-//       pThongTin.add(new JLabel("Tiền cọc:"), gbc);
-//
-//       gbc.gridx = 3;
-//       txtTienCoc = new JTextField();
-//       pThongTin.add(txtTienCoc, gbc);
-//
-//       // 🔹 Thêm dòng Số lượng người
-//       gbc.gridy = 4;
-//       gbc.gridx = 0;
-//       pThongTin.add(new JLabel("Số lượng người:"), gbc);
-//
-//       gbc.gridx = 1;
-//       txtSoLuongNguoi = new JTextField();
-//       pThongTin.add(txtSoLuongNguoi, gbc);
-//
-//       // ====== HÀNG 5: Trạng thái - Nút in phiếu ======
-//       gbc.gridy = 5;
-//       gbc.gridx = 0;
-//       pThongTin.add(new JLabel("Trạng thái:"), gbc);
-//
-//       gbc.gridx = 1;
-//       cboTrangThai = new JComboBox<>(new String[]{"Đã đặt", "Đang ở", "Hoàn thành"});
-//       pThongTin.add(cboTrangThai, gbc);
-//
-//       gbc.gridx = 3;
-//       btnInPhieu = new JButton("🖨 In phiếu");
-//       btnInPhieu.setBackground(mauVangDong);
-//       btnInPhieu.setForeground(mauXanhDam);
-//       btnInPhieu.setFocusPainted(false);
-//       pThongTin.add(btnInPhieu, gbc);
-//
-//       // --- Khung chi tiết phòng thuê ---
-//       JPanel pChiTietPhong = new JPanel(new BorderLayout());
-//       pChiTietPhong.setBackground(Color.WHITE);
-//       pChiTietPhong.setBorder(BorderFactory.createTitledBorder(
-//               new LineBorder(mauXanhDam, 1, true),
-//               "Chi tiết phòng thuê",
-//               TitledBorder.LEFT,
-//               TitledBorder.TOP,
-//               fontTieuDe,
-//               mauXanhDam));
-//
-//       String[] cols = {"STT", "Mã phòng", "Loại phòng", "Ngày nhận thực", "Ngày trả thực", "Số đêm", "Giá", "Thành tiền"};
-//       dlp = new DefaultTableModel(cols, 0);
-//       tblPhong = new JTable(dlp);
-//       pChiTietPhong.add(new JScrollPane(tblPhong), BorderLayout.CENTER);
-//
-//       JPanel pPhongBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-//       pPhongBtn.setBackground(Color.WHITE);
-//       btnXoa = new JButton("Xóa");
-//       lblTongTien = new JLabel("Tổng tiền: 0 VNĐ");
-//       pPhongBtn.add(btnXoa);
-//       pPhongBtn.add(lblTongTien);
-//       pChiTietPhong.add(pPhongBtn, BorderLayout.SOUTH);
-//
-//       pLeft.add(pThongTin);
-//       pLeft.add(Box.createVerticalStrut(10));
-//       pLeft.add(pChiTietPhong);
-//       
-//    // ====== PANEL PHẢI (thay thế toàn bộ block) ======
-//       JPanel pRight = new JPanel();
-//       pRight.setLayout(new BoxLayout(pRight, BoxLayout.Y_AXIS));
-//       pRight.setBackground(new Color(249, 249, 249));
-//       pRight.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 15));
-//
-//       // --- Danh sách phòng trống (panel chính bên phải) ---
-//       pDanhSachPhong = new JPanel();
-//       pDanhSachPhong.setLayout(new BoxLayout(pDanhSachPhong, BoxLayout.Y_AXIS));
-//       pDanhSachPhong.setBackground(Color.WHITE);
-//       pDanhSachPhong.setBorder(BorderFactory.createTitledBorder(
-//               new LineBorder(mauXanhDam, 1, true),
-//               "Danh sách phòng trống",
-//               TitledBorder.LEFT,
-//               TitledBorder.TOP,
-//               fontTieuDe,
-//               mauXanhDam));
-//
-//       // ===== top row: ngày nhận + ngày trả + nút cập nhật =====
-//       pTopPhong = new JPanel(new BorderLayout());
-//       pTopPhong.setBackground(Color.WHITE);
-//       pTopPhong.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-//
-//       // left: ngày nhận + ngày trả
-//      pChonNgay = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-//       pChonNgay.setBackground(Color.WHITE);
-//
-//       pChonNgay.add(new JLabel("Ngày nhận:"));
-//       dateNgayNhan = new JDateChooser();
-//       dateNgayNhan.setPreferredSize(new Dimension(120, 26));
-//       dateNgayNhan.setDateFormatString("yyyy/MM/dd");
-//       pChonNgay.add(dateNgayNhan);
-//
-//       pChonNgay.add(Box.createHorizontalStrut(8));
-//       pChonNgay.add(new JLabel("Ngày trả:"));
-//       dateNgayTra = new JDateChooser();
-//       dateNgayTra.setPreferredSize(new Dimension(120, 26));
-//       dateNgayTra.setDateFormatString("yyyy/MM/dd");
-//       pChonNgay.add(dateNgayTra);
-//
-//       // right: nút cập nhật (đặt trong panel phải để canh phải)
-//       pCapNhat = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 2));
-//       pCapNhat.setBackground(Color.WHITE);
-//       btnCapNhat = new JButton("🔄 Cập nhật");
-//       btnCapNhat.setFocusPainted(false);
-//       btnCapNhat.setBackground(mauVangDong);
-//       btnCapNhat.setForeground(mauXanhDam);
-//       pCapNhat.add(btnCapNhat);
-//
-//       // ghép pChonNgay và pCapNhat vào pTopPhong
-//       pTopPhong.add(pChonNgay, BorderLayout.WEST);
-//       pTopPhong.add(pCapNhat, BorderLayout.EAST);
-//
-//       // thêm pTopPhong làm phần đầu khung danh sách
-//       pDanhSachPhong.add(pTopPhong);
-//
-//       // ===== thông báo mặc định (nếu chưa chọn ngày) =====
-//       JLabel lblThongBao = new JLabel("Vui lòng chọn ngày nhận và ngày trả để xem phòng trống.", SwingConstants.CENTER);
-//       lblThongBao.setFont(new Font("Segoe UI", Font.ITALIC, 15));
-//       lblThongBao.setForeground(Color.GRAY);
-//       lblThongBao.setBorder(BorderFactory.createEmptyBorder(40, 10, 40, 10));
-//       pDanhSachPhong.add(lblThongBao);
-//
-//       // ===== scroll chứa danh sách phòng (nội dung sẽ được add bởi getDSLP()) =====
-//       JScrollPane scrPhongTrong = new JScrollPane(pDanhSachPhong);
-//       scrPhongTrong.setBorder(null);
-//       scrPhongTrong.getVerticalScrollBar().setUnitIncrement(16);
-//       scrPhongTrong.setPreferredSize(new Dimension(0, 350));
-//
-//       // --- Chi phí phát sinh (giữ nguyên như trước) ---
-//       JPanel pChiPhi = new JPanel(new BorderLayout());
-//       pChiPhi.setBackground(Color.WHITE);
-//       pChiPhi.setBorder(BorderFactory.createTitledBorder(
-//               new LineBorder(mauXanhDam, 1, true),
-//               "Chi phí phát sinh",
-//               TitledBorder.LEFT,
-//               TitledBorder.TOP,
-//               fontTieuDe,
-//               mauXanhDam));
-//
-//       JPanel pChiPhiTop = new JPanel(new FlowLayout(FlowLayout.LEFT));
-//       pChiPhiTop.setBackground(Color.WHITE);
-//       cboChiPhi = new JComboBox<String>();
-//       btnThemCP = new JButton("Thêm");
-//       btnXoaCP = new JButton("Xóa");
-//       pChiPhiTop.add(new JLabel("Loại chi phí:"));
-//       pChiPhiTop.add(cboChiPhi);
-//       pChiPhiTop.add(btnThemCP);
-//       pChiPhiTop.add(btnXoaCP);
-//       pChiPhi.add(pChiPhiTop, BorderLayout.NORTH);
-//
-//       dlctps = new DefaultTableModel(new String[]{"Tên chi phí", "Giá", "Số lượng", "Thành tiền","Ma"}, 0);
-//       tblChiPhi = new JTable(dlctps);
-//       tblChiPhi.getColumnModel().getColumn(4).setMinWidth(0);
-//       tblChiPhi.getColumnModel().getColumn(4).setMaxWidth(0);
-//       tblChiPhi.getColumnModel().getColumn(4).setWidth(0);
-//       pChiPhi.add(new JScrollPane(tblChiPhi), BorderLayout.CENTER);
-//
-//       lblTongCP = new JLabel("Tổng chi phí: 0 VNĐ", SwingConstants.RIGHT);
-//       lblTongCP.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-//       pChiPhi.add(lblTongCP, BorderLayout.SOUTH);
-//
-//       // --- Khu vực nhân viên & tổng tiền cuối (giữ nguyên)
-//       JPanel pBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-//       pBottom.setBackground(new Color(249, 249, 249));
-//       JLabel lblNV = new JLabel("Nhân viên: ");
-//       txtNV = new JTextField(maNV);
-//       txtNV.setEditable(false);
-//       btnLuu = new JButton("💾 Lưu");
-//       btnHuy = new JButton("❌ Hủy đặt phòng");
-//       btnTT = new JButton("💳 Thanh toán");
-//       btnThoat = new JButton("Xóa rỗng");
-//       lblTongTatCa = new JLabel("Tổng thanh toán: 0 VNĐ");
-//
-//       pBottom.add(lblNV);
-//       pBottom.add(txtNV);
-//       pBottom.add(btnLuu);
-//       pBottom.add(btnHuy);
-//       pBottom.add(btnTT);
-//       pBottom.add(btnThoat);
-//       pBottom.add(lblTongTatCa);
-//
-//       // add các phần vào pRight
-//       pRight.add(scrPhongTrong);
-//       pRight.add(Box.createVerticalStrut(10));
-//       pRight.add(pChiPhi);
-//
-//       // ====== ADD 2 PANEL VÀO SPLITPANE ======
-//       splitPane.setLeftComponent(pLeft);
-//       splitPane.setRightComponent(pRight);
-//
-//       // ====== ADD TO MAIN PANEL ======
-//       add(splitPane, BorderLayout.CENTER);
-//       add(pBottom, BorderLayout.SOUTH);
-//
-//       // --- bắt event cho nút cập nhật: gọi lại getDSLP()
-//       btnCapNhat.addActionListener(e -> {
-//           getDSLP();
-//           pDanhSachPhong.revalidate();
-//           pDanhSachPhong.repaint();
-//       });
-//
-//       
-//        
-//        
-////        getDSLP();
-//        capNhatCBB();
-//        kiemTraLayThongTinKHTuSDT();
-//        tblPhong.getSelectionModel().addListSelectionListener(e -> {
-//            if (!e.getValueIsAdjusting()) {
-//                hienThiTienCocVaTienTongTienPhong();
-//            }
-//        });
-//
-////        PhieuDatPhong pdptam= doiTuongTongTienPhong();
-////        txtTienCoc.setText(String.format("%,.000f", pdptam.getTienCoc()));
-//
-//        
-////        btn.addActionListener(this);
-//        btnCapNhat.addActionListener(this);
-//        btnHuy.addActionListener(this);
-//        btnInPhieu.addActionListener(this);
-//        btnLuu.addActionListener(this);
-////       btnTinh.addActionListener(this);
-//        btnThemCP.addActionListener(this);
-//        btnThoat.addActionListener(this);
-//        btnTT.addActionListener(this);
-//        btnXoa.addActionListener(this);
-//        
-//
-//        
-////        hienThiTienCocVaTienTongTienPhong();
-//
-//    }
-//
-//   
-//  
-//
-//    
-//    @Override
-//    public void actionPerformed(ActionEvent e) {
-//        Object o = e.getSource();
-//
-//        if (o.equals(btnLuu)) {
-//            boolean tonTaiKH = false;
-//            int daXuLy = 0;
-//
-//            // ======= 1. Kiểm tra & cập nhật / thêm khách hàng =======
-//            for (KhachHang khh : khd.getAllKhachHang()) {
-//                if (txtMKH.getText().equals(khh.getMaKhachHang())) {
-//                    tonTaiKH = true;
-//
-//                    String maKH = txtMKH.getText();
-//                    String tenKH = txtTenKH.getText();
-//                    String sdt = txtSDT.getText();
-//                    boolean vn = chkVN.isSelected();
-//
-//                    KhachHang khb = new KhachHang(maKH, tenKH, sdt, vn);
-//                    khd.capNhatKhachHang(khb);
-//
-//                    JOptionPane.showMessageDialog(null, "Cập nhật khách hàng thành công!");
-//                    daXuLy = 1;
-//                    break;
-//                }
-//            }
-//
-//            if (!tonTaiKH && kiemTraDuLieuNhap()) {
-//                String maKH = taoMaKhachHangTuDong();
-//                String tenKH = txtTenKH.getText();
-//                String sdt = txtSDT.getText();
-//                boolean vn = chkVN.isSelected();
-//
-//                KhachHang kh = new KhachHang(maKH, tenKH, sdt, vn);
-//
-//                if (khd.themKhachHang(kh)) {
-//                    JOptionPane.showMessageDialog(null, "Thêm khách hàng thành công!");
-//                    daXuLy = 1;
-//                } else {
-//                    JOptionPane.showMessageDialog(null, "Không thể thêm khách hàng!");
-//                    return;
-//                }
-//            }
-//
-//            // ======= 2. Kiểm tra phiếu đặt phòng =======
-//            List<PhieuDatPhong> dsPhieu = pdp.getAllPhieuDatPhong();
-//            String maPhieu = txtMPDP.getText();
-//            boolean tonTaiPhieu = false;
-//
-//            for (PhieuDatPhong p1 : dsPhieu) {
-//                if (maPhieu.equals(p1.getMaPhieuDatPhong())) {
-//                    tonTaiPhieu = true;
-//
-//                    // --- Cập nhật phiếu ---
-//                    PhieuDatPhong phieuCapNhat = new PhieuDatPhong(
-//                        maPhieu,
-//                        new KhachHang(txtMKH.getText()),
-//                        new NhanVien(txtNV.getText()),
-//                        LocalDate.now(),
-//                        cboTrangThai.getSelectedItem().toString()
-//                    );
-//                    pdp.capNhatPhieuDatPhong(phieuCapNhat);
-//
-//                    // --- Thêm chi tiết mới ---
-//                    List<ChiTietPhieuDatPhong> dsChiTietCu = dsctpdp.getChiTietTheoMaPhieu(maPhieu);
-//
-//                    for (int i = 0; i < dlp.getRowCount(); i++) {
-//                        String maPhong = dlp.getValueAt(i, 1).toString().trim();
-//                        Phong p = dsp.timPhongTheoMa(maPhong);
-//                        if (p == null) continue;
-//
-//                        boolean daTonTaiChiTiet = false;
-//                        for (ChiTietPhieuDatPhong ctCu : dsChiTietCu) {
-//                            if (ctCu.getPhong().getMaPhong().equals(p.getMaPhong())) {
-//                                daTonTaiChiTiet = true;
-//                                break;
-//                            }
-//                        }
-//
-//                        // Nếu chi tiết chưa có → thêm mới
-//                        if (!daTonTaiChiTiet) {
-//                            LocalDate ngayNhan = LocalDate.parse(dlp.getValueAt(i, 3).toString());
-//                            LocalDate ngayTra = LocalDate.parse(dlp.getValueAt(i, 4).toString());
-//                            ChiTietPhieuDatPhong ctMoi = new ChiTietPhieuDatPhong(
-//                                phieuCapNhat, p, ngayNhan, ngayTra, cboTrangThai.getSelectedItem().toString()
-//                            );
-//                            dsctpdp.themChiTietPhieuDatPhong(ctMoi);
-//                        }
-//                    }
-//
-//                    JOptionPane.showMessageDialog(null, "Đã cập nhật phiếu đặt phòng và thêm chi tiết mới!");
-//                    return;
-//                }
-//            }
-//
-//            // ======= 3. Nếu phiếu chưa tồn tại → thêm mới =======
-//            if (!tonTaiPhieu && daXuLy == 1) {
-//                String maPhieuMoi = taoMaPhieuDatPhongTuDong();
-//                PhieuDatPhong phieuMoi = new PhieuDatPhong(
-//                    maPhieuMoi,
-//                    new KhachHang(txtMKH.getText()),
-//                    new NhanVien(txtNV.getText()),
-//                    LocalDate.now(),
-//                    cboTrangThai.getSelectedItem().toString()
-//                );
-//
-//                pdp.themPhieuDatPhong(phieuMoi);
-//
-//                // Thêm tất cả chi tiết
-//                for (int i = 0; i < dlp.getRowCount(); i++) {
-//                    String maPhong = dlp.getValueAt(i, 1).toString().trim();
-//                    Phong p = dsp.timPhongTheoMa(maPhong);
-//                    if (p == null) continue;
-//
-//                    LocalDate ngayNhan = LocalDate.parse(dlp.getValueAt(i, 3).toString());
-//                    LocalDate ngayTra = LocalDate.parse(dlp.getValueAt(i, 4).toString());
-//                    ChiTietPhieuDatPhong ctMoi = new ChiTietPhieuDatPhong(
-//                        phieuMoi, p, ngayNhan, ngayTra, cboTrangThai.getSelectedItem().toString()
-//                    );
-//                    dsctpdp.themChiTietPhieuDatPhong(ctMoi);
-//                }
-////                new InPhieuDatPhong_GUI(phieuMoi);
-//                JOptionPane.showMessageDialog(null, "Đã thêm phiếu đặt phòng và chi tiết mới!");
-//                new InPhieuDatPhong_GUI(phieuMoi);
-//            }
-//        }
-//
-//        else if(o.equals(btnCapNhat)) {
-//        	getDSLP();
-////        	JOptionPane.showMessageDialog(null,"Cap nhat thanh cong!");
-//        }
-//        else if(o.equals(btnThoat)) {  
-////   			 int confirm = JOptionPane.showConfirmDialog(null, "Bạn có chắc chắn muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION);
-////   		        if (confirm == JOptionPane.YES_OPTION) {
-////   		        	System.exit(1);
-////   		        }
-////        	  hienThiTienCocVaTienTongTienPhong();
-//        	txtMKH.setText(taoMaKhachHangTuDong());
-//        	txtMPDP.setText(taoMaPhieuDatPhongTuDong());
-//        	txtSDT.setText("");
-//        	txtTenKH.setText("");
-//        	cboTrangThai.setSelectedIndex(0);
-//        	dateNgayTra.setDate(null);
-//        	dateNgayNhan.setDate(null);
-//        	dlp.setRowCount(0);
-//        	dlctps.setRowCount(0);
-//   		
-//        }
-//        else if(o.equals(btnThemCP)) {
-//        	themCPPSXB();
-//        	
-//            
-//        }
-//        else if (o.equals(btnInPhieu)) {
-//            int x = 0;
-//
-//            for (PhieuDatPhong p : pdp.getAllPhieuDatPhong()) {
-//                if (p.getMaPhieuDatPhong().equals(txtMPDP.getText())) {
-//                    KhachHang kh = khd.getKhachHangTheoMa(p.getKhachHang().getMaKhachHang());
-//                    List<ChiTietPhieuDatPhong> danhSachCTPDP = dsctpdp.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
-//
-//                    // Gọi giao diện in phiếu, truyền đủ dữ liệu
-//                    new InPhieuDatPhong_GUI(p).setVisible(true);
-//                    x = 1;
-//                    break; // dùng break thay vì return để không thoát toàn hàm (nếu còn xử lý sau)
-//                }
-//            }
-//
-//            if (x == 0) {
-//                JOptionPane.showMessageDialog(null,
-//                    "Phiếu đặt phòng đang được khởi tạo, cần hoàn thành trước khi in!");
-//            }
-//        }
-//
-//        else if(o.equals(btnTT)) {
-//            String maPhieuDatPhong = txtMPDP.getText().trim(); // lấy PDP hiện tại
-//            HoaDon_DAO hdDAO = new HoaDon_DAO();
-//            String maHoaDon = hdDAO.getMaHoaDonTheoPhieu(maPhieuDatPhong);
-//
-//            if(maHoaDon == null) {
-//                // Nếu chưa có hóa đơn, tạo mới
-//                maHoaDon = "HD" + maPhieuDatPhong.substring(3); // ví dụ HD + 29102025001
-//                boolean taoThanhCong = hdDAO.taoHoaDonMoi(maHoaDon, maPhieuDatPhong, "Chưa thanh toán");
-//                if(!taoThanhCong) {
-//                    JOptionPane.showMessageDialog(this, "Tạo hóa đơn mới thất bại!");
-//                    return;
-//                }
-//            }
-//
-//            // Mở Bill_GUI với maHoaDon
-//            new Bill_GUI(maHoaDon).setVisible(true);
-//        }
-////        else if(o.equals(btnTinh)) {
-////        	txtMKH.setText(taoMaKhachHangTuDong());
-////        	txtMPDP.setText(taoMaPhieuDatPhongTuDong());
-////        	txtSDT.setText("");
-////        	txtTenKH.setText("");
-////        	cboTrangThai.setSelectedIndex(0);
-////        	dateNgayTra.setDate(null);
-////        	dateNgayNhan.setDate(null);
-////        	dlp.setRowCount(0);
-////        	dlctps.setRowCount(0);
-////        	
-////        }
-//        }
-//    
-//
-//    // ========================== KIỂM TRA DỮ LIỆU NHẬP ==========================
-//    public boolean kiemTraDuLieuNhap() {
-//        if (dlp.getRowCount()==0) {
-//            JOptionPane.showMessageDialog(null, "Khách hàng chỉ được thêm chỉ khi phòng được thêm!");
-//            return false;
-//        }
-//
-//        if (dateNgayTra.getDate().before(dateNgayNhan.getDate())) {
-//            JOptionPane.showMessageDialog(null, "Ngày trả không thể trước ngày nhận!");
-//            return false;
-//        }
-//        if(txtSDT.getText().trim().length()==0) {
-//        	JOptionPane.showMessageDialog(null,"Vui lòng nhạp số điện thoại!");
-//        	return false;
-//        }
-//        
-//        String sdt = txtSDT.getText().trim();
-//        if (!sdt.matches("\\d+")) {
-//            JOptionPane.showMessageDialog(null, "Số điện thoại chỉ được chứa chữ số!");
-//            return false;
-//        } else if (sdt.length() != 10) {
-//            JOptionPane.showMessageDialog(null, "Số điện thoại phải có đúng 10 số!");
-//            return false;
-//        }
-//         if(txtTenKH.getText().trim().length()==0) {
-//        	 JOptionPane.showMessageDialog(null,"Vui lòng nhập tên khách hàng!");
-//        	  txtTenKH.requestFocus();
-//        	  return false;
-//         }
-//        
-//        for (KhachHang khh : khd.getAllKhachHang()) {
-//            if (!khh.getMaKhachHang().equals(txtMKH.getText()) &&
-//                khh.getSoDienThoai().equals(txtSDT.getText())) {
-//                JOptionPane.showMessageDialog(null, "Số điện thoại này đã tồn tại cho khách hàng khác!");
-//                txtSDT.requestFocus();
-//                return false;
-//            }
-//        }
-//
-//        return true;
-//    }
-//
-//    
-//    
-//    private void xuLyChonNgay() {
-//        // Lấy ngày nhận và ngày trả
-//        Date ngayNhan = dateNgayNhan.getDate();
-//        Date ngayTra = dateNgayTra.getDate();
-//
-//        // Nếu chưa chọn đủ 2 ngày
-//        if (ngayNhan == null || ngayTra == null) {
-//            return;
-//        }
-//
-//        // Lấy ngày hiện tại (bỏ phần giờ để so sánh chuẩn)
-//        LocalDate homNay = LocalDate.now();
-//        LocalDate nhan = ngayNhan.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//        LocalDate tra = ngayTra.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//
-//        // 
-//        if (nhan.isBefore(homNay)) {
-//            JOptionPane.showMessageDialog(this,
-//                "Ngày nhận phải từ hôm nay trở đi!",
-//                "Lỗi chọn ngày",
-//                JOptionPane.ERROR_MESSAGE);
-//            dateNgayNhan.setDate(null);
-//            return;
-//        }
-//
-//        // 
-//        if (!tra.isAfter(nhan)) {
-//            JOptionPane.showMessageDialog(this,
-//                "Ngày trả phải lớn hơn ngày nhận!",
-//                "Lỗi chọn ngày",
-//                JOptionPane.ERROR_MESSAGE);
-//            dateNgayTra.setDate(null);
-//            return;
-//        }
-//
-//        //
-//        long khoangCach = ChronoUnit.DAYS.between(homNay, tra);
-//        if (khoangCach > 31) {
-//            JOptionPane.showMessageDialog(this,
-//                "Khách sạn chỉ cho phép đặt tối đa 31 ngày kể từ hôm nay!",
-//                "Lỗi chọn ngày",
-//                JOptionPane.ERROR_MESSAGE);
-//            dateNgayTra.setDate(null);
-//            return;
-//        }
-//
-//        // ✅ Nếu hợp lệ — có thể gọi hàm tải phòng trống tại đây
-//        // loadDanhSachPhongTrong(nhan, tra);
-//    }
-//
-//    
-//    
-//    
-//    public void capNhatCBB() {
-//    	List<ChiPhiPhatSinh> dscpps= cppsd.getAllChiPhiPhatSinh();
-//    	for(ChiPhiPhatSinh tam: dscpps) {
-//    		cboChiPhi.addItem(tam.getTenChiPhiPhatSinh() +"-"+ tam.getGia());
-//    	}
-//    }
-//    public void themCPPSXB() {
-//        // ✅ Lấy mục được chọn trong combobox
-//        String mucChon = (String) cboChiPhi.getSelectedItem();
-//        if (mucChon == null || mucChon.trim().isEmpty()) {
-//            JOptionPane.showMessageDialog(null, "Vui lòng chọn chi phí cần thêm!", "Thông báo", JOptionPane.WARNING_MESSAGE);
-//            return;
-//        }
-//
-//        // ✅ Cắt tên chi phí và giá (định dạng: "TênChiPhi-Giá")
-//        String[] tach = mucChon.split("-");
-//        if (tach.length != 2) {
-//            JOptionPane.showMessageDialog(null, "Dữ liệu chi phí không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-//            return;
-//        }
-//
-//        String tenChiPhi = tach[0].trim();
-//        double gia = 0;
-//        try {
-//            gia = Double.parseDouble(tach[1].trim());
-//        } catch (NumberFormatException ex) {
-//            JOptionPane.showMessageDialog(null, "Giá chi phí không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-//            return;
-//        }
-//
-//        // ✅ Nhập số lượng
-//        String soLuongStr = JOptionPane.showInputDialog(null, "Nhập số lượng cho " + tenChiPhi + ":");
-//        if (soLuongStr == null) return; // người dùng bấm Cancel
-//
-//        int soLuongMoi;
-//        try {
-//            soLuongMoi = Integer.parseInt(soLuongStr);
-//            if (soLuongMoi <= 0) {
-//                JOptionPane.showMessageDialog(null, "Số lượng phải lớn hơn 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-//                return;
-//            }
-//        } catch (NumberFormatException ex) {
-//            JOptionPane.showMessageDialog(null, "Số lượng phải là số nguyên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-//            return;
-//        }
-//
-//        // ✅ Kiểm tra trùng chi phí trong bảng
-//        for (int i = 0; i < dlctps.getRowCount(); i++) {
-//            String ten = dlctps.getValueAt(i, 0).toString();
-//            if (ten.equalsIgnoreCase(tenChiPhi)) {
-//                // Nếu trùng thì cập nhật số lượng
-//                int soLuongHienTai = Integer.parseInt(dlctps.getValueAt(i, 2).toString());
-//                int tongSoLuong = soLuongHienTai + soLuongMoi;
-//
-//                if (tongSoLuong > 50) {
-//                    JOptionPane.showMessageDialog(null,
-//                        "Tổng số lượng của " + tenChiPhi + " không được vượt quá 50!",
-//                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-//                    return;
-//                }
-//
-//                // Cập nhật lại số lượng và thành tiền
-//                double thanhTienMoi = gia * tongSoLuong;
-//                dlctps.setValueAt(tongSoLuong, i, 2);
-//                dlctps.setValueAt(thanhTienMoi, i, 3);
-//
-////                JOptionPane.showMessageDialog(null, "Đã cập nhật lại số lượng của " + tenChiPhi + " thành " + tongSoLuong + ".");
-//                return;
-//            }
-//        }
-//
-//        // ✅ Nếu chưa có, thêm mới dòng
-//        if (soLuongMoi > 50) {
-//            JOptionPane.showMessageDialog(null, "Số lượng không được vượt quá 50!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-//            return;
-//        }
-//        ChiPhiPhatSinh tam= cppsd.getChiPhiTheoTen(tenChiPhi.trim());
-//        double thanhTien = gia * soLuongMoi;
-//        Object[] dongMoi = { tenChiPhi, gia, soLuongMoi, thanhTien,tam.getMaChiPhiPhatSinh()};
-//        dlctps.addRow(dongMoi);
-//
-////        JOptionPane.showMessageDialog(null, "Đã thêm chi phí: " + tenChiPhi + " thành công!");
-//    }
-//
-//
-//    @Override
-//    public void mouseClicked(MouseEvent e) {}
-//    @Override
-//    public void mousePressed(MouseEvent e) {}
-//    @Override
-//    public void mouseReleased(MouseEvent e) {}
-//    @Override
-//    public void mouseEntered(MouseEvent e) {}
-//    @Override
-//    public void mouseExited(MouseEvent e) {}
-//    
-//    
-//    public void getDSLP() {
-//        // Lưu lại giá trị ngày hiện tại (Date) để set lại sau khi refresh UI
-//        Date ngayNhanBanDau = dateNgayNhan.getDate();
-//        Date ngayTraBanDau  = dateNgayTra.getDate();
-//
-//        // Nếu bạn có xuLyChonNgay() cần gọi, giữ phía dưới nếu hàm này sẽ thay đổi dateNgayNhan/dateNgayTra.
-//        xuLyChonNgay();
-//
-//        // Chuyển sang LocalDate để xử lý logic
-//        LocalDate ngayNhanMoi = null;
-//        LocalDate ngayTraMoi  = null;
-//
-//        if (ngayNhanBanDau != null)
-//            ngayNhanMoi = ngayNhanBanDau.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//        if (ngayTraBanDau != null)
-//            ngayTraMoi = ngayTraBanDau.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//
-//        // Xóa panel cũ (chỉ xóa nội dung, sau đó add lại header pTopPhong)
-//        pDanhSachPhong.removeAll();
-//
-//        // Add lại header chứa: ngày nhận + ngày trả + nút Cập nhật
-//        pDanhSachPhong.add(pTopPhong);
-//
-//        // Nếu người dùng chưa chọn cả hai ngày thì KHÔNG hiển thị phòng nào
-//        if (ngayNhanMoi == null || ngayTraMoi == null) {
-//            JLabel thongBao = new JLabel("Vui lòng chọn ngày nhận và ngày trả để xem phòng trống.");
-//            thongBao.setFont(new Font("Segoe UI", Font.ITALIC, 16));
-//            thongBao.setForeground(Color.GRAY);
-//            thongBao.setHorizontalAlignment(SwingConstants.CENTER);
-//            thongBao.setBorder(BorderFactory.createEmptyBorder(40, 10, 40, 10));
-//            pDanhSachPhong.add(thongBao);
-//
-//            // set lại ngày (giữ nguyên những gì user đã chọn trước đó)
-//            dateNgayNhan.setDate(ngayNhanBanDau);
-//            dateNgayTra.setDate(ngayTraBanDau);
-//
-//            pDanhSachPhong.revalidate();
-//            pDanhSachPhong.repaint();
-//            return;
-//        }
-//
-//        // Nếu có ngày → hiển thị phòng trống phù hợp
-//        List<LoaiPhong> dsLoaiPhong = dslp.getAllLoaiPhong();
-//        List<ChiTietPhieuDatPhong> dsChiTiet = dsctpdp.getAllChiTietPhieuDatPhong();
-//
-//        for (LoaiPhong lp : dsLoaiPhong) {
-//            List<Phong> dsPhongTheoLoai = dsp.getPhongTheoMaLoaiPhong(lp.getMaLoaiPhong());
-//            List<String> maPhongHopLe = new ArrayList<>();
-//
-//            for (Phong p : dsPhongTheoLoai) {
-//                if (!p.getTrangThai().equalsIgnoreCase("Trống")) continue;
-//
-//                boolean biTrung = false;
-//                for (ChiTietPhieuDatPhong ct : dsChiTiet) {
-//                    if (!ct.getPhong().getMaPhong().equals(p.getMaPhong())) continue;
-//
-//                    // đặt tên khác để tránh che phủ biến ngoài
-//                    LocalDate ngayNhanCuDP = ct.getNgayNhanThuc();
-//                    LocalDate ngayTraCuDP  = ct.getNgayTraThuc();
-//                    if (ngayNhanCuDP == null || ngayTraCuDP == null) continue;
-//
-//                    // Kiểm tra khoảng thời gian có giao nhau không
-//                    // nếu không (ngayTraMoi trước ngayNhanCuDP) hoặc (ngayNhanMoi sau ngayTraCuDP) => không trùng
-//                    if (!(ngayTraMoi.isBefore(ngayNhanCuDP) || ngayNhanMoi.isAfter(ngayTraCuDP))) {
-//                        biTrung = true;
-//                        break;
-//                    }
-//                }
-//
-//                if (!biTrung) maPhongHopLe.add(p.getMaPhong());
-//            }
-//
-//            if (!maPhongHopLe.isEmpty()) {
-//                String title = lp.getTenLoaiPhong() + " - " + lp.getGia() + " VND / 1 đêm";
-//                pDanhSachPhong.add(createRoomSection(title, maPhongHopLe, mauXanhDam, mauVangDong));
-//            }
-//        }
-//
-//        // Set lại giá trị ngày vào JDateChooser để đảm bảo hiển thị (phòng hợp lệ đã được add)
-//        dateNgayNhan.setDate(ngayNhanBanDau);
-//        dateNgayTra.setDate(ngayTraBanDau);
-//
-//        pDanhSachPhong.revalidate();
-//        pDanhSachPhong.repaint();
-//    }
-//
-//
-//    private void themSuKienChonPhong(JButton nutPhong, String maPhong) {
-//        nutPhong.addActionListener(e -> {
-//            Phong phong = dsp.timPhongTheoMa(maPhong);
-//            if (phong == null) return;
-//
-//            // 🟡 Lấy ngày nhận và ngày trả từ JDateChooser
-//            Date nhan = dateNgayNhan.getDate();
-//            Date tra = dateNgayTra.getDate();
-//
-//            if (nhan == null || tra == null) {
-//                JOptionPane.showMessageDialog(this,
-//                    "Vui lòng chọn ngày nhận và ngày trả trước khi chọn phòng!",
-//                    "Thiếu thông tin ngày", JOptionPane.WARNING_MESSAGE);
-//                return;
-//            }
-//
-//            LocalDate ngayNhan = nhan.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-//            LocalDate ngayTra = tra.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-//
-//            // 🟢 Kiểm tra hợp lệ: ngày trả phải SAU ngày nhận ít nhất 1 ngày
-//            if (!ngayTra.isAfter(ngayNhan)) {
-//                JOptionPane.showMessageDialog(this,
-//                    "Ngày trả phải sau ngày nhận ít nhất 1 ngày!",
-//                    "Ngày không hợp lệ", JOptionPane.ERROR_MESSAGE);
-//                return;
-//            }
-//
-//            // 🟢 Xử lý chọn/bỏ chọn màu nút
-//            if (nutPhongDangChon == nutPhong) {
-//                nutPhongDangChon.setBackground(new Color(240, 240, 240)); // trả về màu gốc
-//                nutPhongDangChon = null;
-//                return;
-//            }
-//
-//            if (nutPhongDangChon != null) {
-//                nutPhongDangChon.setBackground(new Color(240, 240, 240)); // bỏ chọn nút cũ
-//            }
-//
-//            nutPhongDangChon = nutPhong;
-//            nutPhongDangChon.setBackground(new Color(100, 149, 237)); // xanh đậm khi được chọn
-//
-//            // 🟡 Kiểm tra trùng phòng trong bảng
-//            for (int i = 0; i < dlp.getRowCount(); i++) {
-//                if (dlp.getValueAt(i, 0).toString().equals(maPhong)) {
-//                    JOptionPane.showMessageDialog(this,
-//                        "Phòng này đã được chọn!",
-//                        "Thông báo", JOptionPane.WARNING_MESSAGE);
-//                    hienThiTienCocVaTienTongTienPhong();
-//                    return;
-//                }
-//            }
-//
-//            // 🟢 Nếu hợp lệ → thêm phòng vào danh sách
-//            Object[] dongMoi = {
-//                phong.getMaPhong(),
-//                phong.getLoaiPhong().getTenLoaiPhong(),
-//                phong.getLoaiPhong().getGia(),
-//                phong.getLoaiPhong().getSucChua(),
-//            };
-//            dlp.addRow(dongMoi);
-//            hienThiTienCocVaTienTongTienPhong();
-//
-//            JOptionPane.showMessageDialog(this,
-//                "Đã thêm phòng " + maPhong + " vào danh sách!");
-//        });
-//    }
-//
-//    
-//
-//    // dùng model (dlp) để addRow thay vì gọi vào JTable
-//    public TaoPhieuDatPhong_GUI(String maPhieu, String maKhachHang, String maNV) {
-//    	this(maNV);
-//    	
-//        // đảm bảo dsctpdp đã được khởi tạo (nếu cần)
-//        dsctpdp = new ChiTietPhieuDatPhong_DAO();
-//        // nếu dlp chưa khởi tạo (trường hợp gọi constructor này trực tiếp), khởi tạo model và table
-//        if (dlp == null) {
-//            String[] cols = {"STT", "Mã phòng", "Loại phòng", "Ngày nhận thực", "Ngày trả thực", "Số đêm", "Giá", "Thành tiền"};
-//            dlp = new DefaultTableModel(cols, 0);
-//            tblPhong = new JTable(dlp);
-//        }
-//
-//        List<ChiTietPhieuDatPhong> dsctpdpp = dsctpdp.getChiTietTheoMaPhieu(maPhieu);
-//        for (int i = 0; i < dsctpdpp.size(); i++) {
-//            ChiTietPhieuDatPhong ct = dsctpdpp.get(i);
-//
-//            long soDemO = ChronoUnit.DAYS.between(ct.getNgayNhanThuc(), ct.getNgayTraThuc());
-//
-//            // Sử dụng model dlp.addRow(...)
-//            dlp.addRow(new Object[] {
-//                i + 1,
-//                ct.getPhong().getMaPhong(),
-//                ct.getPhong().getLoaiPhong().getTenLoaiPhong(), 
-//                ct.getNgayNhanThuc(),
-//                ct.getNgayTraThuc(),
-//                soDemO,
-//                ct.getPhong().getLoaiPhong().getGia(),
-//                soDemO*ct.getPhong().getLoaiPhong().getGia()
-//            });
-//        }
-//        KhachHang kh= khd.getKhachHangTheoMa(maKhachHang);
-//        txtMKH.setText(kh.getMaKhachHang());
-//        txtTenKH.setText(kh.getHoTen());
-//        txtNV.setText(maNV);
-//        txtSDT.setText(kh.getSoDienThoai());
-//        txtMPDP.setText(maPhieu);
-//        PhieuDatPhong tam= pdp.timPhieuDatPhongTheoMa(maPhieu);
-//        cboTrangThai.setSelectedItem(tam.getTrangThai());
-////        PhieuDatPhong tam2= doiTuongTongTienPhong();
-////        txtTienCoc.setText(String.format("%,.0f", tam2.getTienCoc()));
-////        lblTongTien.setText("Tổng tiền: "+String.format("%,.0f",tam2.getTongTienPhong()));
-//        hienThiTienCocVaTienTongTienPhong();
-//    }
-//    
-//    
-//    
-//    
-//    
-//    
-//    private JPanel createRoomSection(String title, List<String> dsMaPhong, Color mauXanhDam, Color mauVangDong) {
-//        JPanel p = new JPanel(new BorderLayout());
-//        p.setBackground(Color.WHITE);
-//
-//        // ====== Tiêu đề loại phòng ======
-//        JLabel lbl = new JLabel(title);
-//        lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-//        lbl.setForeground(mauXanhDam);
-//        lbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 0));
-//        p.add(lbl, BorderLayout.NORTH);
-//
-//        // ====== Grid chứa các phòng ======
-//        JPanel grid = new JPanel(new GridLayout(0, 8, 8, 8)); // 8 cột, khoảng cách 8px
-//        grid.setBackground(Color.WHITE);
-//        grid.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-//
-//        // ====== Tạo nút cho từng mã phòng ======
-//        for (String maPhong : dsMaPhong) {
-//            JButton btnPhong = new JButton(maPhong);
-//            btnPhong.setBackground(Color.WHITE);
-//            btnPhong.setFocusPainted(false);
-//            btnPhong.setBorder(BorderFactory.createLineBorder(mauXanhDam, 1, true));
-//            btnPhong.setForeground(mauXanhDam);
-//            btnPhong.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-//            btnPhong.setMargin(new Insets(2, 2, 2, 2));
-//
-//            //  Hiệu ứng hover
-//            btnPhong.addMouseListener(new java.awt.event.MouseAdapter() {
-//                @Override
-//                public void mouseEntered(java.awt.event.MouseEvent evt) {
-//                    btnPhong.setBackground(mauVangDong);
-//                    btnPhong.setForeground(Color.WHITE);
-//                }
-//
-//                @Override
-//                public void mouseExited(java.awt.event.MouseEvent evt) {
-//                    btnPhong.setBackground(Color.WHITE);
-//                    btnPhong.setForeground(mauXanhDam);
-//                }
-//            });
-//
-//            //  Sự kiện khi người dùng click vào phòng
-//            btnPhong.addActionListener(e -> {
-//                Phong phong = dsp.timPhongTheoMa(maPhong);
-//                if (phong == null) return;
-//
-//                // ⚠️ Kiểm tra ngày nhận & ngày trả đã được chọn chưa
-//                if (dateNgayNhan.getDate() == null || dateNgayTra.getDate() == null) {
-//                    JOptionPane.showMessageDialog(null,
-//                        "Vui lòng chọn ngày nhận và ngày trả đúng trước khi chọn phòng!",
-//                        "Thiếu thông tin",
-//                        JOptionPane.WARNING_MESSAGE);
-//                    return;
-//                }
-//
-//                // Chuyển sang LocalDate
-//                LocalDate ngayNhan = dateNgayNhan.getDate()
-//                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//                LocalDate ngayTra = dateNgayTra.getDate()
-//                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//
-//                // Kiểm tra hợp lệ ngày nhận - ngày trả
-//                if (ngayTra.isBefore(ngayNhan)) {
-//                    JOptionPane.showMessageDialog(null,
-//                        "Ngày trả phải sau ngày nhận!",
-//                        "Lỗi",
-//                        JOptionPane.ERROR_MESSAGE);
-//                    return;
-//                }
-//
-//                // Kiểm tra trùng phòng trong bảng
-//                for (int i = 0; i < dlp.getRowCount(); i++) {
-//                    String ma = dlp.getValueAt(i, 1).toString(); // cột Mã phòng
-//                    if (ma.equals(maPhong)) {
-//                        JOptionPane.showMessageDialog(null,
-//                            "Phòng này đã được chọn!",
-//                            "Thông báo",
-//                            JOptionPane.WARNING_MESSAGE);
-//                        return;
-//                    }
-//                }
-//
-//                //  Tính số đêm ở và thành tiền
-//                long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTra);
-//                double gia = phong.getLoaiPhong().getGia();
-//                double thanhTien = soDemO * gia;
-//
-//                //  Thêm dòng mới vào bảng
-////                System.out.println("DEBUG: maPhong=" + phong.getMaPhong() + 
-////                        ", tenLoaiPhong=" + phong.getLoaiPhong().getTenLoaiPhong()+ phong.getLoaiPhong().getGia());
-//
-//                dlp.addRow(new Object[]{
-//                    dlp.getRowCount() + 1,                 // STT
-//                    phong.getMaPhong(),                    // Mã phòng
-//                    phong.getLoaiPhong().getTenLoaiPhong(),// Loại phòng
-//                    ngayNhan,                              // Ngày nhận
-//                    ngayTra,                               // Ngày trả
-//                    soDemO,                                // Số đêm ở
-//                    gia,                                   // Giá/đêm
-//                    thanhTien                              // Thành tiền
-//                });
-//                hienThiTienCocVaTienTongTienPhong();
+package gui;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.awt.*;
+import java.awt.event.*;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
+
+import com.toedter.calendar.JDateChooser;
+
+import dao.*;
+import entity.PhieuDatPhong;
+import entity.Phong;
+import entity.ChiPhiPhatSinh;
+import entity.ChiTietChiPhiPhatSinh;
+import entity.ChiTietPhieuDatPhong;
+import entity.KhachHang;
+import entity.LoaiPhong;
+import entity.NhanVien;
+
+public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, MouseListener{
+    private static final long serialVersionUID = 1L;
+
+    // ====== BIẾN TOÀN CỤC ======
+    private JDateChooser dateNgayNhan, dateNgayTra;
+    private JTextField txtSDT, txtTenKH, txtNgayTao, txtTienCoc, txtNV, txtMKH, txtMPDP, txtNguoiLon, txtTreEm, txtThucTe, txtSoNguoiThuc,txtTienCocMoi;
+    private JCheckBox chkVN;
+    private DefaultTableModel dlp, dlctps;
+    private JComboBox<String> cboTrangThai, cboChiPhi;
+    private JButton btnInPhieu, btnXoa, btnThemCP, btnXoaCP, btnLuu, btnHuy, btnTT, btnXR, btnCapNhat, btnXNDP, btnTPS, btnGoiY;
+    private JTable tblPhong, tblChiPhi;
+    private JLabel lblTongTien, lblTongCP, lblTongTatCa,lblThongBao;
+    private Color mauXanhDam, mauVangDong;
+    private LoaiPhong_DAO dslp;
+    private Phong_DAO dsp;
+    private ChiTietPhieuDatPhong_DAO dsctpdp;
+    private PhieuDatPhong_DAO pdp;
+    private KhachHang_DAO khd;
+    private NhanVien_DAO nvd;
+    private ChiPhiPhatSinh_DAO cppsd;
+    private ChiTietChiPhiPhatSinh_DAO ctcppsd;
+    private LoaiPhong_DAO lpd;
+    private JPanel pPhongTrong,pTop,pHang2, pHang1;
+    private int soNguoiLon = 0;
+    private int soTreEm = 0;
+    private String mNV;
+
+    
+    public TaoPhieuDatPhong_GUI(String maNV) {
+    	mNV= maNV;
+        setLayout(new BorderLayout());
+        setBackground(new Color(249, 249, 249));
+
+        // ====== MÀU VÀ FONT ======
+        mauXanhDam = new Color(30, 61, 89);
+        mauVangDong = new Color(212, 175, 55);
+        Font fontTieuDe = new Font("Segoe UI Semibold", Font.PLAIN, 16);
+
+        // ====== KHỞI TẠO DAO ======
+        dslp = new LoaiPhong_DAO();
+        dsp = new Phong_DAO();
+        dsctpdp = new ChiTietPhieuDatPhong_DAO();
+        pdp = new PhieuDatPhong_DAO();
+        khd = new KhachHang_DAO();
+        nvd = new NhanVien_DAO();
+        cppsd = new ChiPhiPhatSinh_DAO();
+        ctcppsd = new ChiTietChiPhiPhatSinh_DAO();
+        lpd = new LoaiPhong_DAO();
+        
+        txtNguoiLon= new JTextField();
+        txtTreEm= new JTextField();
+        txtThucTe = new JTextField("0");
+
+        // ====== CHIA KHUNG CHÍNH ======
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        splitPane.setDividerLocation(0.7);
+        splitPane.setResizeWeight(0.7);
+        splitPane.setContinuousLayout(true);
+        splitPane.setBorder(null);
+
+        // ====== PANEL TRÁI ======
+        JPanel pLeft = new JPanel();
+        pLeft.setLayout(new BoxLayout(pLeft, BoxLayout.Y_AXIS));
+        pLeft.setBackground(new Color(249, 249, 249));
+        pLeft.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 10));
+
+        // --- KHUNG THÔNG TIN PHIẾU ---
+        JPanel pThongTin = new JPanel(new GridBagLayout());
+        pThongTin.setBackground(Color.WHITE);
+        pThongTin.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(mauXanhDam, 1, true),
+                "Thông tin phiếu đặt phòng",
+                TitledBorder.LEFT, TitledBorder.TOP, fontTieuDe, mauXanhDam));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        
+     // KÍCH THƯỚC Ô NHẬP
+        Dimension inputSize = new Dimension(220, 27);
+
+        // THÊM KHOẢNG CÁCH GIỮA CÁC Ô
+        gbc.insets = new Insets(5, 10, 5, 10);
+
+     // HÀNG 0 – Mã phiếu + Ngày tạo
+        gbc.gridy = 0;
+        pThongTin.add(new JLabel("Mã phiếu:"), gbc);
+
+        gbc.gridx = 1;
+        txtMPDP = new JTextField();
+        txtMPDP.setPreferredSize(inputSize);
+        txtMPDP.setEditable(false);
+        pThongTin.add(txtMPDP, gbc);
+
+        // Ngày tạo
+        gbc.gridx = 2;
+        pThongTin.add(new JLabel("Ngày tạo:"), gbc);
+
+        gbc.gridx = 3;
+        txtNgayTao = new JTextField(LocalDate.now().toString());
+        txtNgayTao.setEditable(false);
+        txtNgayTao.setPreferredSize(inputSize);
+        pThongTin.add(txtNgayTao, gbc);
+
+
+        // HÀNG 1 – Mã KH + Tên KH
+        gbc.gridy = 1;
+
+        gbc.gridx = 0;
+        pThongTin.add(new JLabel("Mã KH:"), gbc);
+
+        gbc.gridx = 1;
+        txtMKH = new JTextField();
+        txtMKH.setEditable(false);
+        txtMKH.setPreferredSize(inputSize);
+        pThongTin.add(txtMKH, gbc);
+
+        gbc.gridx = 2;
+        pThongTin.add(new JLabel("Tên KH:"), gbc);
+
+        gbc.gridx = 3;
+        txtTenKH = new JTextField();
+        txtTenKH.setEditable(false);
+        txtTenKH.setPreferredSize(inputSize);
+        pThongTin.add(txtTenKH, gbc);
+
+
+        // HÀNG 2 – SDT + Người Việt Nam
+        gbc.gridy = 2;
+
+        gbc.gridx = 0;
+        pThongTin.add(new JLabel("Số điện thoại:"), gbc);
+
+        gbc.gridx = 1;
+        txtSDT = new JTextField();
+        txtSDT.setEditable(false);
+        txtSDT.setPreferredSize(inputSize);
+        pThongTin.add(txtSDT, gbc);
+
+        gbc.gridx = 2;
+        pThongTin.add(new JLabel("Người Việt Nam:"), gbc);
+
+        gbc.gridx = 3;
+        chkVN = new JCheckBox("Có");
+        chkVN.setBackground(Color.WHITE);
+        chkVN.setSelected(true);
+        pThongTin.add(chkVN, gbc);
+
+
+        // HÀNG 3 – Tổng tiền cọc + Tiền cọc mới
+        gbc.gridy = 3;
+
+        gbc.gridx = 0;
+        pThongTin.add(new JLabel("Tổng tiền cọc:"), gbc);
+
+        gbc.gridx = 1;
+        txtTienCoc = new JTextField();
+        txtTienCoc.setEditable(false);
+        txtTienCoc.setPreferredSize(inputSize);
+        pThongTin.add(txtTienCoc, gbc);
+
+        gbc.gridx = 2;
+        pThongTin.add(new JLabel("Tiền cọc mới:"), gbc);
+
+        gbc.gridx = 3;
+        txtTienCocMoi = new JTextField();
+        txtTienCocMoi.setEditable(getFocusTraversalKeysEnabled());
+        txtTienCocMoi.setPreferredSize(inputSize);
+        pThongTin.add(txtTienCocMoi, gbc);
+
+
+        // HÀNG 4 – Trạng thái + Nút xác nhận đặt phòng
+        gbc.gridy = 4;
+
+        gbc.gridx = 0;
+        pThongTin.add(new JLabel("Trạng thái:"), gbc);
+
+        gbc.gridx = 1;
+        cboTrangThai = new JComboBox<>(new String[]{"Đã đặt", "Đang ở", "Hoàn thành", "Đã hủy"});
+        pThongTin.add(cboTrangThai, gbc);
+
+        // Nút xác nhận
+        gbc.gridx = 3;
+        btnInPhieu = new JButton("🖨 Xác nhận đặt phòng");
+        btnInPhieu.setBackground(mauVangDong);
+        btnInPhieu.setForeground(mauXanhDam);
+        btnInPhieu.setFocusPainted(false);
+        btnInPhieu.setEnabled(false);
+        pThongTin.add(btnInPhieu, gbc);
+
+
+
+        // --- KHUNG CHI TIẾT PHÒNG ---
+        JPanel pChiTietPhong = new JPanel(new BorderLayout());
+        pChiTietPhong.setBackground(Color.WHITE);
+        pChiTietPhong.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(mauXanhDam, 1, true),
+                "Chi tiết phòng thuê",
+                TitledBorder.LEFT, TitledBorder.TOP, fontTieuDe, mauXanhDam));
+
+        String[] cols = {"STT", "Mã phòng", "Loại phòng", "Ngày nhận", "Ngày trả","Ngày trả thực", "Số đêm", "Giá", "Thành tiền"};
+        dlp = new DefaultTableModel(cols, 0);
+        tblPhong = new JTable(dlp);
+        pChiTietPhong.add(new JScrollPane(tblPhong), BorderLayout.CENTER);
+
+        JPanel pPhongBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pPhongBtn.setBackground(Color.WHITE);
+        btnXoa = new JButton("Xóa");
+        lblTongTien = new JLabel("Tổng tiền: 0 VNĐ");
+        btnXNDP= new JButton("Tạo Phiếu");
+        btnTPS= new JButton("Trả phòng");
+        pPhongBtn.add(btnXNDP);
+        pPhongBtn.add(btnTPS);
+        pPhongBtn.add(btnXoa);
+        pPhongBtn.add(lblTongTien);       
+        pChiTietPhong.add(pPhongBtn, BorderLayout.SOUTH);
+
+        pLeft.add(pThongTin);
+        pLeft.add(Box.createVerticalStrut(10));
+        pLeft.add(pChiTietPhong);
+
+        // ====== PANEL PHẢI ======
+        JPanel pRight = new JPanel();
+        pRight.setLayout(new BorderLayout(10, 10));
+        pRight.setBackground(new Color(249, 249, 249));
+        pRight.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 15));
+
+        // --- KHUNG DANH SÁCH PHÒNG TRỐNG ---
+        pPhongTrong = taoBangPhongTrong(fontTieuDe, maNV);
+
+        // --- KHUNG CHI PHÍ PHÁT SINH ---
+        JPanel pChiPhi = taoBangChiPhi(fontTieuDe);
+
+        // --- CHIA TỶ LỆ 60/40 ---
+        JSplitPane splitRight = new JSplitPane(JSplitPane.VERTICAL_SPLIT, pPhongTrong, pChiPhi);
+        splitRight.setDividerLocation(0.6); // phòng trống 60%
+        splitRight.setResizeWeight(0.6);
+        splitRight.setContinuousLayout(true);
+        splitRight.setBorder(null);
+
+        pRight.add(splitRight, BorderLayout.CENTER);
+
+        // --- BOTTOM ---
+        JPanel pBottom = taoThanhToanCuoi(maNV);
+
+        // ====== GẮN LÊN GIAO DIỆN ======
+        splitPane.setLeftComponent(pLeft);
+        splitPane.setRightComponent(pRight);
+
+        add(splitPane, BorderLayout.CENTER);
+        add(pBottom, BorderLayout.SOUTH);
+        
+        kiemTraLayThongTinKHTuSDT();
+        capNhatCBBCPPS();
+        hienThiTienCocVaTienTongTienPhong();
+        
+//      btn.addActionListener(this);
+      btnCapNhat.addActionListener(this);
+      btnHuy.addActionListener(this);
+      btnInPhieu.addActionListener(this);
+      btnLuu.addActionListener(this);
+//     btnTinh.addActionListener(this);
+      btnThemCP.addActionListener(this);
+      btnXR.addActionListener(this);
+      btnTT.addActionListener(this);
+      btnXoa.addActionListener(this);
+      btnXNDP.addActionListener(this);
+      btnTPS.addActionListener(this);        
+      btnXoaCP.addActionListener(this);
+      btnGoiY.addActionListener(this);
+    }
+
+  
+ 
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		Object o= e.getSource();
+		if (o.equals(btnInPhieu)&&kiemTraDuLieuNhap()&&dieuKienNguoi()) {
+		    if (txtMPDP.getText().trim().isEmpty()) {
+		        JOptionPane.showMessageDialog(this,
+		                "Vui lòng nhập đầy đủ thông tin trước khi khởi tạo!");
+		        return;
+		    }
+		    if (!ktraThongTinPDP())
+		        return;
+		    KhachHang nkh = new KhachHang( txtMKH.getText(), txtTenKH.getText(), txtSDT.getText(), chkVN.isSelected() );
+		 
+		    int soNguoiLonVL = (txtNguoiLon.getText().trim().isEmpty()
+                    || txtNguoiLon.getText().trim().equals("0"))? 1 : Integer.parseInt(txtNguoiLon.getText().trim());
+
+		    int soTreEmVL = (txtTreEm.getText().trim().isEmpty()
+                    || txtTreEm.getText().trim().equals("0"))? 1 : Integer.parseInt(txtTreEm.getText().trim());
+
+		    PhieuDatPhong phieuTam = new PhieuDatPhong(
+		        txtMPDP.getText(),
+		        nkh,
+		        new NhanVien(txtNV.getText()),
+		        LocalDate.now(),
+		        cboTrangThai.getSelectedItem().toString(),
+		        soNguoiLonVL,
+		        soTreEmVL
+		    );
+		    int luaChon = JOptionPane.showConfirmDialog( null, "Bấm Yes để xác nhận tạo phiếu", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
+		    if (luaChon == JOptionPane.YES_OPTION) {
+		    	xuLyNutInPhieu();
+		    	 new InPhieuDatPhong_GUI( phieuTam, (DefaultTableModel) tblPhong.getModel(), nkh, txtNV.getText(),
+				 cboTrangThai.getSelectedItem().toString(), doiTuongTongTienPhong(), Double.parseDouble(txtTienCocMoi.getText()));
+		    	
+				 getDSLP();
+		    } 
+
+		   
+		}
+
+		else if(o.equals(btnXNDP)) {
+			if(dieuKienNguoi()) {
+				moKhungNhap();
+			}
+			
+		}
+		else if(o.equals(btnThemCP)) {
+			themCPPSXB();
+			hienThiTienCocVaTienTongTienPhong();
+		}
+		else if(o.equals(btnXoa)) {
+			xoaPhong();
+			hienThiTienCocVaTienTongTienPhong();
+		}
+		else if(o.equals(btnTPS)) {
+			    int x = tblPhong.getSelectedRow();
+			    if (x == -1) {
+			        JOptionPane.showMessageDialog(null, "Vui lòng chọn phòng cần trả sớm!");
+			        return;
+			    }
+			    if(dlp.getRowCount()==1) {
+					JOptionPane.showMessageDialog(null,"Phiếu đặt phòng này chỉ 1 phòng bạn hãy bấm nút hủy đặt phòng!");
+					return;
+				}
+			    String maPhongTam= dlp.getValueAt(x, 1).toString();
+//			    new TraPhong_GUI(txtMPDP.getText(), maPhongTam);
+			    new TraPhong_GUI(txtMPDP.getText(), maPhongTam, (DefaultTableModel) tblPhong.getModel(), x); 
+			    hienThiTienCocVaTienTongTienPhong();
+		}else if(o.equals(btnXoaCP)) {
+			xoaCPPSXB();
+		}else if(o.equals(btnLuu)) {
+			if( kiemTraDuLieuNhap()&&dieuKienNguoi()) {
+				if(xuLyNutLuu()) {
+					JOptionPane.showMessageDialog(null,"Lưu thành công!");
+					getDSLP();
+					return;
+				}else {
+					JOptionPane.showMessageDialog(null,"Lưu thất bại!");
+					return;
+				}				
+				
+			}
+			
+		}
+		else if(o.equals(btnXR)) {
+			String mpdp= txtMPDP.getText();
+			if(mpdp.trim().length()!=0) {
+				moKhoaTatCaTruong();
+				txtMPDP.setText(taoMaPhieuDatPhongTuDong());
+				txtMKH.setText(taoMaKhachHangTuDong());
+				txtTenKH.setText("");
+				txtSDT.setText("");
+				txtNgayTao.setText(LocalDate.now().toString());
+				dlp.setRowCount(0);
+				dlctps.setRowCount(0);
+				soNguoiLon= 0;
+			   	soTreEm= 0;
+			    txtSoNguoiThuc.setText("0");  
+				
+			}
+		}else if (o.equals(btnGoiY)) {
+		    List<Phong> dsPhongTrong = layDanhSachPhongTrong();
+		    int soNguoi = 0;
+		    try {
+		        soNguoi = Integer.parseInt(txtSoNguoiThuc.getText().trim())==0? 1: Integer.parseInt(txtSoNguoiThuc.getText().trim());
+		    } catch (Exception e2) {
+		        JOptionPane.showMessageDialog(null, "Vui lòng nhập số người thực hợp lệ!");
+		        return;
+		    }
+		    if(dsPhongTrong!=null) {
+		    	 GoiYPhong_GUI goiY = new GoiYPhong_GUI(dsPhongTrong, soNguoi);
+				    goiY.setVisible(true);
+		    }
+		   
+		}
+		else if(o.equals(btnTT)) {
+			if(kiemTraDuLieuNhap()&&dieuKienNguoi()&&dieuKienThanhToan()) {
+				 int luaChon = JOptionPane.showConfirmDialog( null, "Bạn có chắn thanh toán không", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
+				    if (luaChon == JOptionPane.YES_OPTION) {
+				    	xuLyNutLuu();
+				    	// lưu hóa đơn vào dâyd
+				    	 //mở giao diện bill ở đây 
+				    							 
+				    } 
+			}
+		}else if(o.equals(btnHuy)) {
+			if(kiemTraDuLieuNhap()) {
+				huyDatPhong();
+					
+			}
+		}				
+	}
+	public void xoaPhong() {
+	    int x = tblPhong.getSelectedRow();
+	    if (x == -1) {
+	        JOptionPane.showMessageDialog(null, "Vui lòng chọn dòng cần xóa!");
+	        return;
+	    }
+	    String maPhong = dlp.getValueAt(x, 1).toString();
+	    LocalDate today = LocalDate.now();
+	    List<ChiTietPhieuDatPhong> ds = dsctpdp.getChiTietTheoMaPhieu(txtMPDP.getText());
+
+	    for (ChiTietPhieuDatPhong ct : ds) {
+
+	        if (ct.getPhong() == null) continue;
+	        if (maPhong.equals(ct.getPhong().getMaPhong())) {
+
+	            LocalDate ngayNhan = ct.getNgayNhanThuc();
+
+	            if (ngayNhan != null) {
+	                long daysBetween = ChronoUnit.DAYS.between(today, ngayNhan);
+	                if (daysBetween <= 2) {
+	                    JOptionPane.showMessageDialog(null,
+	                            "Phòng này có ngày nhận quá gần (≤ 2 ngày), không thể xóa!");
+	                    return;
+	                }
+	                int res = JOptionPane.showConfirmDialog(
+	                        null,
+	                        "Phòng này đã có trong hệ thống.\n" +
+	                        "Tuy nhiên ngày nhận vẫn còn sớm trước 2 ngày.\n" +
+	                        "Bạn có chắc muốn tiếp tục xóa không?",
+	                        "Xác nhận xóa",
+	                        JOptionPane.YES_NO_OPTION
+	                );
+
+	                if (res != JOptionPane.YES_OPTION) {
+	                    return; 
+	                }
+	            }
+	        }
+	    }
+	    dlp.removeRow(x);
+	    capNhatSoThuTu();
+	    hienThiTienCocVaTienTongTienPhong();
+	    JOptionPane.showMessageDialog(null, "Xóa thành công!");
+	}
+	
+	private void capNhatSoThuTu() {
+	    for (int i = 0; i < dlp.getRowCount(); i++) {
+	        dlp.setValueAt(i + 1, i, 0); 
+	    }
+	}
+
+	public boolean ktraThongTinPDP() {
+		String tenKH= txtTenKH.getText();
+		String sdt= txtSDT.getText();
+		if(sdt.trim().length()==0) {
+			JOptionPane.showMessageDialog(null,"Vui lòng nhập số điện thoại khách hàng!");
+			txtSDT.requestFocus();
+			return false;
+		}
+		if(tenKH.trim().length()==0) {
+			JOptionPane.showMessageDialog(null,"Vui lòng nhập tên khách hàng!");
+			txtTenKH.requestFocus();
+			return false;
+		}
+		return true;
+	}
+	
+	// ========================== KIỂM TRA DỮ LIỆU NHẬP ==========================
+    public boolean kiemTraDuLieuNhap() {
+        if (dlp.getRowCount()==0) {
+            JOptionPane.showMessageDialog(null, "Phiếu chỉ được tạo chỉ khi phòng được thêm!");
+            return false;
+        }
+        if(tblPhong.getRowCount()==-1) {
+        	Date ngayNhan = dateNgayNhan.getDate();
+            Date ngayTra = dateNgayTra.getDate();
+
+            // Kiểm tra đã chọn ngày chưa
+            if (ngayNhan == null) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày nhận!");
+                return false;
+            }
+            if (ngayTra == null) {
+                JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày trả!");
+                return false;
+            }
+
+            // Kiểm tra logic ngày
+            if (ngayTra.before(ngayNhan)) {
+                JOptionPane.showMessageDialog(null, "Ngày trả không thể trước ngày nhận!");
+                return false;
+            }
+        }
+        if(txtSDT.getText().trim().length()==0) {
+        	JOptionPane.showMessageDialog(null,"Vui lòng nhạp số điện thoại!");
+        	return false;
+        }
+        
+        String sdt = txtSDT.getText().trim();
+        if (!sdt.matches("\\d+")) {
+            JOptionPane.showMessageDialog(null, "Số điện thoại chỉ được chứa chữ số!");
+            return false;
+        } else if (sdt.length() != 10) {
+            JOptionPane.showMessageDialog(null, "Số điện thoại phải có đúng 10 số!");
+            return false;
+        }
+         if(txtTenKH.getText().trim().length()==0) {
+        	 JOptionPane.showMessageDialog(null,"Vui lòng nhập tên khách hàng!");
+        	  txtTenKH.requestFocus();
+        	  return false;
+         }
+        
+        for (KhachHang khh : khd.getAllKhachHang()) {
+            if (!khh.getMaKhachHang().equals(txtMKH.getText()) &&
+                khh.getSoDienThoai().equals(txtSDT.getText())) {
+                JOptionPane.showMessageDialog(null, "Số điện thoại này đã tồn tại cho khách hàng khác!");
+                txtSDT.requestFocus();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+	
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	   // ====== KHUNG CHI PHÍ PHÁT SINH ======
+    private JPanel taoBangChiPhi(Font f) {
+        JPanel pChiPhi = new JPanel(new BorderLayout());
+        pChiPhi.setBackground(Color.WHITE);
+        pChiPhi.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(mauXanhDam, 1, true),
+                "Chi phí phát sinh",
+                TitledBorder.LEFT, TitledBorder.TOP, f, mauXanhDam));
+
+        JPanel pChiPhiTop = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pChiPhiTop.setBackground(Color.WHITE);
+        cboChiPhi = new JComboBox<>();
+        btnThemCP = new JButton("Thêm");
+        btnXoaCP = new JButton("Xóa");
+        pChiPhiTop.add(new JLabel("Loại chi phí:"));
+        pChiPhiTop.add(cboChiPhi);
+        pChiPhiTop.add(btnThemCP);
+        pChiPhiTop.add(btnXoaCP);
+        pChiPhi.add(pChiPhiTop, BorderLayout.NORTH);
+
+        dlctps = new DefaultTableModel(new String[]{"Tên chi phí", "Giá", "Số lượng", "Thành tiền", "Mã"}, 0);
+        tblChiPhi = new JTable(dlctps);
+        tblChiPhi.getColumnModel().getColumn(4).setMinWidth(0);
+        tblChiPhi.getColumnModel().getColumn(4).setMaxWidth(0);
+        tblChiPhi.getColumnModel().getColumn(4).setWidth(0);
+        pChiPhi.add(new JScrollPane(tblChiPhi), BorderLayout.CENTER);
+
+        lblTongCP = new JLabel("Tổng chi phí: 0 VNĐ", SwingConstants.RIGHT);
+        lblTongCP.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        pChiPhi.add(lblTongCP, BorderLayout.SOUTH);
+
+        return pChiPhi;
+    }
+
+    private JPanel taoThanhToanCuoi(String maNV) {
+        JPanel pBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        pBottom.setBackground(new Color(249, 249, 249));
+        JLabel lblNV = new JLabel("Nhân viên: ");
+        txtNV = new JTextField(maNV);
+        txtNV.setEditable(false);
+        btnLuu = new JButton("💾 Lưu");
+        btnHuy = new JButton("❌ Hủy đặt phòng");
+        btnTT = new JButton("💳 Thanh toán");
+        btnXR = new JButton("Tạo phiếu mới");
+        lblTongTatCa = new JLabel("Tổng thanh toán: 0 VNĐ");
+        pBottom.add(lblNV);
+        pBottom.add(txtNV);
+        pBottom.add(btnLuu);
+        pBottom.add(btnHuy);
+        pBottom.add(btnTT);
+        pBottom.add(btnXR);
+        pBottom.add(lblTongTatCa);
+        return pBottom;
+    }
+
+    
+    
+    
+    // ====== CÁC HÀM HỖ TRỢ ======
+    private String taoMaPhieuDatPhongTuDong() {
+
+    	 // Lấy ngày hiện tại
+        LocalDate ngayHienTai = LocalDate.now();
+        String ngay = String.format("%02d", ngayHienTai.getDayOfMonth());
+        String thang = String.format("%02d", ngayHienTai.getMonthValue());
+        String nam = String.valueOf(ngayHienTai.getYear());
+
+        // Lấy danh sách phiếu hiện có (từ database hoặc list)
+        List<PhieuDatPhong> danhSachPhieu = pdp.getAllPhieuDatPhong();
+
+        // Đếm số phiếu trong ngày hiện tại
+        int dem = 0;
+        for (PhieuDatPhong p : danhSachPhieu) {
+            if (p.getMaPhieuDatPhong().contains("PDP" + ngay + thang + nam)) {
+                dem++;
+            }
+        }
+
+        // Tăng số thứ tự lên 1
+        dem++;
+
+        // Ghép lại chuỗi mã theo định dạng
+        String maPhieu = String.format("PDP%s%s%s%03d", ngay, thang, nam, dem);
+        return maPhieu; 
+
+    }
+
+    
+    
+    private String taoMaKhachHangTuDong() {
+    	 // Lấy ngày hiện tại
+        LocalDate ngayHienTai = LocalDate.now();
+        String ngay = String.format("%02d", ngayHienTai.getDayOfMonth());
+        String thang = String.format("%02d", ngayHienTai.getMonthValue());
+        String nam = String.valueOf(ngayHienTai.getYear());
+
+        // Lấy danh sách khách hàng hiện có (từ database hoặc DAO)
+        List<KhachHang> danhSachKhachHang = khd.getAllKhachHang();
+
+        // Đếm số khách hàng tạo trong ngày hiện tại
+        int dem = 0;
+        for (KhachHang kh : danhSachKhachHang) {
+            if (kh.getMaKhachHang().contains("KH" + ngay + thang + nam)) {
+                dem++;
+            }
+        }
+
+        // Tăng số thứ tự
+        dem++;
+
+        // Ghép chuỗi mã theo định dạng KHddMMyyyy###
+        String maKH = String.format("KH%s%s%s%03d", ngay, thang, nam, dem);
+        return maKH;
+
+
+    }
+
+
+    public void getDSLP() {
+
+        // Lấy ngày người dùng chọn
+        Date dNhan = dateNgayNhan.getDate();
+        Date dTra  = dateNgayTra.getDate();
+
+        // Kiểm tra ngày hợp lệ
+        if (!xuLyChonNgay()) {
+            return;
+        }
+
+        // Chuyển sang LocalDate
+        LocalDate ngayNhan = dNhan.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate ngayTra  = dTra.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        // Clear panel cũ
+        pPhongTrong.removeAll();
+        pPhongTrong.setLayout(new BorderLayout());
+        pPhongTrong.add(pTop, BorderLayout.NORTH);
+
+        // Panel chứa nhiều section
+        JPanel allSections = new JPanel();
+        allSections.setLayout(new BoxLayout(allSections, BoxLayout.Y_AXIS));
+        allSections.setBackground(Color.WHITE);
+
+        // Dữ liệu từ DB
+        List<LoaiPhong> dsLoaiPhong = dslp.getAllLoaiPhong();
+        List<ChiTietPhieuDatPhong> dsDaDat = dsctpdp.getChiTietPhongTuHomNay();
+        Map<String, PhieuDatPhong> mapPhieu = new HashMap<>();
+        for (PhieuDatPhong phieu : pdp.getAllPhieuDatPhong()) {
+            mapPhieu.put(phieu.getMaPhieuDatPhong(), phieu);
+        }
+
+        for (LoaiPhong lp : dsLoaiPhong) {
+            List<Phong> dsPhongTheoLoai = dsp.getPhongTheoMaLoaiPhong(lp.getMaLoaiPhong());
+            List<String> danhSachPhongHopLe = new ArrayList<>();
+
+            for (Phong p : dsPhongTheoLoai) {
+
+                // Chỉ quan tâm phòng đang trống
+                if (!"Trống".equalsIgnoreCase(p.getTrangThai()))
+                    continue;
+
+                boolean biTrung = false;
+
+                for (ChiTietPhieuDatPhong ct : dsDaDat) {
+                	PhieuDatPhong tam = mapPhieu.get(ct.getPhieuDatPhong().getMaPhieuDatPhong());
+                    if (tam != null && 
+                       ("Đã hủy".equalsIgnoreCase(tam.getTrangThai())
+                     || "Hoàn thành".equalsIgnoreCase(tam.getTrangThai()))) {
+                        continue;
+                    }
+
+                    if (ct == null || ct.getPhong() == null)
+                        continue;
+
+                    if (!p.getMaPhong().equals(ct.getPhong().getMaPhong()))
+                        continue;
+
+                    LocalDate nhan = ct.getNgayNhanThuc();
+                    LocalDate tra  = ct.getNgayTra();
+
+                    if (nhan == null || tra == null)
+                        continue;
+
+                    // Kiểm tra trùng ngày
+                    boolean trungNgay = !(ngayTra.isBefore(nhan) || ngayNhan.isAfter(tra));
+
+                    if (trungNgay) {
+                        biTrung = true;
+                        break;
+                    }
+                }
+
+                if (!biTrung)
+                    danhSachPhongHopLe.add(p.getMaPhong());
+            }
+
+            // Nếu loại phòng có phòng trống → tạo section
+            if (!danhSachPhongHopLe.isEmpty()) {
+
+                String title = lp.getTenLoaiPhong() + " - " + lp.getGia() + " VND / 1 đêm";
+
+                JPanel section = createRoomSection(title, danhSachPhongHopLe, mauXanhDam, mauVangDong);
+                section.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+
+                allSections.add(section);
+            }
+        }
+
+        // Scroll cho danh sách
+        JScrollPane jsp = new JScrollPane(
+                allSections,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+        );
+
+        jsp.getVerticalScrollBar().setUnitIncrement(12);
+        jsp.setBorder(null);
+        jsp.getViewport().setBackground(Color.WHITE);
+        pPhongTrong.add(jsp, BorderLayout.CENTER);
+        pPhongTrong.revalidate();
+        pPhongTrong.repaint();
+    }
+
+    private boolean xuLyChonNgay() {
+        // Lấy ngày nhận và ngày trả
+        Date ngayNhan = dateNgayNhan.getDate();
+        Date ngayTra = dateNgayTra.getDate();
+
+        // Nếu chưa chọn đủ 2 ngày
+        if (ngayNhan == null || ngayTra == null) {
+            return false;
+        }
+
+        // Lấy ngày hiện tại (bỏ phần giờ để so sánh chuẩn)
+        LocalDate homNay = LocalDate.now();
+        LocalDate nhan = ngayNhan.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate tra = ngayTra.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        // 
+        if (nhan.isBefore(homNay)) {
+            JOptionPane.showMessageDialog(this,
+                "Ngày nhận phải từ hôm nay trở đi!",
+                "Lỗi chọn ngày",
+                JOptionPane.ERROR_MESSAGE);
+            dateNgayNhan.setDate(null);
+            return false;
+        }
+
+        // 
+        if (!tra.isAfter(nhan)) {
+            JOptionPane.showMessageDialog(this,
+                "Ngày trả phải lớn hơn ngày nhận!",
+                "Lỗi chọn ngày",
+                JOptionPane.ERROR_MESSAGE);
+            dateNgayTra.setDate(null);
+            return false;
+        }
+
+        //
+        long khoangCach = ChronoUnit.DAYS.between(homNay, tra);
+        if (khoangCach > 31) {
+            JOptionPane.showMessageDialog(this,
+                "Khách sạn chỉ cho phép đặt tối đa 31 ngày kể từ hôm nay!",
+                "Lỗi chọn ngày",
+                JOptionPane.ERROR_MESSAGE);
+            dateNgayTra.setDate(null);
+            return false;
+        }
+        return true;
+    }
+
+
+
+    private JPanel createRoomSection(String title, List<String> dsMaPhong, Color mauXanhDam, Color mauVangDong) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(Color.WHITE);
+
+        // ====== Tiêu đề loại phòng ======
+        JLabel lbl = new JLabel(title);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lbl.setForeground(mauXanhDam);
+        lbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 0));
+        p.add(lbl, BorderLayout.NORTH);
+
+        // ====== Grid chứa các phòng ======
+        JPanel grid = new JPanel(new GridLayout(0, 8, 8, 8)); // 8 cột, khoảng cách 8px
+        grid.setBackground(Color.WHITE);
+        grid.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        // ====== Tạo nút cho từng mã phòng ======
+        for (String maPhong : dsMaPhong) {
+            JButton btnPhong = new JButton(maPhong);
+            btnPhong.setBackground(Color.WHITE);
+            btnPhong.setFocusPainted(false);
+            btnPhong.setBorder(BorderFactory.createLineBorder(mauXanhDam, 1, true));
+            btnPhong.setForeground(mauXanhDam);
+            btnPhong.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            btnPhong.setMargin(new Insets(2, 2, 2, 2));
+
+            //  Hiệu ứng hover
+            btnPhong.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    btnPhong.setBackground(mauVangDong);
+                    btnPhong.setForeground(Color.WHITE);
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    btnPhong.setBackground(Color.WHITE);
+                    btnPhong.setForeground(mauXanhDam);
+                }
+            });
+
+            //  Sự kiện khi người dùng click vào phòng
+            btnPhong.addActionListener(e -> {
+                Phong phong = dsp.timPhongTheoMa(maPhong);
+                if (phong == null) return;
+                
+
+                // ⚠️ Kiểm tra ngày nhận & ngày trả đã được chọn chưa
+                if (dateNgayNhan.getDate() == null || dateNgayTra.getDate() == null) {
+                    JOptionPane.showMessageDialog(null,
+                        "Vui lòng chọn ngày nhận và ngày trả đúng trước khi chọn phòng!",
+                        "Thiếu thông tin",
+                        JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                // Chuyển sang LocalDate
+                LocalDate ngayNhan = dateNgayNhan.getDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                LocalDate ngayTra = dateNgayTra.getDate()
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+                // Kiểm tra hợp lệ ngày nhận - ngày trả
+                if (ngayTra.isBefore(ngayNhan)) {
+                    JOptionPane.showMessageDialog(null,
+                        "Ngày trả phải sau ngày nhận!",
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Kiểm tra trùng phòng trong bảng
+                for (int i = 0; i < dlp.getRowCount(); i++) {
+                    String ma = dlp.getValueAt(i, 1).toString(); // cột Mã phòng
+                    if (ma.equals(maPhong)) {
+                        JOptionPane.showMessageDialog(null,
+                            "Phòng này đã được chọn!",
+                            "Thông báo",
+                            JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                }
+
+                //  Tính số đêm ở và thành tiền
+                long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTra);
+                double gia = phong.getLoaiPhong().getGia();
+                double thanhTien = soDemO * gia;
+                dlp.addRow(new Object[]{
+                    dlp.getRowCount() + 1,                 // STT
+                    phong.getMaPhong(),                    // Mã phòng
+                    phong.getLoaiPhong().getTenLoaiPhong(),// Loại phòng
+                    ngayNhan,                              // Ngày nhận
+                    ngayTra,                               // Ngày trả
+                    ngayTra,
+                    soDemO,                                // Số đêm ở
+                    gia,                                   // Giá/đêm
+                    thanhTien                              // Thành tiền
+                });
+                hienThiTienCocVaTienTongTienPhong();
 //                JOptionPane.showMessageDialog(null,
 //                    "Đã thêm phòng " + maPhong + " vào danh sách!");
-//            });
-//
-//            grid.add(btnPhong);
-//        }
-//
-//        // ====== Thêm grid vào panel ======
-//        p.add(grid, BorderLayout.CENTER);
-//        return p;
-//    }
-//
-//    public String taoMaPhieuDatPhongTuDong() {
-//    	
-//        // Lấy ngày hiện tại
-//        LocalDate ngayHienTai = LocalDate.now();
-//        String ngay = String.format("%02d", ngayHienTai.getDayOfMonth());
-//        String thang = String.format("%02d", ngayHienTai.getMonthValue());
-//        String nam = String.valueOf(ngayHienTai.getYear());
-//
-//        // Lấy danh sách phiếu hiện có (từ database hoặc list)
-//        List<PhieuDatPhong> danhSachPhieu = pdp.getAllPhieuDatPhong();
-//
-//        // Đếm số phiếu trong ngày hiện tại
-//        int dem = 0;
-//        for (PhieuDatPhong p : danhSachPhieu) {
-//            if (p.getMaPhieuDatPhong().contains("PDP" + ngay + thang + nam)) {
-//                dem++;
-//            }
-//        }
-//
-//        // Tăng số thứ tự lên 1
-//        dem++;
-//
-//        // Ghép lại chuỗi mã theo định dạng
-//        String maPhieu = String.format("PDP%s%s%s%03d", ngay, thang, nam, dem);
-//        return maPhieu;
-//    }
-//
-//    public String taoMaKhachHangTuDong() {
-//        // Lấy ngày hiện tại
-//        LocalDate ngayHienTai = LocalDate.now();
-//        String ngay = String.format("%02d", ngayHienTai.getDayOfMonth());
-//        String thang = String.format("%02d", ngayHienTai.getMonthValue());
-//        String nam = String.valueOf(ngayHienTai.getYear());
-//
-//        // Lấy danh sách khách hàng hiện có (từ database hoặc DAO)
-//        List<KhachHang> danhSachKhachHang = khd.getAllKhachHang();
-//
-//        // Đếm số khách hàng tạo trong ngày hiện tại
-//        int dem = 0;
-//        for (KhachHang kh : danhSachKhachHang) {
-//            if (kh.getMaKhachHang().contains("KH" + ngay + thang + nam)) {
-//                dem++;
-//            }
-//        }
-//
-//        // Tăng số thứ tự
-//        dem++;
-//
-//        // Ghép chuỗi mã theo định dạng KHddMMyyyy###
-//        String maKH = String.format("KH%s%s%s%03d", ngay, thang, nam, dem);
-//        return maKH;
-//    }
-//    public PhieuDatPhong doiTuongTongTienPhong() {
-////    	System.out.println("DEBUG: model dlp = " + dlp);
-////    	System.out.println("DEBUG: table model = " + tblPhong.getModel());
-////    	System.out.println("DEBUG: so dong dlp = " + dlp.getRowCount());
-////    	System.out.println("DEBUG: so dong table = " + tblPhong.getRowCount());
-////    	System.out.println(dlp.getRowCount());
-//
-//        PhieuDatPhong tam = new PhieuDatPhong();
-//
-//        for (int i = 0; i < dlp.getRowCount(); i++) {
-//        	String strNgayNhan = dlp.getValueAt(i, 3).toString(); // ví dụ cột 3 là ngày nhận
-//        	String strNgayTra  = dlp.getValueAt(i, 4).toString(); // ví dụ cột 4 là ngày trả
-//        	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-//        	LocalDate ngayNhan = LocalDate.parse(strNgayNhan, formatter);
-//        	LocalDate ngayTra  = LocalDate.parse(strNgayTra, formatter);
-//
-//            String maPhong = dlp.getValueAt(i, 1).toString().trim();
-//            Phong p = dsp.timPhongTheoMa(maPhong);
-//            if(p==null) {
-//            	JOptionPane.showMessageDialog(null,"Tìm thấy");
-//            	System.out.println("Gia Phong"+ p.getLoaiPhong().getGia());
-//            	
-//            }
-//            if (p == null) {
-//                System.out.println("Không tìm thấy phòng cho mã: " + maPhong);
-//                
-//                continue;
-//            }
-//
-//
-//            String trangThai = cboTrangThai.getSelectedItem().toString();
-//
-//            ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
-//                tam,
-//                p,
-//                ngayNhan,
-//                ngayTra,
-//                trangThai
-//            );
-//            tam.themChiTiet(ct);
-//           
-//        }
-////        txtTienCoc.setText(String.format("%,.0f", tam.getTienCoc()));
-////        lblTongTien.setText("Tổng tiền: "+String.format("%,.0f",tam.getTongTienPhong()));
-//        System.out.println(tam.getTienCoc());
-//        return tam;
-//    }
-//
-//
-//    public void hienThiTienCocVaTienTongTienPhong() {
-//        PhieuDatPhong phieu = doiTuongTongTienPhong();
-//        DecimalFormat df = new DecimalFormat("#,###");
-//        txtTienCoc.setText(df.format(phieu.getTienCoc()));
-//        lblTongTien.setText("Tổng tiền: " + df.format(phieu.getTongTienPhong()));
-//
-//    }
-//
-//    public void kiemTraLayThongTinKHTuSDT() {
-//    	txtSDT.addFocusListener(new FocusAdapter() {
-//    	    @Override
-//    	    public void focusLost(FocusEvent e) {
-//    	        String sdt = txtSDT.getText().trim();
-//    	        if (sdt.isEmpty()) return;
-//
-//    	        KhachHang kh = khd.getKhachHangTheoSDT(sdt);
-//    	        if (kh != null) {
-//    	            txtMKH.setText(kh.getMaKhachHang());
-//    	            txtTenKH.setText(kh.getHoTen());
-//    	            // Nếu bạn có checkbox hoặc combobox cho quốc tịch:
-//    	            chkVN.setSelected(kh.LaNguoiVietNam());
-//    	        } 
-//    	    }
-//    	});
-//
-//
-//    }
-//}
+            });
+
+            grid.add(btnPhong);
+        }
+
+        // ====== Thêm grid vào panel ======
+        p.add(grid, BorderLayout.CENTER);
+        return p;
+    }
+     
+    
+    // ====== KHUNG DANH SÁCH PHÒNG TRỐNG ======
+    private JPanel taoBangPhongTrong(Font f, String maNV) {
+        JPanel pPhongTrong = new JPanel(new BorderLayout());
+        pPhongTrong.setBackground(Color.WHITE);
+        pPhongTrong.setBorder(BorderFactory.createTitledBorder(
+                new LineBorder(mauXanhDam, 1, true),
+                "Danh sách phòng trống",
+                TitledBorder.LEFT, TitledBorder.TOP, f, mauXanhDam));
+
+         pTop = new JPanel();
+        pTop.setLayout(new BoxLayout(pTop, BoxLayout.Y_AXIS));
+        pTop.setBackground(Color.WHITE);
+
+        // --- Hàng 1: Ngày nhận & Ngày trả ---
+         pHang1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        pHang1.setBackground(Color.WHITE);
+        pHang1.add(new JLabel("Ngày nhận:"));
+        dateNgayNhan = new JDateChooser();
+        dateNgayNhan.setPreferredSize(new Dimension(120, 26));
+        dateNgayNhan.setDateFormatString("yyyy/MM/dd");
+        pHang1.add(dateNgayNhan);
+        pHang1.add(new JLabel("Ngày trả:"));
+        dateNgayTra = new JDateChooser();
+        dateNgayTra.setPreferredSize(new Dimension(120, 26));
+        dateNgayTra.setDateFormatString("yyyy/MM/dd");
+        pHang1.add(dateNgayTra);
+
+        // --- Hàng 2: Số lượng người ---
+        pHang2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        pHang2.setBackground(Color.WHITE);
+        pHang2.add(new JLabel("Số lượng người:"));
+        txtSoNguoiThuc = new JTextField("0");
+        txtSoNguoiThuc.setPreferredSize(new Dimension(50, 26));
+        txtSoNguoiThuc.setEditable(false);
+        pHang2.add(txtSoNguoiThuc);
+
+        JButton btnThemNguoi = new JButton("+");
+        btnThemNguoi.setFocusPainted(false);
+        btnThemNguoi.setBackground(mauVangDong);
+        btnThemNguoi.setForeground(mauXanhDam);
+        btnThemNguoi.setPreferredSize(new Dimension(45, 26));
+        pHang2.add(btnThemNguoi);
+
+        btnCapNhat = new JButton("🔄 Cập nhật");
+        btnGoiY    = new JButton("💡 Gợi ý phòng");
+        btnCapNhat.setFocusPainted(false);
+        btnCapNhat.setBackground(mauVangDong);
+        btnCapNhat.setForeground(mauXanhDam);
+        btnGoiY.setFocusPainted(false);
+        btnGoiY.setBackground(mauVangDong);
+        btnGoiY.setForeground(mauXanhDam);
+        pHang2.add(Box.createHorizontalStrut(20));
+        pHang2.add(btnCapNhat);
+        pHang2.add(Box.createHorizontalStrut(15));
+        pHang2.add(btnGoiY);
+
+
+        pTop.add(pHang1);
+        pTop.add(pHang2);
+
+         lblThongBao = new JLabel("Vui lòng chọn ngày nhận và ngày trả để xem phòng trống.", SwingConstants.CENTER);
+        lblThongBao.setFont(new Font("Segoe UI", Font.ITALIC, 15));
+        lblThongBao.setForeground(Color.GRAY);
+        lblThongBao.setBorder(BorderFactory.createEmptyBorder(40, 10, 40, 10));
+
+        pPhongTrong.add(pTop, BorderLayout.NORTH);
+        pPhongTrong.add(lblThongBao, BorderLayout.CENTER);
+
+        // ====== SỰ KIỆN ======
+        btnCapNhat.addActionListener(e -> {
+            getDSLP();
+            pPhongTrong.revalidate();
+            pPhongTrong.repaint();
+        });
+
+        btnThemNguoi.addActionListener(e -> {
+            JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Nhập số người", true);
+            dlg.setSize(300, 200);
+            dlg.setLocationRelativeTo(this);
+            dlg.setLayout(new GridBagLayout());
+            dlg.getContentPane().setBackground(Color.WHITE);
+
+            GridBagConstraints g = new GridBagConstraints();
+            g.insets = new Insets(6, 8, 6, 8);
+            g.fill = GridBagConstraints.HORIZONTAL;
+
+            JLabel lblNguoiLon = new JLabel("Số người lớn:");
+            txtNguoiLon.setText(String.valueOf(soNguoiLon));
+
+            JLabel lblTreEm = new JLabel("Số trẻ em:");
+            txtTreEm.setText(String.valueOf(soTreEm));
+
+            JLabel lblThucTe = new JLabel("Số người ở thực:");
+            txtThucTe = new JTextField("0");
+            txtThucTe.setEditable(false);
+
+            JButton btnOK = new JButton("Xác nhận");
+            btnOK.setBackground(mauVangDong);
+            btnOK.setForeground(mauXanhDam);
+
+            g.gridx = 0; g.gridy = 0; dlg.add(lblNguoiLon, g);
+            g.gridx = 1; dlg.add(txtNguoiLon, g);
+            g.gridx = 0; g.gridy = 1; dlg.add(lblTreEm, g);
+            g.gridx = 1; dlg.add(txtTreEm, g);
+            g.gridx = 0; g.gridy = 2; dlg.add(lblThucTe, g);
+            g.gridx = 1; dlg.add(txtThucTe, g);
+            g.gridx = 1; g.gridy = 3; dlg.add(btnOK, g);
+
+            // ==========================
+            // LISTENER TÍNH LẠI TỰ ĐỘNG
+            // ==========================
+            DocumentListener listener = new DocumentListener() {
+                private void update() {
+                    try {
+                        int nl = Integer.parseInt(txtNguoiLon.getText());
+                        int te = Integer.parseInt(txtTreEm.getText());
+                        int thuc = nl + (int) Math.ceil(te / 2.0);
+                        txtThucTe.setText(String.valueOf(thuc));
+                    } catch (NumberFormatException ex) {
+                        txtThucTe.setText("0");
+                    }
+                }
+                public void insertUpdate(DocumentEvent e) { update(); }
+                public void removeUpdate(DocumentEvent e) { update(); }
+                public void changedUpdate(DocumentEvent e) { update(); }
+            };
+
+            txtNguoiLon.getDocument().addDocumentListener(listener);
+            txtTreEm.getDocument().addDocumentListener(listener);
+
+            // ⭐⭐ QUAN TRỌNG: GỌI UPDATE() KHI MỞ LẠI DIALOG ⭐⭐
+            SwingUtilities.invokeLater(() -> {
+                listener.insertUpdate(null);
+            });
+
+            btnOK.addActionListener(ev -> {
+                soNguoiLon = Integer.parseInt(txtNguoiLon.getText());
+                soTreEm   = Integer.parseInt(txtTreEm.getText());
+                txtSoNguoiThuc.setText(txtThucTe.getText());
+                dlg.dispose();
+            });
+
+            dlg.setVisible(true);
+        });
+
+        return pPhongTrong;
+    }
+    public boolean dieuKienNguoi() {
+    	int tongSucChua=0;
+    	for(int i=0;i<dlp.getRowCount();i++) {
+    		Phong tam= dsp.timPhongTheoMa(dlp.getValueAt(i, 1).toString());
+    		tongSucChua+=tam.getLoaiPhong().getSucChua();
+    	}
+    	int sln= Integer.parseInt(txtSoNguoiThuc.getText());
+    	if(tongSucChua<sln) {
+    		JOptionPane.showMessageDialog(null,"Sức chứa của phòng không đủ!"
+    				+ "Còn thiếu "+ (sln-tongSucChua)+ " người!" );
+    		return false;
+    	}
+    	return true;
+    }
+    public void moKhungNhap() {
+    	int i= dlp.getRowCount();
+    	if(i>0) {
+    		if(txtMPDP.getText().trim().equals("")) {
+    			txtMPDP.setText(taoMaPhieuDatPhongTuDong());
+    		}
+//    		txtMPDP.setText(taoMaPhieuDatPhongTuDong());
+    	KhachHang tam= khd.getKhachHangTheoSDT(txtSDT.getText().trim());
+    	if(tam==null) {
+    		txtMKH.setText(taoMaKhachHangTuDong());
+    	}else {
+    		txtMKH.setText(tam.getMaKhachHang());
+    	}  
+    	KhachHang t= khd.getKhachHangTheoMa(txtMKH.getText().trim());
+    	if(t==null) {
+    		txtMKH.setText(taoMaKhachHangTuDong());
+    	}else {
+    		txtMKH.setText(tam.getMaKhachHang());
+    	}  
+    	txtSDT.setEditable(true);
+    	txtTenKH.setEditable(true);
+    	btnInPhieu.setEnabled(true);
+    	}
+    	else JOptionPane.showMessageDialog(null,"Vui lòng chọn phòng trước khi xác nhận");
+    	
+    }
+
+    public void kiemTraLayThongTinKHTuSDT() {
+    	txtSDT.addFocusListener(new FocusAdapter() {
+    	    @Override
+    	    public void focusLost(FocusEvent e) {
+    	        String sdt = txtSDT.getText().trim();
+    	        if (sdt.isEmpty()) return;
+
+    	        KhachHang kh = khd.getKhachHangTheoSDT(sdt);
+    	        if (kh != null) {
+    	            txtMKH.setText(kh.getMaKhachHang());
+    	            txtTenKH.setText(kh.getHoTen());
+    	            // Nếu bạn có checkbox hoặc combobox cho quốc tịch:
+    	            chkVN.setSelected(kh.LaNguoiVietNam());
+    	        } 
+    	    }
+    	});
+
+
+    }
+   
+    
+    public void capNhatCBBCPPS() {
+    	List<ChiPhiPhatSinh> dscpps= cppsd.getAllChiPhiPhatSinh();
+    	for(ChiPhiPhatSinh tam: dscpps) {
+    		cboChiPhi.addItem(tam.getTenChiPhiPhatSinh() +"-"+ tam.getGia());
+    	}
+    }
+    
+    public void themCPPSXB() {
+        // Lấy mục được chọn trong combobox
+        String mucChon = (String) cboChiPhi.getSelectedItem();
+        if (mucChon == null || mucChon.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Vui lòng chọn chi phí cần thêm!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Cắt tên chi phí và giá (định dạng: "TênChiPhi-Giá")
+        String[] tach = mucChon.split("-");
+        if (tach.length != 2) {
+            JOptionPane.showMessageDialog(null, "Dữ liệu chi phí không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String tenChiPhi = tach[0].trim();
+        double gia = 0;
+        try {
+            gia = Double.parseDouble(tach[1].trim());
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Giá chi phí không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Nhập số lượng
+        String soLuongStr = JOptionPane.showInputDialog(null, "Nhập số lượng cho " + tenChiPhi + ":");
+        if (soLuongStr == null) return; // người dùng bấm Cancel
+
+        int soLuongMoi;
+        try {
+            soLuongMoi = Integer.parseInt(soLuongStr);
+            if (soLuongMoi <= 0) {
+                JOptionPane.showMessageDialog(null, "Số lượng phải lớn hơn 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Số lượng phải là số nguyên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Kiểm tra trùng chi phí trong bảng
+        for (int i = 0; i < dlctps.getRowCount(); i++) {
+            String ten = dlctps.getValueAt(i, 0).toString();
+            if (ten.equalsIgnoreCase(tenChiPhi)) {
+                // Nếu trùng thì cập nhật số lượng
+                int soLuongHienTai = Integer.parseInt(dlctps.getValueAt(i, 2).toString());
+                int tongSoLuong = soLuongHienTai + soLuongMoi;
+
+                if (tongSoLuong > 50) {
+                    JOptionPane.showMessageDialog(null,
+                        "Tổng số lượng của " + tenChiPhi + " không được vượt quá 50!",
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Cập nhật lại số lượng và thành tiền
+                double thanhTienMoi = gia * tongSoLuong;
+                dlctps.setValueAt(tongSoLuong, i, 2);
+                dlctps.setValueAt(thanhTienMoi, i, 3);
+
+//                JOptionPane.showMessageDialog(null, "Đã cập nhật lại số lượng của " + tenChiPhi + " thành " + tongSoLuong + ".");
+                return;
+            }
+        }
+
+        // Nếu chưa có, thêm mới dòng
+        if (soLuongMoi > 50) {
+            JOptionPane.showMessageDialog(null, "Số lượng không được vượt quá 50!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        ChiPhiPhatSinh tam= cppsd.getChiPhiTheoTen(tenChiPhi.trim());
+        double thanhTien = gia * soLuongMoi;
+        Object[] dongMoi = { tenChiPhi, gia, soLuongMoi, thanhTien,tam.getMaChiPhiPhatSinh()};
+        dlctps.addRow(dongMoi);
+    }
+
+    public void xoaCPPSXB() {
+        int row = tblChiPhi.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(null, "Vui lòng chọn dòng để xoá!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Lấy dữ liệu hiện tại
+        String tenChiPhi = dlctps.getValueAt(row, 0).toString();
+        double gia = Double.parseDouble(dlctps.getValueAt(row, 1).toString());
+        int soLuongHienTai = Integer.parseInt(dlctps.getValueAt(row, 2).toString());
+        String soLuongStr = JOptionPane.showInputDialog(null,
+                "Nhập số lượng muốn xoá (tối đa " + soLuongHienTai + "):");
+
+        if (soLuongStr == null) return; // user bấm cancel
+
+        int soLuongXoa;
+        try {
+            soLuongXoa = Integer.parseInt(soLuongStr);
+            if (soLuongXoa <= 0) {
+                JOptionPane.showMessageDialog(null, "Số lượng phải là số nguyên dương!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (soLuongXoa > soLuongHienTai) {
+                JOptionPane.showMessageDialog(null,
+                        "Không được xoá quá số lượng hiện tại (" + soLuongHienTai + ")!",
+                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(null, "Số lượng phải là số nguyên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Xử lý xoá
+        int soLuongConLai = soLuongHienTai - soLuongXoa;
+
+        if (soLuongConLai == 0) {
+            // Xoá cả dòng
+            dlctps.removeRow(row);
+        } else {
+            // Cập nhật số lượng và thành tiền
+            double thanhTienMoi = soLuongConLai * gia;
+            dlctps.setValueAt(soLuongConLai, row, 2);
+            dlctps.setValueAt(thanhTienMoi, row, 3);
+        }
+
+        // JOptionPane.showMessageDialog(null, "Đã xoá số lượng thành công!");
+    }
+
+    public PhieuDatPhong doiTuongTongTienPhong() {
+        PhieuDatPhong tam = new PhieuDatPhong();
+    	KhachHang kh= khd.getKhachHangTheoMa(txtMKH.getText());
+    	if(kh!=null) {   		   
+            tam.setKhachHang(kh);
+    	}
+ 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for (int i = 0; i < dlp.getRowCount(); i++) {
+            Object oNhan = dlp.getValueAt(i, 3);
+            Object oTra  = dlp.getValueAt(i, 4);
+            Object oTraThuc = dlp.getValueAt(i, 5);
+            Object oMaPhong = dlp.getValueAt(i, 1);
+            // Chặn null 
+            if (oNhan == null || oTra == null || oTraThuc == null || oMaPhong == null) {
+                System.out.println("Dòng " + i + " có ô dữ liệu rỗng → bỏ qua.");
+                continue;
+            }
+
+            LocalDate ngayNhan = LocalDate.parse(oNhan.toString(), formatter);
+            LocalDate ngayTra  = LocalDate.parse(oTra.toString(), formatter);
+            LocalDate ngayTraThuc = LocalDate.parse(oTraThuc.toString(), formatter);
+
+            String maPhong = oMaPhong.toString().trim();
+            Phong p = dsp.timPhongTheoMa(maPhong);
+
+            if (p == null) {
+                System.out.println("Không tìm thấy phòng: " + maPhong);
+                JOptionPane.showMessageDialog(null, "Không tìm thấy phòng: " + maPhong);
+                continue;
+            }
+
+            String trangThai = String.valueOf(cboTrangThai.getSelectedItem());
+
+            ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
+                tam, p, ngayNhan, ngayTra, trangThai, ngayTraThuc
+            );
+
+            tam.themChiTiet(ct);
+        }
+        for (int i = 0; i < dlctps.getRowCount(); i++) {
+
+            Object oMaCP = dlctps.getValueAt(i, 4);
+            Object oSoLuong = dlctps.getValueAt(i, 2);
+
+            if (oMaCP == null || oSoLuong == null) {
+                System.out.println("Chi phí dòng " + i + " bị thiếu dữ liệu → bỏ qua.");
+                continue;
+            }
+
+            ChiPhiPhatSinh cpps = cppsd.getChiPhiTheoMa(oMaCP.toString());
+            if (cpps == null) {
+                System.out.println("Không tìm thấy chi phí: " + oMaCP.toString());
+                continue;
+            }
+            int sl = 0;
+            try {
+                sl = Integer.parseInt(oSoLuong.toString());
+            } catch (Exception e) {
+                System.out.println("Số lượng không hợp lệ tại dòng " + i);
+                continue;
+            }
+
+            ChiTietChiPhiPhatSinh ctcppss = new ChiTietChiPhiPhatSinh(
+                tam, cpps, sl
+            );
+
+            tam.themChiPhiPhatSinh(ctcppss);
+        }
+
+        return tam;
+    }
+
+
+
+    public void hienThiTienCocVaTienTongTienPhong() {
+        PhieuDatPhong phieu = doiTuongTongTienPhong();
+        DecimalFormat df = new DecimalFormat("#,###");
+        txtTienCoc.setText(df.format(phieu.getTienCoc()));
+        lblTongTien.setText("Tổng tiền: " + df.format(phieu.getTongTienPhong()));
+        lblTongCP.setText("Tổng tiền: " + df.format(phieu.getTongTienChiPhiPhatSinh()));
+        lblTongTatCa.setText("Tổng thanh toán: " + df.format(phieu.getTongTien()));
+        String maTam = txtMPDP.getText().trim();
+        if (maTam.isEmpty()) {
+            txtTienCocMoi.setText("0");
+            return;
+        }
+        List<ChiTietPhieuDatPhong> dstam = dsctpdp.getChiTietTheoMaPhieu(maTam);
+        double tongTam = 0;
+        int rowCount = dlp.getRowCount();
+
+        for (int r = 0; r < rowCount; r++) {
+            if (dlp.getValueAt(r, 1) == null || dlp.getValueAt(r, 8) == null)
+                continue;
+
+            String maPhongBang = dlp.getValueAt(r, 1).toString().trim();
+            String tienPhongStr = dlp.getValueAt(r, 8).toString().trim();
+            if (tienPhongStr.isEmpty())
+                continue;
+
+            boolean tonTaiTrongPhieu = false;
+            for (ChiTietPhieuDatPhong ct : dstam) {
+                if (maPhongBang.equals(ct.getPhong().getMaPhong())) {
+                    tonTaiTrongPhieu = true;
+                    break;
+                }
+            }
+            if (!tonTaiTrongPhieu) {
+                tongTam += Double.parseDouble(tienPhongStr);
+            }
+        }
+        tongTam = tongTam / 2;
+        txtTienCocMoi.setText(String.valueOf(tongTam));
+    }
+
+    public TaoPhieuDatPhong_GUI(PhieuDatPhong pdphong, String maNV) {
+    	this(maNV);   	
+    	getDuLieu(pdphong, maNV);
+    	
+    }
+   public void getDuLieu(PhieuDatPhong pdphong, String maNV){
+	   txtMPDP.setText(pdphong.getMaPhieuDatPhong());
+   	txtMKH.setText(pdphong.getKhachHang().getMaKhachHang());
+   	txtTenKH.setText(pdphong.getKhachHang().getHoTen());
+   	txtTenKH.setEditable(true);
+   	txtSDT.setText(pdphong.getKhachHang().getSoDienThoai());
+   	txtSDT.setEditable(true);
+   	txtNgayTao.setText(pdphong.getNgayTao().toString());
+   	cboTrangThai.setSelectedItem(pdphong.getTrangThai());
+   	soNguoiLon= pdphong.getSoNguoiLon();
+   	soTreEm= pdphong.getSoTreEm();
+   	 int nl =soNguoiLon;
+        int te = soTreEm;
+        int thuc = nl + (int) Math.ceil(te / 2.0);
+        txtSoNguoiThuc.setText(String.valueOf(thuc));        
+   	chkVN.setSelected(pdphong.getKhachHang().LaNguoiVietNam());
+   	btnInPhieu.setEnabled(true);
+   	
+   	dlp.setRowCount(0);
+   	List<ChiTietPhieuDatPhong> dspctp= dsctpdp.getChiTietTheoMaPhieu(pdphong.getMaPhieuDatPhong());
+   	for(ChiTietPhieuDatPhong tam: dspctp) {
+   		LocalDate ngayNhan = tam.getNgayNhanThuc(); // != null 
+//   		        ? tam.getNgayNhanThuc()
+//   		        : tam.getNgayNhanThuc();
+
+   		LocalDate ngayTra = tam.getNgayTraThuc() != null 
+   		        ? tam.getNgayTraThuc()
+   		        : tam.getNgayTra();
+
+   		// Nếu vẫn null → set mặc định
+   		if (ngayNhan == null) ngayNhan = LocalDate.now();
+   		if (ngayTra == null) ngayTra = ngayNhan.plusDays(1);
+   		long soDemO = Math.max(0, ChronoUnit.DAYS.between(ngayNhan, ngayTra));
+   		Phong phong = tam.getPhong() == null ? new Phong() : tam.getPhong();
+   		LoaiPhong loai = phong.getLoaiPhong() == null ? new LoaiPhong() : phong.getLoaiPhong();
+   		double gia = (loai.getGia() > 0) ? loai.getGia() : 1;
+   		double thanhTien = soDemO * gia;
+           dlp.addRow(new Object[]{ dlp.getRowCount() + 1, phong.getMaPhong(), phong.getLoaiPhong().getTenLoaiPhong(),
+           		tam.getNgayNhanThuc(), tam.getNgayTraThuc(), tam.getNgayTra(), soDemO, gia, thanhTien });
+           hienThiTienCocVaTienTongTienPhong();
+           if(pdphong.getTrangThai().equals("Đã hủy")) {
+       		khoaTatCaTruong();
+       	}
+   	}
+   	dlctps.setRowCount(0);
+   	List<ChiTietChiPhiPhatSinh> dsctcppss= ctcppsd.getChiTietTheoMaPhieu(pdphong.getMaPhieuDatPhong());
+   	for(ChiTietChiPhiPhatSinh tam: dsctcppss) {
+   		ChiPhiPhatSinh t= cppsd.getChiPhiTheoMa(tam.getChiPhiPhatSinh().getMaChiPhiPhatSinh());
+   		dlctps.addRow(new Object[] { t.getTenChiPhiPhatSinh(),t.getGia(), tam.getSoLuong(),
+   				t.getGia()*tam.getSoLuong(),tam.getChiPhiPhatSinh().getMaChiPhiPhatSinh()});
+   				hienThiTienCocVaTienTongTienPhong();    		
+   	}
+   }
+    private boolean xuLyNutLuu() {
+        if (!kiemTraDuLieuNhap()) {
+            JOptionPane.showMessageDialog(null, "Không có thông tin phiếu đặt phòng!");
+            return false;   
+        }
+
+        try {
+            String maPDP = txtMPDP.getText().trim();
+
+            // ====== 1. KHÁCH HÀNG ======
+            String maKH = txtMKH.getText().trim();
+            String tenKH = txtTenKH.getText().trim();
+            String sdt = txtSDT.getText().trim();
+            boolean laVN = chkVN.isSelected();
+
+            KhachHang kh = new KhachHang(maKH, tenKH, sdt, laVN);
+
+            KhachHang khTonTai = khd.getKhachHangTheoMa(maKH);
+            if (khTonTai == null) {
+                khd.themKhachHang(kh);
+            } else {
+                khd.capNhatKhachHang(kh);
+            }
+
+            // ====== 2. PHIẾU ĐẶT PHÒNG ======
+            PhieuDatPhong pd = new PhieuDatPhong();
+            pd.setMaPhieuDatPhong(maPDP);
+            pd.setKhachHang(kh);
+            pd.setNhanVien(new NhanVien(txtNV.getText().trim()));
+            pd.setNgayTao(LocalDate.now());
+            pd.setTrangThai(cboTrangThai.getSelectedItem().toString());
+            pd.setSoNguoiLon(
+                    (txtNguoiLon.getText().trim().isEmpty() || txtNguoiLon.getText().trim().equals("0"))
+                            ? 1 : Integer.parseInt(txtNguoiLon.getText().trim()));
+            pd.setSoTreEm(
+                    (txtTreEm.getText().trim().isEmpty() || txtTreEm.getText().trim().equals("0"))
+                            ? 1 : Integer.parseInt(txtTreEm.getText().trim()));
+
+            boolean laPhieuMoi = (pdp.timPhieuDatPhongTheoMa(maPDP) == null);
+
+            if (laPhieuMoi) {
+                pdp.themPhieuDatPhong(pd);
+            } else {
+                pdp.capNhatPhieuDatPhong(pd);
+
+              
+                dsctpdp.xoaCTTheoMaPhieu(maPDP);
+                ctcppsd.xoaChiPhiTheoMaPhieu(maPDP);
+            }
+
+           
+            for (int i = 0; i < tblPhong.getRowCount(); i++) {
+                String maPhong = tblPhong.getValueAt(i, 1).toString();
+                LocalDate ngayNhan = LocalDate.parse(tblPhong.getValueAt(i, 3).toString());
+                LocalDate ngayTraThuc = LocalDate.parse(tblPhong.getValueAt(i, 4).toString());
+                LocalDate ngayTra = LocalDate.parse(tblPhong.getValueAt(i, 5).toString());
+                String trangThai = tblPhong.getValueAt(i, 6).toString();
+
+                Phong p = new Phong(maPhong);
+                ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
+                        pd, p, ngayNhan, ngayTraThuc, trangThai, ngayTra
+                );
+
+                dsctpdp.themChiTietPhieuDatPhong(ct);
+                pd.themChiTiet(ct);
+            }
+
+            
+            for (int i = 0; i < tblChiPhi.getRowCount(); i++) {
+                String maCP = tblChiPhi.getValueAt(i, 4).toString();
+                int soLuong = Integer.parseInt(tblChiPhi.getValueAt(i, 2).toString());
+
+                ChiPhiPhatSinh cp = new ChiPhiPhatSinh(maCP);
+                ChiTietChiPhiPhatSinh ctCP = new ChiTietChiPhiPhatSinh(pd, cp, soLuong);
+
+                ctcppsd.themChiTietChiPhi(ctCP);
+                pd.themChiPhiPhatSinh(ctCP);
+            }
+
+//            JOptionPane.showMessageDialog(null,
+//                    laPhieuMoi ? "Thêm phiếu đặt phòng thành công!" :
+//                            "Cập nhật phiếu đặt phòng thành công!");
+
+            return true;   
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+//            JOptionPane.showMessageDialog(null,
+//                    "Lỗi khi lưu phiếu: " + ex.getMessage());
+            return false; 
+        }
+    }
+
+    public List<Phong> layDanhSachPhongTrong() {
+        List<Phong> dsPhongTrong = new ArrayList<>();
+
+        Date dNhan = dateNgayNhan.getDate();
+        Date dTra  = dateNgayTra.getDate();
+
+        if (dNhan == null || dTra == null) {
+            JOptionPane.showMessageDialog(null, "Vui lòng chọn ngày nhận và ngày trả!");
+            return null;
+        }
+        if(!xuLyChonNgay())  
+        	return null;
+        LocalDate ngayNhan = dNhan.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate ngayTra  = dTra.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        Map<String, PhieuDatPhong> mapPhieu = new HashMap<>();
+        for (PhieuDatPhong phieu : pdp.getAllPhieuDatPhong()) {
+            mapPhieu.put(phieu.getMaPhieuDatPhong(), phieu);
+        }
+
+        List<Phong> dsTatCaPhong = dsp.getAllPhong();
+        List<ChiTietPhieuDatPhong> dsDaDat = dsctpdp.getChiTietPhongTuHomNay();
+
+        for (Phong p : dsTatCaPhong) {
+
+            if (!p.getTrangThai().equalsIgnoreCase("Trống"))
+                continue;
+
+            boolean biTrung = false;
+            
+            for (ChiTietPhieuDatPhong ct : dsDaDat) {
+            	 PhieuDatPhong tam = mapPhieu.get(ct.getPhieuDatPhong().getMaPhieuDatPhong());
+                 if (tam != null && 
+                    ("Đã hủy".equalsIgnoreCase(tam.getTrangThai())
+                  || "Hoàn thành".equalsIgnoreCase(tam.getTrangThai()))) {
+                     continue;
+                 }
+                if (ct.getPhong().getMaPhong().equals(p.getMaPhong())) {
+
+                    LocalDate nhan = ct.getNgayNhanThuc();
+                    LocalDate tra  = ct.getNgayTra();
+
+                    // Nếu ngày trong DB bị null => bỏ qua
+                    if (nhan == null || tra == null)
+                        continue;
+
+                    boolean trungNgay = !(ngayTra.isBefore(nhan) || ngayNhan.isAfter(tra));
+
+                    if (trungNgay) {
+                        biTrung = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!biTrung)
+                dsPhongTrong.add(p);
+        }
+
+        return dsPhongTrong;
+    }
+   public boolean xuLyNutInPhieu(){
+	   if (!kiemTraDuLieuNhap()) {
+           JOptionPane.showMessageDialog(null, "Không có thông tin phiếu đặt phòng!");
+           return false;   
+       }
+
+       try {
+           String maPDP = txtMPDP.getText().trim();
+
+           // ====== 1. KHÁCH HÀNG ======
+           String maKH = txtMKH.getText().trim();
+           String tenKH = txtTenKH.getText().trim();
+           String sdt = txtSDT.getText().trim();
+           boolean laVN = chkVN.isSelected();
+
+           KhachHang kh = new KhachHang(maKH, tenKH, sdt, laVN);
+
+           KhachHang khTonTai = khd.getKhachHangTheoMa(maKH);
+           if (khTonTai == null) {
+               khd.themKhachHang(kh);
+           } else {
+               khd.capNhatKhachHang(kh);
+           }
+
+           // ====== 2. PHIẾU ĐẶT PHÒNG ======
+           PhieuDatPhong pd = new PhieuDatPhong();
+           pd.setMaPhieuDatPhong(maPDP);
+           pd.setKhachHang(kh);
+           pd.setNhanVien(new NhanVien(txtNV.getText().trim()));
+           pd.setNgayTao(LocalDate.now());
+           pd.setTrangThai(cboTrangThai.getSelectedItem().toString());
+           pd.setSoNguoiLon(
+                   (txtNguoiLon.getText().trim().isEmpty() || txtNguoiLon.getText().trim().equals("0"))
+                           ? 1 : Integer.parseInt(txtNguoiLon.getText().trim()));
+           pd.setSoTreEm(
+                   (txtTreEm.getText().trim().isEmpty() || txtTreEm.getText().trim().equals("0"))
+                           ? 1 : Integer.parseInt(txtTreEm.getText().trim()));
+
+           boolean laPhieuMoi = (pdp.timPhieuDatPhongTheoMa(maPDP) == null);
+
+           if (laPhieuMoi) {
+               pdp.themPhieuDatPhong(pd);
+           } else {
+               pdp.capNhatPhieuDatPhong(pd);           
+               dsctpdp.xoaCTTheoMaPhieu(maPDP);
+               ctcppsd.xoaChiPhiTheoMaPhieu(maPDP);
+           }         
+           for (int i = 0; i < tblPhong.getRowCount(); i++) {
+               String maPhong = tblPhong.getValueAt(i, 1).toString();
+               LocalDate ngayNhan = LocalDate.parse(tblPhong.getValueAt(i, 3).toString());
+               LocalDate ngayTraThuc = LocalDate.parse(tblPhong.getValueAt(i, 4).toString());
+               LocalDate ngayTra = LocalDate.parse(tblPhong.getValueAt(i, 5).toString());
+               String trangThai = tblPhong.getValueAt(i, 6).toString();
+
+               Phong p = new Phong(maPhong);
+               ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
+                       pd, p, ngayNhan, ngayTraThuc, trangThai, ngayTra
+               );
+
+               dsctpdp.themChiTietPhieuDatPhong(ct);
+               pd.themChiTiet(ct);
+           }
+           return true;   
+       } catch (Exception ex) {
+           ex.printStackTrace();
+           return false; 
+       }
+    }
+   
+   public boolean dieuKienThanhToan() {
+	    LocalDate today = LocalDate.now();
+	    String ma = txtMPDP.getText().trim();
+
+	    if (ma.isEmpty()) {
+	        JOptionPane.showMessageDialog(null, "Bạn chưa có dữ liệu để thanh toán!");
+	        return false;
+	    }
+
+	    List<ChiTietPhieuDatPhong> ds = dsctpdp.getChiTietTheoMaPhieu(ma);
+	    if (ds == null || ds.isEmpty()) {
+	        JOptionPane.showMessageDialog(null, "Không có phòng nào trong phiếu để thanh toán!");
+	        return false;
+	    }
+
+	    StringBuilder phongKhongDuDK = new StringBuilder();
+
+	    for (ChiTietPhieuDatPhong ct : ds) {
+	        LocalDate ngayTra = ct.getNgayTra();  // ngày trả dự kiến
+
+	        // nếu hôm nay < ngày trả -> không được thanh toán
+	        if (today.isBefore(ngayTra)) {
+	            phongKhongDuDK.append("- Phòng ")
+	                          .append(ct.getPhong().getMaPhong())
+	                          .append(" (ngày trả dự kiến: ")
+	                          .append(ngayTra)
+	                          .append(")\n");
+	        }
+	    }
+
+	    if (phongKhongDuDK.length() > 0) {
+	        JOptionPane.showMessageDialog(
+	                null,
+	                "Không thể thanh toán do các phòng sau chưa đến ngày trả:\n" + phongKhongDuDK,
+	                "Không thể thanh toán",
+	                JOptionPane.WARNING_MESSAGE
+	        );
+	        return false;
+	    }
+
+	    return true; // OK, tất cả phòng đều today >= ngày trả
+	}
+   public void huyDatPhong() {
+	    List<ChiTietPhieuDatPhong> dsct = dsctpdp.getChiTietTheoMaPhieu(txtMPDP.getText());
+	    if (dsct == null || dsct.isEmpty()) {
+	        JOptionPane.showMessageDialog(null, "Phiếu không có phòng nào để hủy!");
+	        return;
+	    }
+	    LocalDate homNay = LocalDate.now();
+	    // ====== KIỂM TRA TẤT CẢ ĐỀU QUÁ HẠN ======
+	    boolean tatCaQuaHan = true;
+	    for (ChiTietPhieuDatPhong ct : dsct) {
+	        LocalDate ngayTra = ct.getNgayTra();
+	        if (ngayTra != null && homNay.isBefore(ngayTra)) {
+	            tatCaQuaHan = false;    // chỉ cần có 1 phòng chưa quá hạn là được hủy
+	            break;
+	        }
+	    }
+	    if (tatCaQuaHan) {
+	        JOptionPane.showMessageDialog(null,
+	                "Tất cả phòng trong phiếu đều đã quá hạn trả!\n"
+	                + "Bạn không thể hủy và cần tiến hành thanh toán.");
+	        return;
+	    }
+    // ====== BẮT ĐẦU XỬ LÝ HỦY BÌNH THƯỜNG ======
+	    StringBuilder thongBao = new StringBuilder("KẾT QUẢ HỦY ĐẶT PHÒNG:\n");
+	    for (int i = 0; i < dsct.size(); i++) {
+	        ChiTietPhieuDatPhong ct = dsct.get(i);
+	        String maPhong = ct.getPhong().getMaPhong();
+	        LocalDate ngayNhan = ct.getNgayNhanThuc();
+	        LocalDate ngayTra = ct.getNgayTra();
+	        if (ngayNhan == null || ngayTra == null) {
+	            thongBao.append("Phòng ").append(maPhong)
+	                    .append(": Thiếu ngày nhận/ngày trả → bỏ qua!\n");
+	            continue;
+	        }
+	        // Nếu phòng này đã quá hạn thì bỏ qua (đã cảnh báo phía trên)
+	        if (!homNay.isBefore(ngayTra)) {
+	            thongBao.append("Phòng ").append(maPhong)
+	                    .append(": ĐÃ QUÁ HẠN → KHÔNG THỂ HỦY!\n");
+	            continue;
+	        }
+	        // ❌ 1. Trả quá sớm (trước ngày nhận 2 ngày)
+	        LocalDate tru2Ngay = ngayNhan.minusDays(2);
+
+	        if (homNay.isBefore(tru2Ngay)) {
+
+	            LocalDate ngayTraMoi = ngayNhan;
+
+	            dlp.setValueAt(ngayTraMoi.toString(), i, 5);
+	            dlp.setValueAt(ngayTraMoi.toString(), i, 4);
+
+	            long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTraMoi);
+	            if (soDemO < 1) soDemO = 0;
+
+	            Phong phong = dsp.timPhongTheoMa(maPhong);
+	            double gia = phong.getLoaiPhong().getGia();
+	            double thanhTien = soDemO * gia;
+
+	            dlp.setValueAt(soDemO, i, 6);
+	            dlp.setValueAt(gia, i, 7);
+	            dlp.setValueAt(thanhTien, i, 8);
+
+	            thongBao.append("Phòng ").append(maPhong)
+	                    .append(": Hủy QUÁ SỚM → Set ngày trả = ngày nhận (")
+	                    .append(ngayTraMoi).append(")\n");
+
+	            continue;
+	        }
+	        long soNgayDat = ChronoUnit.DAYS.between(ngayNhan, ngayTra);
+	        if (soNgayDat <= 0) soNgayDat = 1;
+
+	        long soNgayToiThieu = (long) Math.ceil(soNgayDat / 2.0);
+	        LocalDate ngayGiua = ngayNhan.plusDays(soNgayToiThieu);
+
+	        LocalDate ngayTraMoi;
+
+	        if (!homNay.isBefore(ngayGiua)) {
+	            ngayTraMoi = homNay.plusDays(1);
+	            thongBao.append("Phòng ").append(maPhong)
+	                    .append(": Hủy HỢP LỆ → Ngày trả mới = ").append(ngayTraMoi).append("\n");
+	        } else {
+	            ngayTraMoi = ngayGiua;
+	            thongBao.append("Phòng ").append(maPhong)
+	                    .append(": Hủy TRƯỚC NGÀY GIỮA → Ngày trả mới = ").append(ngayTraMoi).append("\n");
+	        }
+	        dlp.setValueAt(ngayTraMoi.toString(), i, 5);
+
+	        long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTraMoi);
+	        if (soDemO < 1) soDemO = 1;
+
+	        Phong phong = dsp.timPhongTheoMa(maPhong);
+	        double gia = phong.getLoaiPhong().getGia();
+	        double thanhTien = soDemO * gia;
+
+	        
+	        dlp.setValueAt(soDemO, i, 6);
+	        dlp.setValueAt(gia, i, 7);
+	        dlp.setValueAt(thanhTien, i, 8);
+	    }
+	    PhieuDatPhong tam = doiTuongTongTienPhong();
+	    tam.setTrangThai("Đã hủy");
+	    cboTrangThai.setSelectedItem(tam.getTrangThai());
+	    hienThiTienCocVaTienTongTienPhong();
+	    int luaChon = JOptionPane.showConfirmDialog( null, "Vui lòng xem thông tin trên màn hình trước khi xác nhận!\n"
+	    		+ "Tổng tiền khách phải trả: "+ (tam.getTongTien()-tam.getTienCoc()), "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
+	    if (luaChon == JOptionPane.YES_OPTION) {
+		    khoaTatCaTruong();
+		    xuLyNutLuu();	
+		    new HuyPhieuDatPhong_GUI(txtMPDP.getText(), doiTuongTongTienPhong()).setVisible(true);
+	    } 	else {
+	    	PhieuDatPhong p= pdp.timPhieuDatPhongTheoMa(txtMPDP.getText());
+	    	KhachHang kh= khd.getKhachHangTheoMa(p.getKhachHang().getMaKhachHang());
+	    	p.setKhachHang(kh);
+	    	getDuLieu(p,mNV);
+	    }
+//	    JOptionPane.showMessageDialog(null, thongBao.toString());
+//	    new HuyPhieuDatPhong_GUI(txtMPDP.getText(), doiTuongTongTienPhong()).setVisible(true);
+	}
+   
+   private void khoaTatCaTruong() {
+	    // Khóa JDateChooser
+	    dateNgayNhan.setEnabled(false);
+	    dateNgayTra.setEnabled(false);
+	    // Khóa JTextField
+	    txtSDT.setEditable(false);
+	    txtTenKH.setEditable(false);
+	    txtNgayTao.setEditable(false);
+	    txtTienCoc.setEditable(false);
+	    txtNV.setEditable(false);
+	    txtMKH.setEditable(false);
+	    txtMPDP.setEditable(false);
+	    txtNguoiLon.setEditable(false);
+	    txtTreEm.setEditable(false);
+	    txtThucTe.setEditable(false);
+	    txtSoNguoiThuc.setEditable(false);
+	    txtTienCocMoi.setEditable(false);
+	    // Khóa JButton
+	    btnInPhieu.setEnabled(false);
+	    btnXoa.setEnabled(false);
+	    btnThemCP.setEnabled(false);
+	    btnXoaCP.setEnabled(false);
+	    btnLuu.setEnabled(false);
+	    btnHuy.setEnabled(false);
+	    btnTT.setEnabled(false);
+	    btnXR.setEnabled(true);
+	    btnCapNhat.setEnabled(false);
+	    btnXNDP.setEnabled(false);
+	    btnTPS.setEnabled(false);
+	    btnGoiY.setEnabled(false);
+	}
+   private void moKhoaTatCaTruong() {
+	    // Mở JDateChooser
+	    dateNgayNhan.setEnabled(true);
+	    dateNgayTra.setEnabled(true);
+	    // Mở JTextField
+	    txtSDT.setEditable(true);
+	    txtTenKH.setEditable(true);
+	    txtNguoiLon.setEditable(true);
+	    txtTreEm.setEditable(true);
+	    txtThucTe.setEditable(true);
+	    txtSoNguoiThuc.setEditable(true);
+	    // Mở JButton
+	    btnInPhieu.setEnabled(true);
+	    btnXoa.setEnabled(true);
+	    btnThemCP.setEnabled(true);
+	    btnXoaCP.setEnabled(true);
+	    btnLuu.setEnabled(true);
+	    btnHuy.setEnabled(true);
+	    btnTT.setEnabled(true);
+	    btnXR.setEnabled(true);
+	    btnCapNhat.setEnabled(true);
+	    btnXNDP.setEnabled(true);
+	    btnTPS.setEnabled(true);
+	    btnGoiY.setEnabled(true);
+	    lblTongTien.setText("Tổng tiền: 0");
+	    lblTongCP.setText("Tổng tiền: 0");
+	    lblTongTatCa.setText("Tổng tiền: 0");
+	    txtTienCoc.setText("0");
+	    txtTienCocMoi.setText("0");
+	}
+
+
+}

@@ -10,18 +10,20 @@ public class ChiTietPhieuDatPhong {
     private LocalDate ngayNhanThuc;
     private LocalDate ngayTraThuc;
     private String trangThai;
+    private LocalDate ngayTra;   
 
-    
     public ChiTietPhieuDatPhong() {
     }
 
     public ChiTietPhieuDatPhong(PhieuDatPhong phieuDatPhong, Phong phong,
-                                LocalDate ngayNhanThuc, LocalDate ngayTraThuc, String trangThai) {
+                                LocalDate ngayNhanThuc, LocalDate ngayTraThuc,
+                                String trangThai, LocalDate ngayTra) {  
         this.phieuDatPhong = phieuDatPhong;
         this.phong = phong;
         this.ngayNhanThuc = ngayNhanThuc;
         this.ngayTraThuc = ngayTraThuc;
         this.trangThai = trangThai;
+        this.ngayTra = ngayTra;   
         getThanhTien();
     }
 
@@ -66,29 +68,61 @@ public class ChiTietPhieuDatPhong {
         this.trangThai = trangThai;
     }
 
-    // ===== Thuộc tính dẫn xuất =====
-    public double getThanhTien() {
-        if (phong == null || ngayNhanThuc == null || ngayTraThuc == null) {
-            return 0;
-        }
+    public LocalDate getNgayTra() {   
+        return ngayTra;
+    }
 
-        return phong.getLoaiPhong().getGia() * getSoNgay();
+    public void setNgayTra(LocalDate ngayTra) {  
+        this.ngayTra = ngayTra;
+    }
+    public double getThanhTien() {
+        double gia = (phong != null 
+                      && phong.getLoaiPhong() != null 
+                      && phong.getLoaiPhong().getGia() > 0)
+                      ? phong.getLoaiPhong().getGia()
+                      : 1; // nếu null hoặc 0 thì mặc định = 1
+
+        int soNgayO = getSoNgay() > 0 ? getSoNgay() : 0;
+
+        return gia * soNgayO;
+    }
+
+
+    public double getThanhTienCoc() {
+        double gia = (phong != null
+                && phong.getLoaiPhong() != null
+                && phong.getLoaiPhong().getGia() > 0)
+                ? phong.getLoaiPhong().getGia()
+                : 1;  
+
+        
+        return gia * this.getSoNgayKhongDoi() ;
     }
 
     public int getSoNgay() {
-        if (ngayNhanThuc == null || ngayTraThuc == null) {
+        if (ngayNhanThuc == null || ngayTra == null) {
             return 0;
         }
 
-        long soNgay = ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraThuc);
+        long soNgay = ChronoUnit.DAYS.between(ngayNhanThuc, ngayTra);
         if (soNgay <= 0) {
-            soNgay = 1; // Tối thiểu 1 ngày
+            soNgay = 0; 
         }
 
         return (int) soNgay;
     }
+    public int getSoNgayKhongDoi() {
+    	 if (ngayNhanThuc == null || ngayTraThuc == null) {
+             return 0;
+         }
 
+         long soNgay = ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraThuc);
+         if (soNgay <= 0) {
+             soNgay = 0; 
+         }
 
+         return (int) soNgay;
+    }
     @Override
     public int hashCode() {
         return Objects.hash(phieuDatPhong, phong);
@@ -97,7 +131,7 @@ public class ChiTietPhieuDatPhong {
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
-            return true;
+            return false;
         if (obj == null || getClass() != obj.getClass())
             return false;
         ChiTietPhieuDatPhong other = (ChiTietPhieuDatPhong) obj;
@@ -105,12 +139,10 @@ public class ChiTietPhieuDatPhong {
                 && Objects.equals(phong, other.phong);
     }
 
-	@Override
-	public String toString() {
-		return "ChiTietPhieuDatPhong [phieuDatPhong=" + phieuDatPhong + ", phong=" + phong + ", ngayNhanThuc="
-				+ ngayNhanThuc + ", ngayTraThuc=" + ngayTraThuc + ", trangThai=" + trangThai + "]";
-	}
-
-    
-   
+    @Override
+    public String toString() {
+        return "ChiTietPhieuDatPhong [phieuDatPhong=" + phieuDatPhong + ", phong=" + phong
+                + ", ngayNhanThuc=" + ngayNhanThuc + ", ngayTraThuc=" + ngayTraThuc
+                + ", trangThai=" + trangThai + ", ngayTra=" + ngayTra + "]";
+    }
 }

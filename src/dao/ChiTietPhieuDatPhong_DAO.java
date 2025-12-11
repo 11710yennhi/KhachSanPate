@@ -21,12 +21,12 @@ public class ChiTietPhieuDatPhong_DAO {
         ResultSet rs = null;
 
         try {
-            // Kết nối CSDL
             con = ConnectDB.getInstance().getConnection();
 
             String sql = """
                 SELECT ctpdp.maPhieuDatPhong, ctpdp.maPhong,
-                       ctpdp.ngayNhanThuc, ctpdp.ngayTraThuc, ctpdp.trangThai AS trangThaiCT,
+                       ctpdp.ngayNhanThuc, ctpdp.ngayTraThuc, ctpdp.ngayTra,
+                       ctpdp.trangThai AS trangThaiCT,
                        p.trangThai AS trangThaiPhong,
                        lp.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, lp.moTa
                 FROM ChiTietPhieuDatPhong ctpdp
@@ -40,10 +40,8 @@ public class ChiTietPhieuDatPhong_DAO {
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                // --- Thông tin phiếu ---
                 PhieuDatPhong phieu = new PhieuDatPhong(maPhieuDatPhong);
 
-                // --- Thông tin loại phòng ---
                 String maLoaiPhong = rs.getString("maLoaiPhong");
                 String tenLoaiPhong = rs.getString("tenLoaiPhong");
                 int sucChua = rs.getInt("sucChua");
@@ -52,28 +50,29 @@ public class ChiTietPhieuDatPhong_DAO {
 
                 LoaiPhong loai = new LoaiPhong(maLoaiPhong, tenLoaiPhong, sucChua, gia, moTa);
 
-                // --- Thông tin phòng ---
                 String maPhong = rs.getString("maPhong");
                 String trangThaiPhong = rs.getString("trangThaiPhong");
                 Phong phong = new Phong(maPhong, loai, trangThaiPhong);
 
-                // --- Thông tin ngày và trạng thái chi tiết ---
                 Date ngayNhanSQL = rs.getDate("ngayNhanThuc");
                 Date ngayTraSQL = rs.getDate("ngayTraThuc");
+                Date ngayTraThucTeSQL = rs.getDate("ngayTra");
+
                 LocalDate ngayNhan = ngayNhanSQL != null ? ngayNhanSQL.toLocalDate() : null;
                 LocalDate ngayTra = ngayTraSQL != null ? ngayTraSQL.toLocalDate() : null;
+                LocalDate ngayTraThucTe = ngayTraThucTeSQL != null ? ngayTraThucTeSQL.toLocalDate() : null;
 
                 String trangThaiChiTiet = rs.getString("trangThaiCT");
 
-                // --- Tạo đối tượng chi tiết ---
-                ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(phieu, phong, ngayNhan, ngayTra, trangThaiChiTiet);
+                ChiTietPhieuDatPhong ct =
+                        new ChiTietPhieuDatPhong(phieu, phong, ngayNhan, ngayTra, trangThaiChiTiet, ngayTraThucTe);
+
                 dsCT.add(ct);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            // Đóng tài nguyên
             try {
                 if (rs != null) rs.close();
                 if (ps != null) ps.close();
@@ -85,6 +84,8 @@ public class ChiTietPhieuDatPhong_DAO {
 
         return dsCT;
     }
+
+
     public boolean themChiTietPhieuDatPhong(ChiTietPhieuDatPhong ct) {
         Connection con = null;
         PreparedStatement ps = null;
@@ -95,15 +96,14 @@ public class ChiTietPhieuDatPhong_DAO {
 
             String sql = """
                 INSERT INTO ChiTietPhieuDatPhong
-                    (maPhieuDatPhong, maPhong, ngayNhanThuc, ngayTraThuc, trangThai)
-                VALUES (?, ?, ?, ?, ?)
+                    (maPhieuDatPhong, maPhong, ngayNhanThuc, ngayTraThuc, ngayTra, trangThai)
+                VALUES (?, ?, ?, ?, ?, ?)
             """;
 
             ps = con.prepareStatement(sql);
             ps.setString(1, ct.getPhieuDatPhong().getMaPhieuDatPhong());
             ps.setString(2, ct.getPhong().getMaPhong());
 
-            // Chuyển LocalDate sang java.sql.Date
             if (ct.getNgayNhanThuc() != null)
                 ps.setDate(3, Date.valueOf(ct.getNgayNhanThuc()));
             else
@@ -114,7 +114,12 @@ public class ChiTietPhieuDatPhong_DAO {
             else
                 ps.setNull(4, java.sql.Types.DATE);
 
-            ps.setString(5, ct.getTrangThai());
+            if (ct.getNgayTra() != null)
+                ps.setDate(5, Date.valueOf(ct.getNgayTra()));
+            else
+                ps.setNull(5, java.sql.Types.DATE);
+
+            ps.setString(6, ct.getTrangThai());
 
             int rows = ps.executeUpdate();
             result = rows > 0;
@@ -132,6 +137,8 @@ public class ChiTietPhieuDatPhong_DAO {
 
         return result;
     }
+
+
     public List<ChiTietPhieuDatPhong> getAllChiTietPhieuDatPhong() {
         List<ChiTietPhieuDatPhong> dsCT = new ArrayList<>();
 
@@ -144,7 +151,8 @@ public class ChiTietPhieuDatPhong_DAO {
 
             String sql = """
                 SELECT ctpdp.maPhieuDatPhong, ctpdp.maPhong,
-                       ctpdp.ngayNhanThuc, ctpdp.ngayTraThuc, ctpdp.trangThai AS trangThaiCT,
+                       ctpdp.ngayNhanThuc, ctpdp.ngayTraThuc, ctpdp.ngayTra,
+                       ctpdp.trangThai AS trangThaiCT,
                        p.trangThai AS trangThaiPhong,
                        lp.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, lp.moTa
                 FROM ChiTietPhieuDatPhong ctpdp
@@ -156,11 +164,10 @@ public class ChiTietPhieuDatPhong_DAO {
             rs = ps.executeQuery();
 
             while (rs.next()) {
-                // --- Thông tin phiếu ---
+
                 String maPhieuDatPhong = rs.getString("maPhieuDatPhong");
                 PhieuDatPhong phieu = new PhieuDatPhong(maPhieuDatPhong);
 
-                // --- Thông tin loại phòng ---
                 String maLoaiPhong = rs.getString("maLoaiPhong");
                 String tenLoaiPhong = rs.getString("tenLoaiPhong");
                 int sucChua = rs.getInt("sucChua");
@@ -169,21 +176,23 @@ public class ChiTietPhieuDatPhong_DAO {
 
                 LoaiPhong loai = new LoaiPhong(maLoaiPhong, tenLoaiPhong, sucChua, gia, moTa);
 
-                // --- Thông tin phòng ---
                 String maPhong = rs.getString("maPhong");
                 String trangThaiPhong = rs.getString("trangThaiPhong");
                 Phong phong = new Phong(maPhong, loai, trangThaiPhong);
 
-                // --- Thông tin ngày và trạng thái chi tiết ---
                 Date ngayNhanSQL = rs.getDate("ngayNhanThuc");
                 Date ngayTraSQL = rs.getDate("ngayTraThuc");
+                Date ngayTraThucTeSQL = rs.getDate("ngayTra");
+
                 LocalDate ngayNhan = ngayNhanSQL != null ? ngayNhanSQL.toLocalDate() : null;
                 LocalDate ngayTra = ngayTraSQL != null ? ngayTraSQL.toLocalDate() : null;
+                LocalDate ngayTraThucTe = ngayTraThucTeSQL != null ? ngayTraThucTeSQL.toLocalDate() : null;
 
                 String trangThaiChiTiet = rs.getString("trangThaiCT");
 
-                // --- Tạo đối tượng chi tiết ---
-                ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(phieu, phong, ngayNhan, ngayTra, trangThaiChiTiet);
+                ChiTietPhieuDatPhong ct =
+                        new ChiTietPhieuDatPhong(phieu, phong, ngayNhan, ngayTra, trangThaiChiTiet, ngayTraThucTe);
+
                 dsCT.add(ct);
             }
 
@@ -201,5 +210,73 @@ public class ChiTietPhieuDatPhong_DAO {
 
         return dsCT;
     }
+
+    public boolean xoaCTTheoMaPhieu(String maPhieu) {
+        String sql = "DELETE FROM ChiTietPhieuDatPhong WHERE maPhieuDatPhong = ?";
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maPhieu);
+            return ps.executeUpdate() >= 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public List<ChiTietPhieuDatPhong> getChiTietPhongTuHomNay() {
+        List<ChiTietPhieuDatPhong> dsCT = new ArrayList<>();
+
+        String sql = """
+            SELECT ctpdp.maPhieuDatPhong, ctpdp.maPhong,
+                   ctpdp.ngayNhanThuc, ctpdp.ngayTraThuc, ctpdp.ngayTra,
+                   ctpdp.trangThai AS trangThaiCT,
+                   p.trangThai AS trangThaiPhong,
+                   lp.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, lp.moTa
+            FROM ChiTietPhieuDatPhong ctpdp
+            JOIN Phong p ON ctpdp.maPhong = p.maPhong
+            JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong
+            WHERE ctpdp.ngayNhanThuc >= CAST(GETDATE() AS DATE)
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+
+                PhieuDatPhong phieu = new PhieuDatPhong(rs.getString("maPhieuDatPhong"));
+
+                LoaiPhong loai = new LoaiPhong(
+                    rs.getString("maLoaiPhong"),
+                    rs.getString("tenLoaiPhong"),
+                    rs.getInt("sucChua"),
+                    rs.getDouble("gia"),
+                    rs.getString("moTa")
+                );
+
+                Phong phong = new Phong(
+                    rs.getString("maPhong"),
+                    loai,
+                    rs.getString("trangThaiPhong")
+                );
+
+                LocalDate ngayNhan = rs.getDate("ngayNhanThuc").toLocalDate();
+                LocalDate ngayTra = rs.getDate("ngayTraThuc") != null ? rs.getDate("ngayTraThuc").toLocalDate() : null;
+                LocalDate ngayTraThucTe = rs.getDate("ngayTra") != null ? rs.getDate("ngayTra").toLocalDate() : null;
+
+                ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
+                        phieu, phong, ngayNhan, ngayTra, rs.getString("trangThaiCT"), ngayTraThucTe);
+
+                dsCT.add(ct);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return dsCT;
+    }
+
 
 }

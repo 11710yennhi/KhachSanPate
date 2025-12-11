@@ -53,8 +53,14 @@ public class ChiTietChiPhiPhatSinh {
     }
 
     public double getThanhTien() {
+        if (chiPhiPhatSinh != null) {
+            thanhTien = chiPhiPhatSinh.getGia() * soLuong;
+        } else {
+            thanhTien = 0;
+        }
         return thanhTien;
     }
+
 
 
     public void tinhThanhTien() {

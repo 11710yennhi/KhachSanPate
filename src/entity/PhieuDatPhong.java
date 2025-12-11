@@ -18,6 +18,7 @@ public class PhieuDatPhong {
     private double tongTienChiPhiPhatSinh;    // thuộc tính dẫn xuất
     private double tongTien;                  // thuộc tính dẫn xuất
     private double tienCoc;                   // thuộc tính dẫn xuất
+    private double tongTienPhongCoc;
 
     private List<ChiTietPhieuDatPhong> dsChiTiet;
     private List<ChiTietChiPhiPhatSinh> dsChiPhiPhatSinh;
@@ -140,11 +141,13 @@ public class PhieuDatPhong {
     // ====== Cập nhật tổng tiền ======
     public void capNhatTongTien() {
         tongTienPhong = 0;
+        tongTienPhongCoc=0;
         tongTienChiPhiPhatSinh = 0;
 
         if (dsChiTiet != null) {
             for (ChiTietPhieuDatPhong ct : dsChiTiet) {
                 tongTienPhong += ct.getThanhTien();
+                tongTienPhongCoc+= ct.getThanhTienCoc();
             }
         }
 
@@ -155,7 +158,7 @@ public class PhieuDatPhong {
         }
 
         tongTien = tongTienPhong + tongTienChiPhiPhatSinh;
-        tienCoc = tongTienPhong * 0.5;
+        tienCoc = tongTienPhongCoc * 0.5;
     }
 
     // ====== Getter cho các thuộc tính dẫn xuất ======
