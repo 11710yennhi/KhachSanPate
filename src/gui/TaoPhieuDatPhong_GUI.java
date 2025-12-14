@@ -426,29 +426,27 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 			if(kiemTraDuLieuNhap()&&dieuKienNguoi()&&dieuKienThanhToan()) {
 				 int luaChon = JOptionPane.showConfirmDialog( null, "Bạn có chắn thanh toán không", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
 				    if (luaChon == JOptionPane.YES_OPTION) {
-				    	xuLyNutLuu();
 				    	
-				    	String maPDP = txtMPDP.getText();
-
-				    	ThanhToanFrame_GUI f = new ThanhToanFrame_GUI(
-				    	    maPDP,
-				    	    txtTenKH.getText(),
-				    	    txtNV.getText(),
-				    	    convertTableModelToArray(tblPhong),
-				    	    convertTableModelToArray(tblChiPhi),
-				    	    lblTongTien.getText().split(":")[1].trim(),
-				    	    lblTongCP.getText().split(":")[1].trim()
-				    	);
-
-				    	f.setVisible(true);	
-				    }
+				    	
+				    	 //mở giao diện bill ở đây 
+				    	xuLyNutLuu();		
+				    	// trạng thái phiếu đặt phòng hoàn thành
+//				    	 lưu hóa đơn vào dâyd 
+				    } 
 			}
-		}else if(o.equals(btnHuy)) {
-			if(kiemTraDuLieuNhap()) {
-				huyDatPhong();
-				//lưu hóa đơn
-			}
-		}				
+		}else if (o.equals(btnHuy)) {
+		    if (!kiemTraDuLieuNhap()) return;
+		    int chon = JOptionPane.showConfirmDialog(
+		            null,
+		            "Bạn có chắc chắn muốn hủy đặt phòng?",
+		            "Xác nhận",
+		            JOptionPane.YES_NO_OPTION,
+		            JOptionPane.QUESTION_MESSAGE
+		    );
+		    if (chon == JOptionPane.YES_OPTION) {
+		        huyDatPhong();   
+		    }
+		}			
 	}
 	public void xoaPhong() {
 	    int x = tblPhong.getSelectedRow();
@@ -1761,165 +1759,195 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     }
    
    public boolean dieuKienThanhToan() {
+
 	    LocalDate today = LocalDate.now();
 	    String ma = txtMPDP.getText().trim();
 
 	    if (ma.isEmpty()) {
-	        JOptionPane.showMessageDialog(null, "Bạn chưa có dữ liệu để thanh toán!");
+	        JOptionPane.showMessageDialog(null, "Bạn chưa chọn phiếu!");
 	        return false;
 	    }
 
-	    List<ChiTietPhieuDatPhong> ds = dsctpdp.getChiTietTheoMaPhieu(ma);
+	    PhieuDatPhong p = pdp.timPhieuDatPhongTheoMa(ma);
+	    if (p == null) {
+	        JOptionPane.showMessageDialog(null, "Không tìm thấy phiếu đặt phòng!");
+	        return false;
+	    }
+
+	    // ===== CHỈ XỬ LÝ KHI ĐANG Ở =====
+	    if (!p.getTrangThai().equalsIgnoreCase("Đang ở")) {
+	        JOptionPane.showMessageDialog(null,
+	                "Phiếu không ở trạng thái ĐANG Ở!");
+	        return false;
+	    }
+
+	    List<ChiTietPhieuDatPhong> ds =
+	            dsctpdp.getChiTietTheoMaPhieu(ma);
+
 	    if (ds == null || ds.isEmpty()) {
-	        JOptionPane.showMessageDialog(null, "Không có phòng nào trong phiếu để thanh toán!");
+	        JOptionPane.showMessageDialog(null,
+	                "Phiếu không có phòng nào!");
 	        return false;
 	    }
 
-	    StringBuilder phongKhongDuDK = new StringBuilder();
+	    // ===== XỬ LÝ TỪNG PHÒNG =====
+	    for (int i = 0; i < ds.size(); i++) {
 
-	    for (ChiTietPhieuDatPhong ct : ds) {
-	        LocalDate ngayTra = ct.getNgayTra();  // ngày trả dự kiến
+	        ChiTietPhieuDatPhong ct = ds.get(i);
 
-	        // nếu hôm nay < ngày trả -> không được thanh toán
-	        if (today.isBefore(ngayTra)) {
-	            phongKhongDuDK.append("- Phòng ")
-	                          .append(ct.getPhong().getMaPhong())
-	                          .append(" (ngày trả dự kiến: ")
-	                          .append(ngayTra)
-	                          .append(")\n");
+	        LocalDate ngayNhanThuc = ct.getNgayNhanThuc();
+	        LocalDate ngayTra = ct.getNgayTra();
+	        LocalDate ngayTraThuc = ct.getNgayTraThuc();
+
+	        if (ngayNhanThuc == null || ngayTra == null) continue;
+	        if (ngayTraThuc == null) ngayTraThuc = ngayTra;
+
+	        long tongNgay =
+	                ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraThuc);
+	        if (tongNgay < 1) tongNgay = 1;
+
+	        long soNgayGiua = tongNgay / 2; // lẻ làm tròn xuống
+	        LocalDate ngayGiua = ngayNhanThuc.plusDays(soNgayGiua);
+
+	        // ===== CASE 1: today + 3 == ngày trả =====
+	        if (today.plusDays(3).isEqual(ngayTra)) {
+
+	            dlp.setValueAt(ngayNhanThuc.toString(), i, 5);
+	            dlp.setValueAt(ngayNhanThuc.toString(), i, 9);
+	            continue;
+	        }
+
+	        // ===== CASE 2: today + 2 == ngày nhận =====
+	        if (today.plusDays(2).isEqual(ngayNhanThuc)) {
+
+	            dlp.setValueAt(ngayGiua.toString(), i, 5);
+	            dlp.setValueAt(ngayGiua.toString(), i, 9);
+	            continue;
+	        }
+
+	        // ===== CASE 3: today >= ngày GIỮA =====
+	        if (!today.isBefore(ngayGiua)) {
+
+	            LocalDate ngayTraMoi = today.plusDays(1);
+	            dlp.setValueAt(ngayTraMoi.toString(), i, 5);
+	            dlp.setValueAt(ngayTraMoi.toString(), i, 9);
 	        }
 	    }
 
-	    if (phongKhongDuDK.length() > 0) {
+	    return true;
+	}
+
+   
+   public void huyDatPhong() {
+
+	    PhieuDatPhong p = pdp.timPhieuDatPhongTheoMa(txtMPDP.getText().trim());
+	    if (p == null) {
+	        JOptionPane.showMessageDialog(null, "Không tìm thấy phiếu đặt phòng!");
+	        return;
+	    }
+
+	    // ===== 1. KIỂM TRA TRẠNG THÁI =====
+	    if (p.getTrangThai().equalsIgnoreCase("Đang ở")) {
 	        JOptionPane.showMessageDialog(
 	                null,
-	                "Không thể thanh toán do các phòng sau chưa đến ngày trả:\n" + phongKhongDuDK,
-	                "Không thể thanh toán",
-	                JOptionPane.WARNING_MESSAGE
+	                "Khách đang ở!\nKhông thể hủy, vui lòng tiến hành THANH TOÁN."
 	        );
-	        return false;
+	        return;
 	    }
 
-	    return true; // OK, tất cả phòng đều today >= ngày trả
-	}
-   public void huyDatPhong() {
-	    List<ChiTietPhieuDatPhong> dsct = dsctpdp.getChiTietTheoMaPhieu(txtMPDP.getText());
+	    if (!p.getTrangThai().equalsIgnoreCase("Đã đặt")) {
+	        JOptionPane.showMessageDialog(
+	                null,
+	                "Chỉ được hủy khi phiếu ở trạng thái ĐÃ ĐẶT!"
+	        );
+	        return;
+	    }
+
+	    List<ChiTietPhieuDatPhong> dsct =
+	            dsctpdp.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
+
 	    if (dsct == null || dsct.isEmpty()) {
-	        JOptionPane.showMessageDialog(null, "Phiếu không có phòng nào để hủy!");
+	        JOptionPane.showMessageDialog(null, "Phiếu không có chi tiết phòng!");
 	        return;
 	    }
+
+	    // ===== 2. CONFIRM =====
+	    int chon = JOptionPane.showConfirmDialog(
+	            null,
+	            "Xác nhận HỦY ĐẶT PHÒNG?",
+	            "Xác nhận",
+	            JOptionPane.YES_NO_OPTION,
+	            JOptionPane.QUESTION_MESSAGE
+	    );
+	    if (chon != JOptionPane.YES_OPTION) return;
+
 	    LocalDate homNay = LocalDate.now();
-	    // ====== KIỂM TRA TẤT CẢ ĐỀU QUÁ HẠN ======
-	    boolean tatCaQuaHan = true;
-	    for (ChiTietPhieuDatPhong ct : dsct) {
-	        LocalDate ngayTra = ct.getNgayTra();
-	        if (ngayTra != null && homNay.isBefore(ngayTra)) {
-	            tatCaQuaHan = false;    // chỉ cần có 1 phòng chưa quá hạn là được hủy
-	            break;
-	        }
-	    }
-	    if (tatCaQuaHan) {
-	        JOptionPane.showMessageDialog(null,
-	                "Tất cả phòng trong phiếu đều đã quá hạn trả!\n"
-	                + "Bạn không thể hủy và cần tiến hành thanh toán.");
-	        return;
-	    }
-    // ====== BẮT ĐẦU XỬ LÝ HỦY BÌNH THƯỜNG ======
-	    StringBuilder thongBao = new StringBuilder("KẾT QUẢ HỦY ĐẶT PHÒNG:\n");
+
+	    // ===== 3. XỬ LÝ HỦY =====
 	    for (int i = 0; i < dsct.size(); i++) {
+
 	        ChiTietPhieuDatPhong ct = dsct.get(i);
-	        String maPhong = ct.getPhong().getMaPhong();
-	        LocalDate ngayNhan = ct.getNgayNhanThuc();
-	        LocalDate ngayTra = ct.getNgayTra();
-	        if (ngayNhan == null || ngayTra == null) {
-	            thongBao.append("Phòng ").append(maPhong)
-	                    .append(": Thiếu ngày nhận/ngày trả → bỏ qua!\n");
-	            continue;
-	        }
-	        // Nếu phòng này đã quá hạn thì bỏ qua (đã cảnh báo phía trên)
-	        if (!homNay.isBefore(ngayTra)) {
-	            thongBao.append("Phòng ").append(maPhong)
-	                    .append(": ĐÃ QUÁ HẠN → KHÔNG THỂ HỦY!\n");
-	            continue;
-	        }
-	        // ❌ 1. Trả quá sớm (trước ngày nhận 2 ngày)
-	        LocalDate tru2Ngay = ngayNhan.minusDays(2);
 
-	        if (homNay.isBefore(tru2Ngay)) {
+	        LocalDate ngayNhanThuc = ct.getNgayNhanThuc();
+	        LocalDate ngayTraThuc  = ct.getNgayTraThuc();
 
-	            LocalDate ngayTraMoi = ngayNhan;
+	        if (ngayNhanThuc == null || ngayTraThuc == null) continue;
 
-	            dlp.setValueAt(ngayTraMoi.toString(), i, 5);
-	            dlp.setValueAt(ngayTraMoi.toString(), i, 4);
-
-	            long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTraMoi);
-	            if (soDemO < 1) soDemO = 0;
-
-	            Phong phong = dsp.timPhongTheoMa(maPhong);
-	            double gia = phong.getLoaiPhong().getGia();
-	            double thanhTien = soDemO * gia;
-
-	            dlp.setValueAt(soDemO, i, 6);
-	            dlp.setValueAt(gia, i, 7);
-	            dlp.setValueAt(thanhTien, i, 8);
-
-	            thongBao.append("Phòng ").append(maPhong)
-	                    .append(": Hủy QUÁ SỚM → Set ngày trả = ngày nhận (")
-	                    .append(ngayTraMoi).append(")\n");
-
-	            continue;
-	        }
-	        long soNgayDat = ChronoUnit.DAYS.between(ngayNhan, ngayTra);
-	        if (soNgayDat <= 0) soNgayDat = 1;
-
-	        long soNgayToiThieu = (long) Math.ceil(soNgayDat / 2.0);
-	        LocalDate ngayGiua = ngayNhan.plusDays(soNgayToiThieu);
+	        // số ngày còn lại tới ngày nhận
+	        long soNgayConLai =
+	                ChronoUnit.DAYS.between(homNay, ngayNhanThuc);
 
 	        LocalDate ngayTraMoi;
 
-	        if (!homNay.isBefore(ngayGiua)) {
-	            ngayTraMoi = homNay.plusDays(1);
-	            thongBao.append("Phòng ").append(maPhong)
-	                    .append(": Hủy HỢP LỆ → Ngày trả mới = ").append(ngayTraMoi).append("\n");
-	        } else {
-	            ngayTraMoi = ngayGiua;
-	            thongBao.append("Phòng ").append(maPhong)
-	                    .append(": Hủy TRƯỚC NGÀY GIỮA → Ngày trả mới = ").append(ngayTraMoi).append("\n");
+	        // ===== CASE 1: Hủy trước >= 3 ngày =====
+	        if (soNgayConLai >= 3) {
+
+	            ngayTraMoi = ngayNhanThuc;
+
 	        }
-	        dlp.setValueAt(ngayTraMoi.toString(), i, 5);
+	        // ===== CASE 2: Còn ≤ 2 ngày → lấy NGÀY GIỮA =====
+	        else {
 
-	        long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTraMoi);
-	        if (soDemO < 1) soDemO = 1;
+	            // 🔥 TÍNH NGÀY GIỮA ĐÚNG THEO TOÁN
+	            long epochNhan = ngayNhanThuc.toEpochDay();
+	            long epochTra  = ngayTraThuc.toEpochDay();
 
-	        Phong phong = dsp.timPhongTheoMa(maPhong);
+	            long epochGiua = (epochNhan + epochTra) / 2; // lẻ tự làm tròn xuống
+	            ngayTraMoi = LocalDate.ofEpochDay(epochGiua);
+	        }
+
+	        // ===== SET CẢ NGÀY TRẢ & NGÀY TRẢ THỰC =====
+	        dlp.setValueAt(ngayTraMoi.toString(), i, 4); // ngày trả thực
+	        dlp.setValueAt(ngayTraMoi.toString(), i, 5); // ngày trả
+
+	        // ===== TÍNH LẠI SỐ ĐÊM & TIỀN =====
+	        long soDemO =
+	                ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraMoi);
+	        if (soDemO < 0) soDemO = 0;
+
+	        Phong phong = dsp.timPhongTheoMa(ct.getPhong().getMaPhong());
 	        double gia = phong.getLoaiPhong().getGia();
-	        double thanhTien = soDemO * gia;
 
-	        
 	        dlp.setValueAt(soDemO, i, 6);
 	        dlp.setValueAt(gia, i, 7);
-	        dlp.setValueAt(thanhTien, i, 8);
+	        dlp.setValueAt(soDemO * gia, i, 8);
 	    }
-	    PhieuDatPhong tam = doiTuongTongTienPhong();
-	    tam.setTrangThai("Đã hủy");
-	    cboTrangThai.setSelectedItem(tam.getTrangThai());
+
+	    // ===== 4. CẬP NHẬT PHIẾU =====
+	    p.setTrangThai("Đã hủy");
+	    cboTrangThai.setSelectedItem("Đã hủy");
+
 	    hienThiTienCocVaTienTongTienPhong();
-	    int luaChon = JOptionPane.showConfirmDialog( null, "Vui lòng xem thông tin trên màn hình trước khi xác nhận!\n"
-	    		+ "Tổng tiền khách phải trả: "+ (tam.getTongTien()-tam.getTienCoc()), "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
-	    if (luaChon == JOptionPane.YES_OPTION) {
-		    khoaTatCaTruong();
-		    xuLyNutLuu();	
-		    new HuyPhieuDatPhong_GUI(txtMPDP.getText(), doiTuongTongTienPhong()).setVisible(true);
-	    } 	else {
-	    	PhieuDatPhong p= pdp.timPhieuDatPhongTheoMa(txtMPDP.getText());
-	    	KhachHang kh= khd.getKhachHangTheoMa(p.getKhachHang().getMaKhachHang());
-	    	p.setKhachHang(kh);
-	    	getDuLieu(p,mNV);
-	    }
-//	    JOptionPane.showMessageDialog(null, thongBao.toString());
-//	    new HuyPhieuDatPhong_GUI(txtMPDP.getText(), doiTuongTongTienPhong()).setVisible(true);
+	    khoaTatCaTruong();
+	    xuLyNutLuu();
+
+	    new HuyPhieuDatPhong_GUI(
+	            p.getMaPhieuDatPhong(),
+	            doiTuongTongTienPhong()
+	    ).setVisible(true);
 	}
-   
+
+
    private void khoaTatCaTruong() {
 	    // Khóa JDateChooser
 	    dateNgayNhan.setEnabled(false);
@@ -1980,8 +2008,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    lblTongTatCa.setText("Tổng tiền: 0");
 	    txtTienCoc.setText("0");
 	    txtTienCocMoi.setText("0");
+	    
+	    cboTrangThai.setSelectedIndex(0);
 	}
-
    private Object[][] convertTableModelToArray(JTable table) {
 	    DefaultTableModel model = (DefaultTableModel) table.getModel();
 	    int rowCount = model.getRowCount();
@@ -1996,4 +2025,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    }
 	    return data;
 	}
+
+
 }
