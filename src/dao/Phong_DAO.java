@@ -1,6 +1,7 @@
 package dao;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -207,6 +208,64 @@ public class Phong_DAO {
         }
 
         return lastCode; // null nếu chưa có phòng nào với prefix đó
+    }
+    
+    public List<Phong> getDSPhongTrongTheoNgay(
+            LocalDate ngayNhanMoi,
+            LocalDate ngayTraMoi) {
+
+        List<Phong> dsPhong = new ArrayList<>();
+
+        String sql = """
+            SELECT p.maPhong, p.trangThai,
+                   lp.maLoaiPhong, lp.tenLoaiPhong,
+                   lp.sucChua, lp.gia, lp.moTa
+            FROM Phong p
+            JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong
+            WHERE p.trangThai = N'Trống'
+            AND NOT EXISTS (
+                SELECT 1
+                FROM ChiTietPhieuDatPhong ct
+                JOIN PhieuDatPhong pdp
+                  ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+                WHERE ct.maPhong = p.maPhong
+                  AND pdp.trangThai NOT IN (N'Đã hủy', N'Hoàn thành')
+                  AND ? < ct.ngayTra
+                  AND ? > ct.ngayNhanThuc
+            )
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setDate(1, Date.valueOf(ngayNhanMoi));
+            ps.setDate(2, Date.valueOf(ngayTraMoi));
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+
+                LoaiPhong lp = new LoaiPhong(
+                        rs.getString("maLoaiPhong"),
+                        rs.getString("tenLoaiPhong"),
+                        rs.getInt("sucChua"),
+                        rs.getDouble("gia"),
+                        rs.getString("moTa")
+                );
+
+                Phong p = new Phong(
+                        rs.getString("maPhong"),
+                        lp,
+                        rs.getString("trangThai")
+                );
+
+                dsPhong.add(p);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return dsPhong;
     }
 
 }

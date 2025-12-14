@@ -76,7 +76,7 @@ public class Phong_GUI extends JPanel implements ActionListener, MouseListener {
         comboLoaiPhong = new JComboBox<>();
         comboLoaiPhong.setPreferredSize(new Dimension(200, 25));
 
-        btnChiTietLoaiPhong = new JButton("🔍");
+        btnChiTietLoaiPhong = new JButton("✏️");
         btnChiTietLoaiPhong.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
         btnChiTietLoaiPhong.setFocusPainted(false);
         btnChiTietLoaiPhong.setBackground(Color.WHITE);
