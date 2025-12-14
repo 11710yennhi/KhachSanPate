@@ -1,25 +1,41 @@
 package entity;
-
-import java.util.Objects;
+import java.time.LocalDate;
 
 public class HoaDon {
+
+    // ===== THUỘC TÍNH =====
     private String maHoaDon;
-    private String maPhieuDatPhong;
-    private String maKhuyenMai;
+    private PhieuDatPhong phieuDatPhong;
+    private KhuyenMai khuyenMai;
+
+    private double tongTienPhong;
+    private double tongTienCPPS;
+    private double tongTien;
+    private double tongThanhToan;
+
     private String phuongThucThanhToan;
+    private LocalDate ngayTao;
 
-    public HoaDon(String maHoaDon) {
-        this.maHoaDon = maHoaDon;
-    }
+    // ===== CONSTRUCTOR KHÔNG THAM SỐ =====
+    public HoaDon() {}
 
-    public HoaDon(String maHoaDon, String maPhieuDatPhong, String maKhuyenMai, String phuongThucThanhToan) {
+    // ===== CONSTRUCTOR ĐẦY ĐỦ =====
+    public HoaDon(String maHoaDon, PhieuDatPhong phieuDatPhong, KhuyenMai khuyenMai,
+                  double tongTienPhong, double tongTienCPPS, double tongTien,
+                  double tongThanhToan, String phuongThucThanhToan, LocalDate ngayTao) {
+
         this.maHoaDon = maHoaDon;
-        this.maPhieuDatPhong = maPhieuDatPhong;
-        this.maKhuyenMai = maKhuyenMai;
+        this.phieuDatPhong = phieuDatPhong;
+        this.khuyenMai = khuyenMai;
+        this.tongTienPhong = tongTienPhong;
+        this.tongTienCPPS = tongTienCPPS;
+        this.tongTien = tongTien;
+        this.tongThanhToan = tongThanhToan;
         this.phuongThucThanhToan = phuongThucThanhToan;
+        this.ngayTao = ngayTao;
     }
 
-    // ===== Getter & Setter =====
+    // ===== GETTER + SETTER =====
     public String getMaHoaDon() {
         return maHoaDon;
     }
@@ -28,20 +44,52 @@ public class HoaDon {
         this.maHoaDon = maHoaDon;
     }
 
-    public String getMaPhieuDatPhong() {
-        return maPhieuDatPhong;
+    public PhieuDatPhong getPhieuDatPhong() {
+        return phieuDatPhong;
     }
 
-    public void setMaPhieuDatPhong(String maPhieuDatPhong) {
-        this.maPhieuDatPhong = maPhieuDatPhong;
+    public void setPhieuDatPhong(PhieuDatPhong phieuDatPhong) {
+        this.phieuDatPhong = phieuDatPhong;
     }
 
-    public String getMaKhuyenMai() {
-        return maKhuyenMai;
+    public KhuyenMai getKhuyenMai() {
+        return khuyenMai;
     }
 
-    public void setMaKhuyenMai(String maKhuyenMai) {
-        this.maKhuyenMai = maKhuyenMai;
+    public void setKhuyenMai(KhuyenMai khuyenMai) {
+        this.khuyenMai = khuyenMai;
+    }
+
+    public double getTongTienPhong() {
+        return tongTienPhong;
+    }
+
+    public void setTongTienPhong(double tongTienPhong) {
+        this.tongTienPhong = tongTienPhong;
+    }
+
+    public double getTongTienCPPS() {
+        return tongTienCPPS;
+    }
+
+    public void setTongTienCPPS(double tongTienCPPS) {
+        this.tongTienCPPS = tongTienCPPS;
+    }
+
+    public double getTongTien() {
+        return tongTien;
+    }
+
+    public void setTongTien(double tongTien) {
+        this.tongTien = tongTien;
+    }
+
+    public double getTongThanhToan() {
+        return tongThanhToan;
+    }
+
+    public void setTongThanhToan(double tongThanhToan) {
+        this.tongThanhToan = tongThanhToan;
     }
 
     public String getPhuongThucThanhToan() {
@@ -52,21 +100,26 @@ public class HoaDon {
         this.phuongThucThanhToan = phuongThucThanhToan;
     }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(maHoaDon);
-	}
+    public LocalDate getNgayTao() {
+        return ngayTao;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		HoaDon other = (HoaDon) obj;
-		return Objects.equals(maHoaDon, other.maHoaDon);
-	}
-    
+    public void setNgayTao(LocalDate ngayTao) {
+        this.ngayTao = ngayTao;
+    }
+
+    @Override
+    public String toString() {
+        return "HoaDon{" +
+                "maHoaDon='" + maHoaDon + '\'' +
+                ", phieuDatPhong=" + phieuDatPhong +
+                ", khuyenMai=" + khuyenMai +
+                ", tongTienPhong=" + tongTienPhong +
+                ", tongTienCPPS=" + tongTienCPPS +
+                ", tongTien=" + tongTien +
+                ", tongThanhToan=" + tongThanhToan +
+                ", phuongThucThanhToan='" + phuongThucThanhToan + '\'' +
+                ", ngayTao=" + ngayTao +
+                '}';
+    }
 }
