@@ -52,7 +52,7 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 		setBackground(Color.WHITE);
 
 		JLabel lblTitle = new JLabel("CHI PHÍ PHÁT SINH", SwingConstants.CENTER);
-		lblTitle.setFont(new Font("Tahoma", Font.BOLD, 26));
+		lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
 		lblTitle.setForeground(new Color(30, 60, 114));
 		add(lblTitle, BorderLayout.NORTH);
 
@@ -67,6 +67,7 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 		JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 30));
 		JLabel lblMa = new JLabel("Mã chi phí:");
 		txtMaCP = new JTextField(40);
+		txtMaCP.setEditable(false);
 		JLabel lblGia = new JLabel("Giá:                ");
 		txtGia = new JTextField(40);
 		row1.add(lblMa);
@@ -117,7 +118,7 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 		// ==== Table ====
 		JPanel tablePanel = new JPanel(new BorderLayout());
 		JLabel lblDS = new JLabel("Danh sách chi phí phát sinh", SwingConstants.CENTER);
-		lblDS.setFont(new Font("Tahoma", Font.BOLD, 18));
+		lblDS.setFont(new Font("Segoe UI", Font.BOLD, 18));
 		lblDS.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		tablePanel.add(lblDS, BorderLayout.NORTH);
 
@@ -143,50 +144,25 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 	}
 
 	// Lấy dữ liệu từ form và kiểm tra tính hợp lệ
-	private ChiPhiPhatSinh getChiPhiFromForm() {
-		String ma = txtMaCP.getText().trim();
+	private ChiPhiPhatSinh getChiPhiFromForm(String ma) {
 		String ten = txtTenCP.getText().trim();
 		String loai = cboLoai.getSelectedItem().toString();
-		String donViTinh = "VND"; // Đơn vị tính cố định là VND
 		double gia = -1;
-
-		// Kiểm tra mã chi phí
-		if (ma.isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Mã chi phí phát sinh không được rỗng");
-			return null;
-		}
-		if (!ma.matches("CP\\d{8}\\d{3}")) {
-			JOptionPane.showMessageDialog(this, "Mã chi phí phát sinh không hợp lệ! (Định dạng: CP + Ngày + Số)");
-			return null;
-		}
-
 		// Kiểm tra tên chi phí
-		if (ten.isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Tên chi phí phát sinh không được rỗng");
-			return null;
-		}
-		if (ten.length() > 100) {
-			JOptionPane.showMessageDialog(this, "Tên chi phí phát sinh tối đa 100 ký tự");
+		if (ten.isEmpty() || ten.length() > 100) {
+			JOptionPane.showMessageDialog(this, "Tên chi phí phát sinh không được rỗng và có tối đa 100 ký tự!");
 			return null;
 		}
 
-		// Kiểm tra loại chi phí
-		if (!loai.equals("Phạt") && !loai.equals("Dịch vụ")) {
-			JOptionPane.showMessageDialog(this,
-					"Loại chi phí phát sinh không hợp lệ! (Chỉ cho phép 'Phạt' hoặc 'Dịch vụ')");
-			return null;
-		}
-
-		// Kiểm tra giá trị
+		// Kiểm tra giá
 		try {
 			gia = Double.parseDouble(txtGia.getText().trim());
+			if (gia <= 0) {
+				JOptionPane.showMessageDialog(this, "Giá phải là số và lớn hơn 0!");
+				return null;
+			}
 		} catch (NumberFormatException e) {
-			JOptionPane.showMessageDialog(this, "Giá không hợp lệ! Vui lòng nhập một số hợp lệ.");
-			return null;
-		}
-
-		if (gia < 0) {
-			JOptionPane.showMessageDialog(this, "Giá phải lớn hơn hoặc bằng 0");
+			JOptionPane.showMessageDialog(this, "Giá phải là số và lớn hơn 0!");
 			return null;
 		}
 
@@ -207,7 +183,8 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 		Object o = e.getSource();
 
 		if (o.equals(btnThem)) {
-			ChiPhiPhatSinh cp = getChiPhiFromForm();
+			String ma = dao.taoMaCPPSTuDong();
+			ChiPhiPhatSinh cp = getChiPhiFromForm(ma);
 			if (cp != null) {
 				if (dao.insertChiPhi(cp)) {
 					JOptionPane.showMessageDialog(this, "Thêm thành công!");
@@ -218,13 +195,14 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 				}
 			}
 		} else if (o.equals(btnSua)) {
-			ChiPhiPhatSinh cp = getChiPhiFromForm();
+			String ma = txtMaCP.getText().trim();
+			ChiPhiPhatSinh cp = getChiPhiFromForm(ma);
 			if (cp != null) {
 				if (dao.updateChiPhi(cp)) {
 					JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
 					loadDataToTable();
 				} else {
-					JOptionPane.showMessageDialog(this, "Không tìm thấy mã để cập nhật!");
+					JOptionPane.showMessageDialog(this, "Cập nhật thất bại!");
 				}
 			}
 		} else if (o.equals(btnTim)) {

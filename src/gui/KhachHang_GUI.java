@@ -28,7 +28,7 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 		setBackground(Color.WHITE);
 
 		JLabel lblTitle = new JLabel("QUẢN LÝ KHÁCH HÀNG", SwingConstants.CENTER);
-		lblTitle.setFont(new Font("Tahoma", Font.BOLD, 26));
+		lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
 		lblTitle.setForeground(new Color(0, 77, 153));
 		add(lblTitle, BorderLayout.NORTH);
 
@@ -94,7 +94,7 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 
 		btnSua = new JButton("Lưu");
 		Dimension btnSize = new Dimension(120, 35);
-		btnSua.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnSua.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		btnSua.setBackground(new Color(220, 230, 250));
 		btnSua.setAlignmentX(Component.CENTER_ALIGNMENT);
 		btnSua.setPreferredSize(btnSize);
@@ -103,7 +103,7 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 //        buttonCol.add(btnSua);
 
 		btnXoaRong = new JButton("Xóa rỗng");
-		btnXoaRong.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnXoaRong.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		btnXoaRong.setBackground(new Color(220, 230, 250));
 		btnXoaRong.setAlignmentX(Component.CENTER_ALIGNMENT);
 		btnXoaRong.setPreferredSize(btnSize);
@@ -112,7 +112,7 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 //        buttonCol.add(btnXoaRong);
 		
 		btnLamMoi = new JButton("Làm mới");
-		btnLamMoi.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btnLamMoi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		btnLamMoi.setBackground(new Color(220, 230, 250));
 		btnLamMoi.setAlignmentX(Component.CENTER_ALIGNMENT);
 		btnLamMoi.setPreferredSize(btnSize);

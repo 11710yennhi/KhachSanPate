@@ -1,15 +1,18 @@
 package dao;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JOptionPane;
-
 import com.microsoft.sqlserver.jdbc.SQLServerException;
-
 import connectDB.ConnectDB;
 import entity.ChiPhiPhatSinh;
+import entity.KhachHang;
 
 public class ChiPhiPhatSinh_DAO {
 
@@ -180,5 +183,23 @@ public class ChiPhiPhatSinh_DAO {
                 "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
         return false;
+    }
+    
+ // Tạo mã CPPS tự động theo ngày
+    public String taoMaCPPSTuDong() {
+        LocalDate ngayHienTai = LocalDate.now();
+        String ngay = String.format("%02d", ngayHienTai.getDayOfMonth());
+        String thang = String.format("%02d", ngayHienTai.getMonthValue());
+        String nam = String.valueOf(ngayHienTai.getYear());
+
+        List<ChiPhiPhatSinh> danhSach = getAllChiPhiPhatSinh();
+        int dem = 0;
+        for (ChiPhiPhatSinh cp : danhSach) {
+            if (cp.getMaChiPhiPhatSinh().contains("CP" + ngay + thang + nam)) {
+                dem++;
+            }
+        }
+        dem++;
+        return String.format("KH%s%s%s%03d", ngay, thang, nam, dem);
     }
 }
