@@ -426,13 +426,22 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 			if(kiemTraDuLieuNhap()&&dieuKienNguoi()&&dieuKienThanhToan()) {
 				 int luaChon = JOptionPane.showConfirmDialog( null, "Bạn có chắn thanh toán không", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
 				    if (luaChon == JOptionPane.YES_OPTION) {
+				    	xuLyNutLuu();
 				    	
-				    	
-				    	 //mở giao diện bill ở đây 
-				    	xuLyNutLuu();		
-				    	// trạng thái phiếu đặt phòng hoàn thành
-//				    	 lưu hóa đơn vào dâyd 
-				    } 
+				    	String maPDP = txtMPDP.getText();
+
+				    	ThanhToanFrame_GUI f = new ThanhToanFrame_GUI(
+				    	    maPDP,
+				    	    txtTenKH.getText(),
+				    	    txtNV.getText(),
+				    	    convertTableModelToArray(tblPhong),
+				    	    convertTableModelToArray(tblChiPhi),
+				    	    lblTongTien.getText().split(":")[1].trim(),
+				    	    lblTongCP.getText().split(":")[1].trim()
+				    	);
+
+				    	f.setVisible(true);	
+				    }
 			}
 		}else if(o.equals(btnHuy)) {
 			if(kiemTraDuLieuNhap()) {
@@ -1973,5 +1982,18 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    txtTienCocMoi.setText("0");
 	}
 
+   private Object[][] convertTableModelToArray(JTable table) {
+	    DefaultTableModel model = (DefaultTableModel) table.getModel();
+	    int rowCount = model.getRowCount();
+	    int colCount = model.getColumnCount();
 
+	    Object[][] data = new Object[rowCount][colCount];
+
+	    for (int r = 0; r < rowCount; r++) {
+	        for (int c = 0; c < colCount; c++) {
+	            data[r][c] = model.getValueAt(r, c);
+	        }
+	    }
+	    return data;
+	}
 }
