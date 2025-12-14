@@ -174,7 +174,7 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 	// Đọc dữ liệu kết quả tìm kiếm lên bảng
 	private void loadDataSearchToTable(String ten) {
 		model.setRowCount(0);
-		List<ChiPhiPhatSinh> list = dao.getChiPhiTheoTen(ten);
+		List<ChiPhiPhatSinh> list = dao.getDsChiPhiTheoTen(ten);
 		int stt = 1;
 		for (ChiPhiPhatSinh cp : list) {
 			model.addRow(new Object[] { stt++, cp.getMaChiPhiPhatSinh(), cp.getTenChiPhiPhatSinh(),

@@ -115,9 +115,37 @@ public class ChiPhiPhatSinh_DAO {
 		}
 		return cp;
 	}
+	public ChiPhiPhatSinh getChiPhiTheoTen(String ten) {
+		String sql = "SELECT * FROM ChiPhiPhatSinh "
+				+ "WHERE LOWER(LTRIM(RTRIM(tenChiPhiPhatSinh))) LIKE LOWER(N'%' + ? + N'%')";
+		ChiPhiPhatSinh cp = null;
 
-	// Tìm kiếm theo tên (trả về 1 chi phí duy nhất)
-	public List<ChiPhiPhatSinh> getChiPhiTheoTen(String ten) {
+		try (Connection con = ConnectDB.getInstance().getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)) {
+
+			ps.setString(1, ten.trim());
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				String ma = rs.getString("maChiPhiPhatSinh");
+				String tenCP = rs.getString("tenChiPhiPhatSinh").trim();
+				String loai = rs.getString("loaiChiPhiPhatSinh");
+				double gia = rs.getDouble("gia");
+				cp = new ChiPhiPhatSinh(ma, tenCP, loai, gia);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Lỗi khi tìm kiếm chi phí theo tên: " + e.getMessage(), "Lỗi",
+					JOptionPane.ERROR_MESSAGE);
+		}
+
+		return cp;
+	}
+	
+	
+	// Tìm kiếm theo tên (trả về nhiều chi phí duy nhất)
+	public List<ChiPhiPhatSinh> getDsChiPhiTheoTen(String ten) {
 		String sql = "SELECT * FROM ChiPhiPhatSinh "
 				+ "WHERE LOWER(LTRIM(RTRIM(tenChiPhiPhatSinh))) LIKE LOWER(N'%' + ? + N'%')";
 		List<ChiPhiPhatSinh> dscp = new ArrayList<ChiPhiPhatSinh>();
