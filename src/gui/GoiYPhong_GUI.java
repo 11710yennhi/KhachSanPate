@@ -44,36 +44,63 @@ public class GoiYPhong_GUI extends JDialog {
     // ================================
     // 1) Tìm tổ hợp tối ưu
     // ================================
-    private List<Phong> timToHopPhongToiUu(List<Phong> ds, int soNguoi) {
+    private static final int MAX_PHONG = 12;
 
-        ds = ds.stream()
-                .sorted(Comparator.comparingDouble(p -> p.getLoaiPhong().getGia()))
-                .collect(Collectors.toList());
+    private List<Phong> timToHopPhongToiUu(List<Phong> dsPhong, int soNguoi) {
 
-        int n = ds.size();
+        if (dsPhong == null || dsPhong.isEmpty())
+            return null;
+
+        List<Phong> p3 = new ArrayList<>();
+        List<Phong> p5 = new ArrayList<>();
+        List<Phong> p7 = new ArrayList<>();
+
+        for (Phong p : dsPhong) {
+            int suc = p.getLoaiPhong().getSucChua();
+            if (suc == 3) p3.add(p);
+            else if (suc == 5) p5.add(p);
+            else if (suc == 7) p7.add(p);
+        }
+
+        Comparator<Phong> cmpGia =
+                Comparator.comparingDouble(p -> p.getLoaiPhong().getGia());
+
+        p3.sort(cmpGia);
+        p5.sort(cmpGia);
+        p7.sort(cmpGia);
+
         List<Phong> best = null;
-        int minPhong = Integer.MAX_VALUE;
-        double minGia = Double.MAX_VALUE;
+        int bestDu = Integer.MAX_VALUE;
+        int bestSoPhong = Integer.MAX_VALUE;
 
-        for (int mask = 1; mask < (1 << n); mask++) {
-            List<Phong> t = new ArrayList<>();
-            int sucChua = 0;
-            double gia = 0;
+        // duyệt số lượng phòng → rất nhanh vì chỉ 3 loại
+        for (int i = 0; i <= p7.size(); i++) {
+            for (int j = 0; j <= p5.size(); j++) {
+                for (int k = 0; k <= p3.size(); k++) {
 
-            for (int i = 0; i < n; i++) {
-                if ((mask & (1 << i)) != 0) {
-                    Phong p = ds.get(i);
-                    t.add(p);
-                    sucChua += p.getLoaiPhong().getSucChua();
-                    gia += p.getLoaiPhong().getGia();
-                }
-            }
+                    int soPhong = i + j + k;
+                    if (soPhong == 0 || soPhong > MAX_PHONG)
+                        continue;
 
-            if (sucChua >= soNguoi) {
-                if (t.size() < minPhong || (t.size() == minPhong && gia < minGia)) {
-                    best = t;
-                    minPhong = t.size();
-                    minGia = gia;
+                    int tongSuc = i * 7 + j * 5 + k * 3;
+                    if (tongSuc < soNguoi)
+                        continue;
+
+                    int du = tongSuc - soNguoi;
+
+                    boolean totHon =
+                            du < bestDu ||
+                           (du == bestDu && soPhong < bestSoPhong);
+
+                    if (best == null || totHon) {
+                        best = new ArrayList<>();
+                        best.addAll(p7.subList(0, i));
+                        best.addAll(p5.subList(0, j));
+                        best.addAll(p3.subList(0, k));
+
+                        bestDu = du;
+                        bestSoPhong = soPhong;
+                    }
                 }
             }
         }
