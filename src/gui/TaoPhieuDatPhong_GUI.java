@@ -28,7 +28,9 @@ import entity.Phong;
 import entity.ChiPhiPhatSinh;
 import entity.ChiTietChiPhiPhatSinh;
 import entity.ChiTietPhieuDatPhong;
+import entity.HoaDon;
 import entity.KhachHang;
+import entity.KhuyenMai;
 import entity.LoaiPhong;
 import entity.NhanVien;
 
@@ -54,10 +56,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     private ChiPhiPhatSinh_DAO cppsd;
     private ChiTietChiPhiPhatSinh_DAO ctcppsd;
     private LoaiPhong_DAO lpd;
+    private HoaDon_DAO hdd;
     private JPanel pPhongTrong,pTop,pHang2, pHang1;
     private int soNguoiLon = 0;
     private int soTreEm = 0;
     private String mNV;
+    private String maHD;
 
     
     public TaoPhieuDatPhong_GUI(String maNV) {
@@ -80,6 +84,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         cppsd = new ChiPhiPhatSinh_DAO();
         ctcppsd = new ChiTietChiPhiPhatSinh_DAO();
         lpd = new LoaiPhong_DAO();
+        hdd= new HoaDon_DAO();
         
         txtNguoiLon= new JTextField();
         txtTreEm= new JTextField();
@@ -426,6 +431,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 			if(kiemTraDuLieuNhap()&&dieuKienNguoi()&&dieuKienThanhToan()) {
 				 int luaChon = JOptionPane.showConfirmDialog( null, "Bạn có chắn thanh toán không", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
 				    if (luaChon == JOptionPane.YES_OPTION) {
+				    	cboTrangThai.setSelectedItem("Hoàn thành");
 				    	xuLyNutLuu();
 				    	
 				    	String maPDP = txtMPDP.getText();
@@ -441,6 +447,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 				    	);
 
 				    	f.setVisible(true);	
+				    	khoaTatCaTruong();
+				    	
+				    	
 				    }
 			}
 		}else if (o.equals(btnHuy)) {
@@ -453,7 +462,11 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		            JOptionPane.QUESTION_MESSAGE
 		    );
 		    if (chon == JOptionPane.YES_OPTION) {
-		        huyDatPhong();   
+		        huyDatPhong();  
+		       PhieuDatPhong p= doiTuongTongTienPhong();
+		       KhuyenMai km= new KhuyenMai("Không");
+		       hdd.themHoaDon(taoMaHoaDon(), txtMPDP.getText(), null, "Chuyển khoản", p.getTongTienPhong(), 0.0, p.getTongTien(), LocalDate.now());
+		       
 		    }
 		}			
 	}
@@ -1412,6 +1425,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     public PhieuDatPhong doiTuongTongTienPhong() {
         PhieuDatPhong tam = new PhieuDatPhong();
     	KhachHang kh= khd.getKhachHangTheoMa(txtMKH.getText());
+    	
     	if(kh!=null) {   		   
             tam.setKhachHang(kh);
     	}
@@ -1528,6 +1542,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     	this(maNV);   	
     	getDuLieu(pdphong, maNV);
     	
+    	
     }
    public void getDuLieu(PhieuDatPhong pdphong, String maNV){
 	   txtMPDP.setText(pdphong.getMaPhieuDatPhong());
@@ -1581,6 +1596,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
    				t.getGia()*tam.getSoLuong(),tam.getChiPhiPhatSinh().getMaChiPhiPhatSinh()});
    				hienThiTienCocVaTienTongTienPhong();    		
    	}
+   	if(pdphong.getTrangThai().equals("Hoàn thành")||pdphong.getTrangThai().equals("Đã hủy")) {
+   		khoaTatCaTruong();
+   	}
    }
     private boolean xuLyNutLuu() {
         if (!kiemTraDuLieuNhap()) {
@@ -1632,13 +1650,14 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 ctcppsd.xoaChiPhiTheoMaPhieu(maPDP);
             }
 
-           
+           String  trangThai= cboTrangThai.getSelectedItem().toString();
             for (int i = 0; i < tblPhong.getRowCount(); i++) {
                 String maPhong = tblPhong.getValueAt(i, 1).toString();
                 LocalDate ngayNhan = LocalDate.parse(tblPhong.getValueAt(i, 3).toString());
                 LocalDate ngayTraThuc = LocalDate.parse(tblPhong.getValueAt(i, 4).toString());
                 LocalDate ngayTra = LocalDate.parse(tblPhong.getValueAt(i, 5).toString());
-                String trangThai = tblPhong.getValueAt(i, 6).toString();
+                //String trangThai = tblPhong.getValueAt(i, 6).toString();
+                
 
                 Phong p = new Phong(maPhong);
                 ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
@@ -1799,54 +1818,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	        return false;
 	    }
 
-	    // ===== XỬ LÝ TỪNG PHÒNG =====
-	    for (int i = 0; i < ds.size(); i++) {
-
-	        ChiTietPhieuDatPhong ct = ds.get(i);
-
-	        LocalDate ngayNhanThuc = ct.getNgayNhanThuc();
-	        LocalDate ngayTra = ct.getNgayTra();
-	        LocalDate ngayTraThuc = ct.getNgayTraThuc();
-
-	        if (ngayNhanThuc == null || ngayTra == null) continue;
-	        if (ngayTraThuc == null) ngayTraThuc = ngayTra;
-
-	        long tongNgay =
-	                ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraThuc);
-	        if (tongNgay < 1) tongNgay = 1;
-
-	        long soNgayGiua = tongNgay / 2; // lẻ làm tròn xuống
-	        LocalDate ngayGiua = ngayNhanThuc.plusDays(soNgayGiua);
-
-	        // ===== CASE 1: today + 3 == ngày trả =====
-	        if (today.plusDays(3).isEqual(ngayTra)) {
-
-	            dlp.setValueAt(ngayNhanThuc.toString(), i, 5);
-	            dlp.setValueAt(ngayNhanThuc.toString(), i, 9);
-	            continue;
-	        }
-
-	        // ===== CASE 2: today + 2 == ngày nhận =====
-	        if (today.plusDays(2).isEqual(ngayNhanThuc)) {
-
-	            dlp.setValueAt(ngayGiua.toString(), i, 5);
-	            dlp.setValueAt(ngayGiua.toString(), i, 9);
-	            continue;
-	        }
-
-	        // ===== CASE 3: today >= ngày GIỮA =====
-	        if (!today.isBefore(ngayGiua)) {
-
-	            LocalDate ngayTraMoi = today.plusDays(1);
-	            dlp.setValueAt(ngayTraMoi.toString(), i, 5);
-	            dlp.setValueAt(ngayTraMoi.toString(), i, 9);
-	        }
-	    }
-
 	    return true;
 	}
 
-   
    public void huyDatPhong() {
 
 	    PhieuDatPhong p = pdp.timPhieuDatPhongTheoMa(txtMPDP.getText().trim());
@@ -1855,7 +1829,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	        return;
 	    }
 
-	    // ===== 1. KIỂM TRA TRẠNG THÁI =====
 	    if (p.getTrangThai().equalsIgnoreCase("Đang ở")) {
 	        JOptionPane.showMessageDialog(
 	                null,
@@ -1880,19 +1853,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	        return;
 	    }
 
-	    // ===== 2. CONFIRM =====
-	    int chon = JOptionPane.showConfirmDialog(
-	            null,
-	            "Xác nhận HỦY ĐẶT PHÒNG?",
-	            "Xác nhận",
-	            JOptionPane.YES_NO_OPTION,
-	            JOptionPane.QUESTION_MESSAGE
-	    );
-	    if (chon != JOptionPane.YES_OPTION) return;
-
 	    LocalDate homNay = LocalDate.now();
 
-	    // ===== 3. XỬ LÝ HỦY =====
 	    for (int i = 0; i < dsct.size(); i++) {
 
 	        ChiTietPhieuDatPhong ct = dsct.get(i);
@@ -1902,34 +1864,40 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
 	        if (ngayNhanThuc == null || ngayTraThuc == null) continue;
 
-	        // số ngày còn lại tới ngày nhận
 	        long soNgayConLai =
 	                ChronoUnit.DAYS.between(homNay, ngayNhanThuc);
 
 	        LocalDate ngayTraMoi;
 
-	        // ===== CASE 1: Hủy trước >= 3 ngày =====
+	        // ===== TH1: Hủy trước ≥ 3 ngày =====
 	        if (soNgayConLai >= 3) {
 
 	            ngayTraMoi = ngayNhanThuc;
 
 	        }
-	        // ===== CASE 2: Còn ≤ 2 ngày → lấy NGÀY GIỮA =====
+	        // ===== TH2: Hủy sát ngày (≤ 2 ngày) =====
 	        else {
 
-	            // 🔥 TÍNH NGÀY GIỮA ĐÚNG THEO TOÁN
-	            long epochNhan = ngayNhanThuc.toEpochDay();
-	            long epochTra  = ngayTraThuc.toEpochDay();
+	            // 🔴 nếu hôm nay = ngày trả → giữ nguyên
+	            if (homNay.isEqual(ngayTraThuc)) {
 
-	            long epochGiua = (epochNhan + epochTra) / 2; // lẻ tự làm tròn xuống
-	            ngayTraMoi = LocalDate.ofEpochDay(epochGiua);
+	                ngayTraMoi = ngayTraThuc;
+
+	            } else {
+
+	                long epochNhan = ngayNhanThuc.toEpochDay();
+	                long epochTra  = ngayTraThuc.toEpochDay();
+	                long epochGiua = (epochNhan + epochTra) / 2;
+
+	                ngayTraMoi = LocalDate.ofEpochDay(epochGiua);
+	            }
 	        }
 
-	        // ===== SET CẢ NGÀY TRẢ & NGÀY TRẢ THỰC =====
-	        dlp.setValueAt(ngayTraMoi.toString(), i, 4); // ngày trả thực
-	        dlp.setValueAt(ngayTraMoi.toString(), i, 5); // ngày trả
+	        // ===== SET ngày trả =====
+	        dlp.setValueAt(ngayTraMoi.toString(), i, 4);
+	        dlp.setValueAt(ngayTraMoi.toString(), i, 5);
 
-	        // ===== TÍNH LẠI SỐ ĐÊM & TIỀN =====
+	        // ===== TÍNH LẠI TIỀN =====
 	        long soDemO =
 	                ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraMoi);
 	        if (soDemO < 0) soDemO = 0;
@@ -1942,7 +1910,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	        dlp.setValueAt(soDemO * gia, i, 8);
 	    }
 
-	    // ===== 4. CẬP NHẬT PHIẾU =====
 	    p.setTrangThai("Đã hủy");
 	    cboTrangThai.setSelectedItem("Đã hủy");
 
@@ -1955,7 +1922,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	            doiTuongTongTienPhong()
 	    ).setVisible(true);
 	}
-
 
    private void khoaTatCaTruong() {
 	    // Khóa JDateChooser
@@ -2035,5 +2001,19 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    return data;
 	}
 
+   protected String taoMaHoaDon() {
+       LocalDate now = LocalDate.now();
+       String ngay = now.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
 
+       HoaDon_DAO dao = new HoaDon_DAO();
+       String maCu = dao.getMaHoaDonCuoiTrongNgay(ngay);
+
+       int soMoi = 1;
+       if (maCu != null) {
+           String sttCu = maCu.substring(maCu.length() - 3);
+           soMoi = Integer.parseInt(sttCu) + 1;
+       }
+
+       return "HD" + ngay + String.format("%03d", soMoi);
+   }
 }

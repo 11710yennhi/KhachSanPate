@@ -36,7 +36,9 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
     private JButton btnXacNhan;
     
     private String maPDPglobal;
-
+    public ThanhToanFrame_GUI() {
+    	
+    }
     public ThanhToanFrame_GUI(
             String maPDP,
             String tenKH,
@@ -240,7 +242,7 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         lblTienThoi.setText("Tiền thối lại: " + thoi);
     }
     //===========generate hóa đơn=============
-    private String taoMaHoaDonMoi() {
+    protected String taoMaHoaDonMoi() {
         LocalDate now = LocalDate.now();
         String ngay = now.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
 

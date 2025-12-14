@@ -61,7 +61,7 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         txtMaPhieu = new JTextField(14);    // dài hơn
 
         cbbLoc = new JComboBox<>(new String[] {
-                "Đã đặt", "Tới ngày nhận", "Tới ngày trả", "Đang ở", "Đã hủy", "Hoàn thành"
+                "Đã đặt", "Tới ngày nhận","Chưa nhận phòng", "Tới ngày trả", "Đang ở", "Đã hủy", "Hoàn thành"
         });
 
         JButton btnLocSDT = new JButton("Lọc SĐT");
@@ -288,6 +288,10 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
 
         LocalDate nhanSomNhat = minNhan.orElse(null);
         LocalDate traTreNhat = maxTra.orElse(null);
+        if (nhanSomNhat.isBefore(today) 
+                && p.getTrangThai().equals("Đã đặt")&&!p.getTrangThai().equals("Đã hủy")) {
+            return "Chưa nhận phòng";
+        }
 
      // Tới ngày nhận
         if (nhanSomNhat != null && today.isEqual(nhanSomNhat) && !p.getTrangThai().equals("Đã hủy")) { return "Tới ngày nhận"; }

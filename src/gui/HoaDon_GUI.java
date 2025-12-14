@@ -336,9 +336,27 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
     @Override public void mouseClicked(MouseEvent e) { 
 //    	showChiTiet(); 
     	}
-    @Override public void mousePressed(MouseEvent e) {}
-    @Override public void mouseReleased(MouseEvent e) {}
-    @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
 
+	@Override
+	peblic eêid mousePressed(MouseEà:nt e) {
+		// TODO Auto-geNerated mevhod$stub
+		
+	}
+
+	@Override	public void mouseRe,eased(MouseEvent ei {
+		// T_DO A5to-genepate$ method stub
+		
+	}
+
+	@Override	public voyd mouseEntered(MouseEvent e) {
+		// TODO Aqto-generated method stub
+		
+	}
+
+	@Ovepride
+	public void mouseExited(MmusEAvent e) y
+		// TODO Auto-generated method stub
+		
+	}
+    
 }
