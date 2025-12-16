@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -27,12 +28,21 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+
+import connectDB.ConnectDB;
 import dao.ChiPhiPhatSinh_DAO;
 import entity.ChiPhiPhatSinh;
 
 public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseListener {
+
+	private static final Color NAVY_DARK = new Color(7, 40, 68);
 
 	private JTextField txtMaCP, txtGia, txtTenCP;
 	private JTable table;
@@ -42,23 +52,63 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 	private ChiPhiPhatSinh_DAO dao = new ChiPhiPhatSinh_DAO();
 
 	public ChiPhiPhatSinh_GUI() {
-		initialize();
-		loadDataToTable();
-	}
-
-	private void initialize() {
 		setLayout(new BorderLayout(10, 10));
 		setBackground(Color.WHITE);
 
-		JLabel lblTitle = new JLabel("CHI PHÍ PHÁT SINH", SwingConstants.CENTER);
-		lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
-		lblTitle.setForeground(new Color(30, 60, 114));
-		add(lblTitle, BorderLayout.NORTH);
+		add(buildHeader(), BorderLayout.NORTH);
+		JPanel body = new JPanel(new BorderLayout(12, 12));
+		body.setBackground(Color.WHITE);
+		body.add(buildBody(), BorderLayout.NORTH);
+		body.add(buildTablePanel(), BorderLayout.CENTER);
+
+		add(body, BorderLayout.CENTER);
+
+		try {
+			ConnectDB.getInstance().connect();
+			loadDataToTable();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Không thể kết nối CSDL: " + e.getMessage());
+		}
+
+	}
+
+	// ========Build UI
+
+	private JPanel buildHeader() {
+		JPanel header = new JPanel();
+		header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+		header.setBackground(NAVY_DARK);
+		header.setBorder(new EmptyBorder(14, 18, 14, 18));
+
+		JLabel title = new JLabel("CHI PHÍ PHÁT SINH");
+		title.setFont(new Font("Segoe UI", Font.BOLD, 26));
+		title.setForeground(Color.WHITE);
+		title.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		JLabel sub = new JLabel("Pate Hotel • Quản lý chi phí dịch vụ & phạt");
+		sub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		sub.setForeground(Color.WHITE);
+		sub.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		header.add(title);
+		header.add(Box.createVerticalStrut(4));
+		header.add(sub);
+
+		return header;
+	}
+
+	
+private JPanel buildBody() {
 
 		JPanel infoPanel = new JPanel(new BorderLayout(10, 10));
-		infoPanel.setBorder(new TitledBorder("Thông tin chi phí phát sinh"));
+		infoPanel.setBorder(
+				new CompoundBorder(new LineBorder(new Color(220, 220, 220), 1, true), new EmptyBorder(14, 14, 14, 14)));
 		infoPanel.setBackground(Color.WHITE);
-		add(infoPanel, BorderLayout.NORTH);
+
+		JLabel lbTitle = new JLabel("Thông tin chi phí phát sinh");
+		lbTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		lbTitle.setForeground(NAVY_DARK);
+		infoPanel.add(lbTitle, BorderLayout.NORTH);
 
 		JPanel formPanel = new JPanel(new GridBagLayout());
 		formPanel.setBackground(Color.WHITE);
@@ -79,6 +129,7 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 		txtMaCP = new JTextField();
 		txtMaCP.setEditable(false);
 		formPanel.add(txtMaCP, gbc);
+		styleField(txtMaCP);
 
 		// Tên chi phí
 		gbc.gridx = 2;
@@ -89,6 +140,7 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 		gbc.weightx = 2; // cho tên rộng hơn
 		txtTenCP = new JTextField();
 		formPanel.add(txtTenCP, gbc);
+		styleField(txtTenCP);
 
 		// Nút tìm
 		gbc.gridx = 4;
@@ -107,6 +159,7 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 		gbc.weightx = 1;
 		txtGia = new JTextField();
 		formPanel.add(txtGia, gbc);
+		styleField(txtGia);
 
 		// Loại chi phí
 		gbc.gridx = 2;
@@ -122,45 +175,109 @@ public class ChiPhiPhatSinh_GUI extends JPanel implements ActionListener, MouseL
 
 		// ==== Buttons ====
 
-		JPanel buttonColumn = new JPanel();
-		buttonColumn.setLayout(new BoxLayout(buttonColumn, BoxLayout.Y_AXIS));
-		buttonColumn.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 100));
-		buttonColumn.setBackground(Color.WHITE);
+		JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+		buttonRow.setBackground(Color.WHITE);
+
+		btnXoaRong = new JButton("Xóa rỗng");
+		styleButton(btnXoaRong);
+		btnXoaRong.setBackground(new Color(230, 240, 255));
+		btnXoaRong.setForeground(NAVY_DARK);
+		buttonRow.add(btnXoaRong);
+		btnXoaRong.addActionListener(this);
 
 		btnThem = new JButton("Thêm");
+		styleButton(btnThem);
+		btnThem.setBackground(new Color(218, 177, 55));
+		btnThem.setForeground(NAVY_DARK);
+		buttonRow.add(btnThem);
+		btnThem.addActionListener(this);
+
 		btnSua = new JButton("Lưu");
-		btnXoaRong = new JButton("Xóa rỗng");
+		styleButton(btnSua);
+		btnSua.setBackground(NAVY_DARK);
+		btnSua.setForeground(Color.WHITE);
+		buttonRow.add(btnSua);
+		btnSua.addActionListener(this);
 
-		for (JButton btn : new JButton[] { btnThem, btnSua, btnXoaRong }) {
-			btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-			btn.setBackground(new Color(220, 230, 250));
-			btn.setFocusPainted(false);
-			btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-			btn.setMaximumSize(new Dimension(120, 35));
-			buttonColumn.add(btn);
-			buttonColumn.add(Box.createVerticalStrut(10));
-			btn.addActionListener(this);
-		}
+		infoPanel.add(buttonRow, BorderLayout.SOUTH);
 
-		infoPanel.add(buttonColumn, BorderLayout.EAST);
-
-		// ==== Table ====
-		JPanel tablePanel = new JPanel(new BorderLayout());
-		JLabel lblDS = new JLabel("Danh sách chi phí phát sinh", SwingConstants.CENTER);
-		lblDS.setFont(new Font("Segoe UI", Font.BOLD, 18));
-		lblDS.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		tablePanel.add(lblDS, BorderLayout.NORTH);
-
-		String[] columns = { "STT", "Mã CP", "Tên CP", "Loại", "Giá" };
-		model = new DefaultTableModel(columns, 0);
-		table = new JTable(model);
-		table.addMouseListener(this);
-		JScrollPane scrollPane = new JScrollPane(table);
-		tablePanel.add(scrollPane, BorderLayout.CENTER);
-
-		add(tablePanel, BorderLayout.CENTER);
+		return infoPanel;
 	}
 
+	private JPanel buildTablePanel() {
+		JPanel card = new JPanel(new BorderLayout());
+		card.setBackground(Color.WHITE);
+		card.setBorder(
+				new CompoundBorder(new LineBorder(new Color(220, 220, 220), 1, true), new EmptyBorder(12, 12, 12, 12)));
+
+		JLabel title = new JLabel("Danh sách chi phí phát sinh");
+		title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		title.setForeground(NAVY_DARK);
+
+		String[] columns = { "STT", "Mã CP", "Tên CP", "Loại", "Giá" };
+		model = new DefaultTableModel(columns, 0) {
+			@Override
+			public boolean isCellEditable(int r, int c) {
+				return false;
+			}
+		};
+
+		table = new JTable(model);
+		styleTable(table);
+		table.addMouseListener(this);
+
+		card.add(title, BorderLayout.NORTH);
+		card.add(new JScrollPane(table), BorderLayout.CENTER);
+		return card;
+
+	}
+
+	// ==============Style
+
+	private void styleField(JTextField txt) {
+		txt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		txt.setPreferredSize(new Dimension(0, 32));
+	}
+
+	private void styleButton(JButton btn) {
+		btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		btn.setPreferredSize(new Dimension(120, 35));
+		btn.setMaximumSize(new Dimension(120, 35));
+		btn.setFocusPainted(false);
+	}
+
+	private void styleTable(JTable t) {
+		t.setRowHeight(34);
+		t.setGridColor(new Color(230, 235, 240));
+		t.setShowHorizontalLines(true);
+		t.setShowVerticalLines(false);
+		t.setSelectionBackground(new Color(225, 238, 252));
+		t.setSelectionForeground(NAVY_DARK);
+
+		JTableHeader header = t.getTableHeader();
+		header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		header.setBackground(NAVY_DARK);
+		header.setForeground(Color.WHITE);
+		header.setPreferredSize(new Dimension(header.getPreferredSize().width, 38));
+
+		DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int col) {
+				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+				if (!isSelected)
+					c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 250, 253));
+				setBorder(new EmptyBorder(0, 10, 0, 10));
+				return c;
+			}
+		};
+
+		for (int i = 0; i < t.getColumnCount(); i++) {
+			t.getColumnModel().getColumn(i).setCellRenderer(renderer);
+		}
+	}
+
+	// ==============Events
 	// Đọc dữ liệu từ DB lên bảng
 	private void loadDataToTable() {
 		model.setRowCount(0);
