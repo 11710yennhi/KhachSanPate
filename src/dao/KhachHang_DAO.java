@@ -160,4 +160,25 @@ public class KhachHang_DAO {
         }
         return false;
     }
+    
+    public boolean isSoDienThoaiTonTaiKhacMa(String sdt, String maKH) {
+        String sql = """
+            SELECT 1 FROM KhachHang
+            WHERE soDienThoai = ?
+              AND maKhachHang <> ?
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, sdt);
+            ps.setString(2, maKH);
+
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+
+        } catch (SQLException e) {
+            return false;
+        }
+    }
 }

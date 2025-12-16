@@ -293,49 +293,86 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 
 	private KhuyenMai getFormData() {
 	    try {
+	        // ===== LẤY DỮ LIỆU =====
 	        String ma = txtMaKM.getText().trim();
 	        String ten = txtTenKM.getText().trim();
 	        String loai = (String) cboLoaiKM.getSelectedItem();
 
+	        if (ma.isEmpty() || ten.isEmpty()) {
+	            JOptionPane.showMessageDialog(this, "Mã và tên khuyến mãi không được để trống!");
+	            return null;
+	        }
+
 	        double soTienApDung = Double.parseDouble(txtSoTienApDung.getText().trim());
-	        double giaTriGiam = Double.parseDouble(txtGiaTriGiam.getText().trim());
-	        double giamToiDa = Double.parseDouble(txtGiamToiDa.getText().trim());
-	        
+	        double giaTriGiam   = Double.parseDouble(txtGiaTriGiam.getText().trim());
+	        double giamToiDa    = Double.parseDouble(txtGiamToiDa.getText().trim());
+
 	        LocalDate ngayTao = LocalDate.now();
-	        // ngày tạo lấy từ hệ thống
 
 	        LocalDate ngayBatDau = dateNgayBatDau.getDate() == null
 	                ? null
 	                : new java.sql.Date(dateNgayBatDau.getDate().getTime()).toLocalDate();
+
 	        LocalDate ngayKetThuc = dateNgayKetThuc.getDate() == null
 	                ? null
 	                : new java.sql.Date(dateNgayKetThuc.getDate().getTime()).toLocalDate();
 
-	        // kiểm tra ràng buộc giống database
+	        // ===== CHECK NGÀY =====
 	        if (ngayBatDau == null || ngayKetThuc == null) {
-	        	JOptionPane.showMessageDialog(this, "Ngày bắt đầu và ngày kết thúc không được để trống!");
+	            JOptionPane.showMessageDialog(this, "Ngày bắt đầu và ngày kết thúc không được để trống!");
 	            return null;
 	        }
+
 	        if (ngayBatDau.isBefore(LocalDate.now())) {
 	            JOptionPane.showMessageDialog(this, "Ngày bắt đầu phải >= ngày hiện tại!");
-	           return null;
+	            return null;
 	        }
+
 	        if (ngayKetThuc.isBefore(ngayBatDau)) {
 	            JOptionPane.showMessageDialog(this, "Ngày kết thúc phải >= ngày bắt đầu!");
 	            return null;
 	        }
+
+	        // ===== CHECK SỐ TIỀN =====
 	        if (soTienApDung < 0) {
 	            JOptionPane.showMessageDialog(this, "Số tiền áp dụng không được âm!");
 	            return null;
 	        }
+
 	        if (giaTriGiam <= 0) {
 	            JOptionPane.showMessageDialog(this, "Giá trị giảm phải > 0!");
 	            return null;
 	        }
+
 	        if (giamToiDa <= 0) {
 	            JOptionPane.showMessageDialog(this, "Giảm tối đa phải > 0!");
 	            return null;
 	        }
+
+	        // ===== CHECK THEO LOẠI KM =====
+	        if ("%".equals(loai)) {
+
+	            // chỉ cho số nguyên
+	            if (giaTriGiam % 1 != 0) {
+	                JOptionPane.showMessageDialog(this, "Giảm theo % chỉ được nhập số nguyên!");
+	                return null;
+	            }
+
+	            // >1 và <100
+	            if (giaTriGiam <= 1 || giaTriGiam >= 100) {
+	                JOptionPane.showMessageDialog(this, "Giảm theo % phải lớn hơn 1 và nhỏ hơn 100!");
+	                return null;
+	            }
+
+	        } else { // giảm theo tiền
+
+	            if (giaTriGiam > soTienApDung && soTienApDung > 0) {
+	                JOptionPane.showMessageDialog(this, "Giá trị giảm không được lớn hơn số tiền áp dụng!");
+	                return null;
+	            }
+	        }
+
+	        // ===== OK → TẠO OBJECT =====
 	        return new KhuyenMai(
 	                ma,
 	                ten,
@@ -348,11 +385,15 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 	                giamToiDa
 	        );
 
+	    } catch (NumberFormatException e) {
+	        JOptionPane.showMessageDialog(this, "Vui lòng nhập đúng định dạng số!");
+	        return null;
 	    } catch (Exception e) {
 	        JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!");
 	        return null;
 	    }
 	}
+
 
 	private void clearForm() {
 	    generateMaKhuyenMai();
@@ -385,33 +426,7 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 	            }
 	        }
 	    } 
-//	    else if (o.equals(btnXoa)) {
-//	    	int row = table.getSelectedRow();
-//	        if (row == -1) {
-//	            JOptionPane.showMessageDialog(null, "Vui lòng chọn dòng muốn xóa!");
-//	            return;
-//	        }
-//	        String ma = txtMaKM.getText().trim();
-//	        int confirm = JOptionPane.showConfirmDialog(
-//	                null,
-//	                "Bạn có chắc muốn xóa khuyến mãi có mã: " + ma + " ?",
-//	                "Xác nhận xóa",
-//	                JOptionPane.YES_NO_OPTION
-//	        );
-//	        if (confirm == JOptionPane.YES_OPTION) {
-//	            boolean check = kmDAO.delete(ma);
-//	            if (check) {
-//	                DefaultTableModel model = (DefaultTableModel) table.getModel();
-//	                model.removeRow(row);
-//	                
-//	                clearForm();
-//	                
-//	                JOptionPane.showMessageDialog(null, "Xóa thành công!");
-//	            } else {
-//	                JOptionPane.showMessageDialog(null, "Xóa thất bại! (có thể do ràng buộc khóa ngoại)");
-//	            }
-//	        }
-//	    }
+
 	    else if (o.equals(btnluu)) {
 	    	KhuyenMai km = getFormData();
 	        if (km == null) return; // kiểm tra dữ liệu hợp lệ
