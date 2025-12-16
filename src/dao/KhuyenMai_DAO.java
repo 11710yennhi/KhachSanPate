@@ -213,5 +213,45 @@ public class KhuyenMai_DAO {
         }
         return n > 0;
     }
+    
+    public List<KhuyenMai> getKhuyenMaiConHieuLuc() {
 
+        List<KhuyenMai> ds = new ArrayList<>();
+
+        String sql = """
+            SELECT *
+            FROM KhuyenMai
+            WHERE CAST(GETDATE() AS DATE)
+                  BETWEEN ngayBatDau AND ngayKetThuc
+            ORDER BY tenKhuyenMai
+        """;
+
+        try (Connection con = ConnectDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                KhuyenMai km = new KhuyenMai(
+                    rs.getString("maKhuyenMai"),
+                    rs.getString("tenKhuyenMai"),
+                    rs.getDate("ngayTao").toLocalDate(),
+                    rs.getDate("ngayBatDau").toLocalDate(),
+                    rs.getDate("ngayKetThuc").toLocalDate(),
+                    rs.getString("loaiKhuyenMai"),
+                    rs.getDouble("soTienApDung"),
+                    rs.getDouble("giaTriGiam"),
+                    rs.getDouble("giamToiDa")
+                );
+                ds.add(km);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ds;
+    }
+
+
+    
 }

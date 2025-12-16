@@ -5,10 +5,14 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
 import dao.HoaDon_DAO;
+import dao.KhuyenMai_DAO;
+import dao.ThanhToan_DAO;
+import entity.KhuyenMai;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 import java.sql.Date;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -16,7 +20,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
-
+	
+	private JComboBox<KhuyenMai> cboKhuyenMai;
+	private JComboBox<String> cboPhuongThucTT;
     private JLabel lblMaHD;
     private JLabel lblTenKH;
     private JLabel lblNgayNhanTra;
@@ -127,14 +133,22 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         lblTong = createInfoLabel("Tổng: 0");
         lblTongTien = createInfoLabel("Tổng tiền: 0");
         lblKM = createInfoLabel("Khuyến mãi: 0");
+        cboKhuyenMai = new JComboBox<>();
         lblTongTatCa = createInfoLabel("Thành tiền: 0");
         lblTienDua = createInfoLabel("Tiền khách đưa: 0");
         lblTienThoi = createInfoLabel("Tiền thối lại: 0");
-
+        cboPhuongThucTT = new JComboBox<>(new String[]{
+                "Tiền mặt",
+                "Chuyển khoản"
+        });
+        cboPhuongThucTT.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        
         pAmounts.add(lblTong);
         pAmounts.add(lblTongTien);
         pAmounts.add(lblKM);
+        pAmounts.add(cboKhuyenMai);
         pAmounts.add(lblTongTatCa);
+        pAmounts.add(cboPhuongThucTT);
         pAmounts.add(lblTienDua);
         pAmounts.add(lblTienThoi);
 
@@ -152,11 +166,72 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
 
         root.add(content, BorderLayout.CENTER);
         add(new JScrollPane(root), BorderLayout.CENTER);
+        
+        loadKhuyenMai();
         //===action===========
         btnXacNhan.addActionListener(this);
     }
 
-    // ==== Helper UI ====
+    
+
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        if (e.getSource().equals(btnXacNhan)) {
+
+            try {
+            	KhuyenMai km = (KhuyenMai) cboKhuyenMai.getSelectedItem();
+            	
+                String maHD = lblMaHD.getText().replace("Mã hóa đơn: ", "").trim();
+                String maPDP = maPDPglobal;
+                String maKM = (km == null) ? null : km.getMaKhuyenMai();
+                String phuongThucTT = (String) cboPhuongThucTT.getSelectedItem();
+                if (phuongThucTT == null) {
+                    JOptionPane.showMessageDialog(this, "Vui lòng chọn phương thức thanh toán!");
+                    return;
+                }
+
+                long tongTienPhong = parseTien(lblTong.getText());
+                long tongCPPS      = parseTien(lblTongTien.getText());
+                long tongThanhToan = parseTien(lblTongTatCa.getText());
+
+
+                LocalDate ngayTao = LocalDate.now();
+
+                ThanhToan_DAO dao = new ThanhToan_DAO();
+                
+                boolean ok = dao.thanhToan(
+                        maHD,
+                        maPDP,
+                        maKM,
+                        phuongThucTT,
+                        tongTienPhong,
+                        tongCPPS,
+                        tongThanhToan,
+                        ngayTao
+                );
+
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Thanh toán thành công!");
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Thanh toán thất bại!");
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+            }
+        }
+    }
+    
+    
+    
+    
+    
+
+ // ==== Helper UI ====
     private JLabel createInfoLabel(String text) {
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -202,15 +277,29 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         Object[][] newData = new Object[data.length][9];
 
         for (int i = 0; i < data.length; i++) {
-            newData[i][0] = i + 1;   // STT
-            newData[i][1] = data[i][1]; // Mã phòng
-            newData[i][2] = data[i][2]; // Loại phòng
-            newData[i][3] = data[i][3]; // Ngày nhận
-            newData[i][4] = data[i][4]; // Ngày trả
-            newData[i][5] = data[i][5]; // Ngày trả thực (mới thêm)
-            newData[i][6] = data[i][6]; // Số đêm (đã có trong data)
-            newData[i][7] = data[i][7]; // Giá
-            newData[i][8] = data[i][8]; // Thành tiền
+
+            LocalDate ngayNhan = (LocalDate) data[i][3];
+            LocalDate ngayTra = (LocalDate) data[i][4];
+            int soDem = ((Long) data[i][6]).intValue();
+            LocalDate ngayHienTai = LocalDate.now();
+            
+            LocalDate ngayTraThuc = tinhNgayTraThuc(
+                ngayNhan, ngayTra, soDem, ngayHienTai
+            );
+            int soDemThuc = (int) ChronoUnit.DAYS.between(ngayNhan, ngayTraThuc);
+            
+            long giaMotDem = ((Number) data[i][7]).longValue();
+            long thanhTien = soDemThuc * giaMotDem;
+            
+            newData[i][0] = i + 1;
+            newData[i][1] = data[i][1];
+            newData[i][2] = data[i][2];
+            newData[i][3] = ngayNhan;
+            newData[i][4] = ngayTra;
+            newData[i][5] = ngayTraThuc; // SET Ở ĐÂY
+            newData[i][6] = soDemThuc;
+            newData[i][7] = giaMotDem;
+            newData[i][8] = thanhTien;
         }
 
         tablePhong.setModel(new DefaultTableModel(newData, cols));
@@ -241,7 +330,7 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         lblTienDua.setText("Tiền khách đưa: " + dua);
         lblTienThoi.setText("Tiền thối lại: " + thoi);
     }
-    //===========generate hóa đơn=============
+    //===========generate mã hóa đơn=============
     protected String taoMaHoaDonMoi() {
         LocalDate now = LocalDate.now();
         String ngay = now.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
@@ -262,7 +351,7 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         if (d == null) return "---";
         return new java.text.SimpleDateFormat("dd/MM/yyyy").format(d);
     }
-
+//==============================loaddata============================
     private void loadData(
             String maHD,
             String maPDP,
@@ -290,85 +379,124 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         lblTong.setText("Tổng tiền phòng: " + tongTienPhong);
         lblTongTien.setText("Chi phí phát sinh: " + tongThanhToan);
         
-        tongTienPhong = tongTienPhong.replaceAll("[^\\d.]", "");
-        tongThanhToan = tongThanhToan.replaceAll("[^\\d.]", "");
-
-        double tongTienPhongdouble = Double.parseDouble(tongTienPhong);
-        double tongThanhToandouble = Double.parseDouble(tongThanhToan);
-
-
-        double tongTatCa = tongTienPhongdouble + tongThanhToandouble;
-        
-        DecimalFormat df = new DecimalFormat("#,###.##");
-        String tongTatCaStr = df.format(tongTatCa);
-        
-        lblTongTatCa.setText("Tổng tất cả: " + tongTatCaStr);
+//        tongTienPhong = tongTienPhong.replaceAll("[^\\d.]", "");
+//        tongThanhToan = tongThanhToan.replaceAll("[^\\d.]", "");
+//
+//        double tongTienPhongdouble = Double.parseDouble(tongTienPhong);
+//        double tongThanhToandouble = Double.parseDouble(tongThanhToan);
+//
+//
+//        double tongTatCa = tongTienPhongdouble + tongThanhToandouble;
+//        
+//        DecimalFormat df = new DecimalFormat("#,###.##");
+//        String tongTatCaStr = df.format(tongTatCa);
+//        
+//        lblTongTatCa.setText("Tổng tất cả: " + tongTatCaStr);
         //KhuyenMai
     }
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        Object o = e.getSource();
+    //======================Tinh ngay tra thuc ================================
+    public LocalDate tinhNgayTraThuc(
+            LocalDate ngayNhan,
+            LocalDate ngayTraDuKien,
+            int soDem,
+            LocalDate ngayHienTai
+    ) {
+        // ngày cọc = ngày nhận + (số đêm / 2)
+        LocalDate ngayCoc = ngayNhan.plusDays(soDem / 2);
 
-        if (o.equals(btnXacNhan)) {
-
-            try {
-                // ===== LẤY MÃ HÓA ĐƠN =====
-                String maHD = lblMaHD.getText().replace("Mã hóa đơn: ", "").trim();
-
-                // ===== LẤY MÃ PHIẾU ĐẶT PHÒNG =====
-                String maPDP = maPDPglobal;
-                // ===== LẤY MÃ KHUYẾN MÃI (NẾU CÓ) =====
-                String maKM = null; 
-                // Nếu bạn có ô nhập KM thì lấy ở đây, ví dụ:
-                // maKM = txtKhuyenMai.getText().trim();
-                // (Nếu null → DAO sẽ tự set NULL)
-
-                // ===== LẤY SỐ TIỀN =====
-                String tongTienPhongStr = lblTong.getText().replace("Tổng tiền phòng: ", "").replace(",", "").trim();
-                String tongCPPSStr     = lblTongTien.getText().replace("Chi phí phát sinh: ", "").replace(",", "").trim();
-                String tongThanhStr    = lblTongTatCa.getText().replace("Tổng tất cả: ", "").replace(",", "").trim();
-
-                double tongTienPhong  = Double.parseDouble(tongTienPhongStr);
-                double tongTienCPPS   = Double.parseDouble(tongCPPSStr);
-                double tongThanhToan  = Double.parseDouble(tongThanhStr);
-
-                // Tổng tiền = tiền phòng + chi phí
-                double tongTien = tongTienPhong + tongTienCPPS;
-
-                // ===== PHƯƠNG THỨC THANH TOÁN =====
-                String phuongThucTT = "Tiền mặt"; // nếu có combobox → lấy từ combobox
-
-                // ===== NGÀY TẠO =====
-                LocalDate ngayTao = LocalDate.now();
-
-                // ===== GỌI DAO LƯU HÓA ĐƠN =====
-                HoaDon_DAO dao = new HoaDon_DAO();
-
-                boolean ok = dao.themHoaDon(
-                        maHD,
-                        maPDP,
-                        maKM,
-                        phuongThucTT,
-                        tongTienPhong,
-                        tongTienCPPS,
-                        tongThanhToan,
-                        ngayTao
-                );
-                
-
-                if (ok) {
-                    JOptionPane.showMessageDialog(this, "Thanh toán thành công!");
-                    dispose(); // đóng giao diện
-                } else {
-                    JOptionPane.showMessageDialog(this, "Lưu hóa đơn thất bại!");
-                }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Lỗi khi thanh toán: " + ex.getMessage());
-            }
+        // 1. Trả đúng ngày
+        if (ngayHienTai.isEqual(ngayTraDuKien)) {
+            return ngayTraDuKien;
         }
+
+        // 2. Trả trước ngày cọc
+        if (ngayHienTai.isBefore(ngayCoc)) {
+            return ngayCoc;
+        }
+
+        // 3. Trả từ ngày cọc trở lên
+        if (!ngayHienTai.isAfter(ngayTraDuKien)) {
+            return ngayHienTai.plusDays(1); // ngày phạt
+        }
+
+        // Mặc định
+        return ngayTraDuKien;
     }
     
+//    private long parseTien(String text, String label) {
+//        return Long.parseLong(
+//            text.replace(label, "")
+//                .replace(".", "")
+//                .replace(",", "")
+//                .replace("₫", "")
+//                .trim()
+//        );
+//    }
+    
+    private void loadKhuyenMai() {
+        cboKhuyenMai.removeAllItems();
+
+        cboKhuyenMai.addItem(null); // Không áp dụng KM
+
+        KhuyenMai_DAO dao = new KhuyenMai_DAO();
+        for (KhuyenMai km : dao.getKhuyenMaiConHieuLuc()) {
+            cboKhuyenMai.addItem(km);
+        }
+        
+        cboKhuyenMai.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                capNhatTongTien();
+            }
+        });
+
+    }
+    private long tinhTienGiam(long tongTienPhong) {
+
+        KhuyenMai km = (KhuyenMai) cboKhuyenMai.getSelectedItem();
+        if (km == null) return 0;
+
+        // Không đủ điều kiện áp dụng
+        if (tongTienPhong < km.getSoTienApDung()) return 0;
+
+        // Giảm theo %
+        if ("%".equalsIgnoreCase(km.getLoaiKhuyenMai())) {
+
+            double tiLe = km.getGiaTriGiam() / 100.0;   // 🔥 QUAN TRỌNG
+            long tienGiam = (long) (tongTienPhong * tiLe);
+
+            // Áp dụng giảm tối đa
+            if (km.getGiamToiDa() > 0) {
+                tienGiam = Math.min(tienGiam, (long) km.getGiamToiDa());
+            }
+
+            return tienGiam;
+        }
+
+        // Giảm theo tiền
+        return Math.min((long) km.getGiaTriGiam(), tongTienPhong);
+    }
+
+    private void capNhatTongTien() {
+
+        long tongTienPhong = parseTien(lblTong.getText());
+        long tongCPPS = parseTien(lblTongTien.getText());
+
+        long tienGiam = tinhTienGiam(tongTienPhong);
+
+        long tongThanhToan = tongTienPhong + tongCPPS - tienGiam;
+        if (tongThanhToan < 0) tongThanhToan = 0;
+
+        lblKM.setText("Khuyến mãi: -" + dinhDangTien(tienGiam));
+        lblTongTatCa.setText("Tổng tất cả: " + dinhDangTien(tongThanhToan));
+    }
+
+    
+    private long parseTien(String text) {
+        return Long.parseLong(text.replaceAll("[^0-9]", ""));
+    }
+
+    private String dinhDangTien(long tien) {
+        return String.format("%,d đ", tien);
+    }
     
 }

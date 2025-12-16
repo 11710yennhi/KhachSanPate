@@ -109,19 +109,13 @@ public class KhuyenMai {
         this.giamToiDa = giamToiDa;
     }
 
+    
     @Override
     public String toString() {
-        return "KhuyenMai{" +
-                "maKhuyenMai='" + maKhuyenMai + '\'' +
-                ", tenKhuyenMai='" + tenKhuyenMai + '\'' +
-                ", ngayTao=" + ngayTao +
-                ", ngayBatDau=" + ngayBatDau +
-                ", ngayKetThuc=" + ngayKetThuc +
-                ", loaiKhuyenMai='" + loaiKhuyenMai + '\'' +
-                ", soTienApDung=" + soTienApDung +
-                ", giaTriGiam=" + giaTriGiam +
-                ", giamToiDa=" + giamToiDa +
-                '}';
+        if ("%".equalsIgnoreCase(loaiKhuyenMai)) {
+            return tenKhuyenMai + " (-" + giaTriGiam + "%)";
+        }
+        return tenKhuyenMai + " (-" + String.format("%,.0f", giaTriGiam) + "đ)";
     }
 
 	//hashCode() and equal()
