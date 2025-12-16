@@ -4,15 +4,21 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 import connectDB.ConnectDB;
 import dao.KhachHang_DAO;
 import entity.KhachHang;
 
 public class KhachHang_GUI extends JPanel implements ActionListener, MouseListener {
-
+	
+	private static final Color NAVY_DARK = new Color(7, 40, 68);
 	private JTextField txtMaKH, txtHoTen, txtSoDT;
 	private JCheckBox chkLaNguoiVN;
 	private JButton btnSua, btnTim;
@@ -27,12 +33,15 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 		setLayout(new BorderLayout(10, 10));
 		setBackground(Color.WHITE);
 
-		JLabel lblTitle = new JLabel("QUẢN LÝ KHÁCH HÀNG", SwingConstants.CENTER);
-		lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
-		lblTitle.setForeground(new Color(0, 77, 153));
-		add(lblTitle, BorderLayout.NORTH);
+		add(buildHeader(), BorderLayout.NORTH);
 
-		initForm();
+		JPanel body = new JPanel(new BorderLayout(12, 12));
+		body.setBackground(Color.WHITE);
+
+		body.add(buildBody(), BorderLayout.NORTH);
+		body.add(buildTablePanel(), BorderLayout.CENTER);
+
+		add(body, BorderLayout.CENTER);
 
 		try {
 			ConnectDB.getInstance().connect();
@@ -42,107 +51,214 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 		}
 	}
 
-	private void initForm() {
-		JPanel infoPanel = new JPanel(new BorderLayout(10, 10));
-		infoPanel.setBorder(new TitledBorder("Thông tin khách hàng"));
-		infoPanel.setBackground(Color.WHITE);
-		add(infoPanel, BorderLayout.NORTH);
+	// Build UI
+	private JPanel buildHeader() {
+		JPanel header = new JPanel();
+		header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+		header.setBackground(NAVY_DARK);
+		header.setBorder(new EmptyBorder(14, 18, 14, 18));
 
-		JPanel formPanel = new JPanel(new GridLayout(2, 4, 10, 10));
+		JLabel lblTitle = new JLabel("QUẢN LÝ KHÁCH HÀNG");
+		lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
+		lblTitle.setForeground(Color.WHITE);
+		lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		JLabel lblSub = new JLabel("Pate Hotel • Quản lý thông tin khách lưu trú");
+		lblSub.setForeground(Color.WHITE);
+		lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		lblSub.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+		header.add(lblTitle);
+		header.add(Box.createVerticalStrut(4));
+		header.add(lblSub);
+
+		return header;
+	}
+
+	private JPanel buildBody() {
+		JPanel infoPanel = new JPanel(new BorderLayout(10, 10));
+		infoPanel.setBorder(
+				new CompoundBorder(new LineBorder(new Color(220, 220, 220), 1, true), new EmptyBorder(14, 14, 14, 14)));
+		infoPanel.setBackground(Color.WHITE);
+
+		JLabel lbTitle = new JLabel("Thông tin nhân viên");
+		lbTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		lbTitle.setForeground(NAVY_DARK);
+		infoPanel.add(lbTitle, BorderLayout.NORTH);
+
+		JPanel formPanel = new JPanel(new GridBagLayout());
 		formPanel.setBackground(Color.WHITE);
+		infoPanel.add(formPanel, BorderLayout.CENTER);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(8, 8, 8, 8);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 
 		// Hàng 1
-		formPanel.add(new JLabel("Mã khách hàng:"));
-		txtMaKH = new JTextField();
-		txtMaKH.setEditable(false); // readonly
-//        setTextFieldHeight(txtMaKH);
-		formPanel.add(txtMaKH);
+		// Mã KhachHang
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		formPanel.add(new JLabel("Mã khách hàng:"), gbc);
 
-		formPanel.add(new JLabel("Họ tên:"));
+		gbc.gridx = 1;
+		gbc.weightx = 1;
+		txtMaKH = new JTextField();
+		txtMaKH.setEditable(false);
+		styleField(txtMaKH);
+		formPanel.add(txtMaKH, gbc);
+
+		// Họ tên
+		gbc.gridx = 2;
+		gbc.weightx = 0;
+		formPanel.add(new JLabel("Họ tên:"), gbc);
+
+		gbc.gridx = 3;
+		gbc.weightx = 1;
 		txtHoTen = new JTextField();
-//        setTextFieldHeight(txtHoTen);
-		formPanel.add(txtHoTen);
+		styleField(txtHoTen);
+		formPanel.add(txtHoTen, gbc);
 
 		// Hàng 2
-		formPanel.add(new JLabel("Số điện thoại:"));
+		// Số điện thoại
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.weightx = 0;
+		formPanel.add(new JLabel("Số điện thoại:"), gbc);
+
+		gbc.gridx = 1;
+		gbc.weightx = 1;
 		JPanel sdtPanel = new JPanel(new BorderLayout(5, 0));
 		sdtPanel.setBackground(Color.WHITE);
-		txtSoDT = new JTextField(10);
-//        setTextFieldHeight(txtSoDT);
+
+		txtSoDT = new JTextField();
+		styleField(txtSoDT);
+
 		btnTim = new JButton("🔍");
-		btnTim.setBackground(new Color(200, 220, 250));
+		btnTim.setFocusPainted(false);
+		btnTim.setBackground(new Color(230, 240, 255));
 		btnTim.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 15));
 		btnTim.addActionListener(this);
+
 		sdtPanel.add(txtSoDT, BorderLayout.CENTER);
 		sdtPanel.add(btnTim, BorderLayout.EAST);
-		formPanel.add(sdtPanel);
+
+		formPanel.add(sdtPanel, gbc);
 
 		// Quốc tịch bằng checkbox
-		formPanel.add(new JLabel("Là người Việt Nam:"));
+		gbc.gridx = 2;
+		gbc.weightx = 0;
+		formPanel.add(new JLabel("Là người Việt Nam:"), gbc);
+		gbc.gridx = 3;
 		chkLaNguoiVN = new JCheckBox();
 		chkLaNguoiVN.setBackground(Color.WHITE);
 		chkLaNguoiVN.setSelected(true);
-		formPanel.add(chkLaNguoiVN);
-
-		infoPanel.add(formPanel, BorderLayout.CENTER);
+		formPanel.add(chkLaNguoiVN, gbc);
 
 		// Cột nút bên phải
-		JPanel buttonCol = new JPanel();
-		buttonCol.setLayout(new BoxLayout(buttonCol, BoxLayout.Y_AXIS));
-		buttonCol.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		buttonCol.setBackground(Color.WHITE);
-
-		btnSua = new JButton("Lưu");
-		Dimension btnSize = new Dimension(120, 35);
-		btnSua.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		btnSua.setBackground(new Color(220, 230, 250));
-		btnSua.setAlignmentX(Component.CENTER_ALIGNMENT);
-		btnSua.setPreferredSize(btnSize);
-		btnSua.setMaximumSize(btnSize);
-		btnSua.addActionListener(this);
-//        buttonCol.add(btnSua);
+		JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+//		buttonCol.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		buttonRow.setBackground(Color.WHITE);
 
 		btnXoaRong = new JButton("Xóa rỗng");
-		btnXoaRong.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		btnXoaRong.setBackground(new Color(220, 230, 250));
-		btnXoaRong.setAlignmentX(Component.CENTER_ALIGNMENT);
-		btnXoaRong.setPreferredSize(btnSize);
-		btnXoaRong.setMaximumSize(btnSize);
+		styleButton(btnXoaRong);
+		btnXoaRong.setBackground(new Color(230, 240, 255));
+		btnXoaRong.setForeground(NAVY_DARK);
 		btnXoaRong.addActionListener(this);
-//        buttonCol.add(btnXoaRong);
-		
+
 		btnLamMoi = new JButton("Làm mới");
-		btnLamMoi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		btnLamMoi.setBackground(new Color(220, 230, 250));
-		btnLamMoi.setAlignmentX(Component.CENTER_ALIGNMENT);
-		btnLamMoi.setPreferredSize(btnSize);
-		btnLamMoi.setMaximumSize(btnSize);
+		styleButton(btnLamMoi);
+		btnLamMoi.setBackground(new Color(218, 177, 55));
+		btnLamMoi.setForeground(NAVY_DARK);
 		btnLamMoi.addActionListener(this);
 
-		// buttonCol.add(Box.createVerticalGlue()); // đẩy nút xuống giữa
-		buttonCol.add(btnSua);
-		buttonCol.add(Box.createVerticalStrut(5));
-		buttonCol.add(btnXoaRong);
-		buttonCol.add(Box.createVerticalStrut(5));
-		buttonCol.add(btnLamMoi);
-		// buttonCol.add(Box.createVerticalGlue()); // đẩy nút lên trên
+		btnSua = new JButton("Lưu");
+		styleButton(btnSua);
+		btnSua.setBackground(NAVY_DARK);
+		btnSua.setForeground(Color.WHITE);
+		btnSua.addActionListener(this);
 
-		infoPanel.add(buttonCol, BorderLayout.EAST);
+		buttonRow.add(btnXoaRong);
+		buttonRow.add(btnLamMoi);
+		buttonRow.add(btnSua);
 
-		// Bảng
-		String[] cols = { "STT", "Mã KH", "Họ Tên", "Số Điện Thoại", "Là Người Việt Nam" };
-		modelKH = new DefaultTableModel(cols, 0);
-		table = new JTable(modelKH);
-		table.addMouseListener(this);
-		add(new JScrollPane(table), BorderLayout.CENTER);
+		infoPanel.add(buttonRow, BorderLayout.SOUTH);
+
+		return infoPanel;
 	}
 
-//    // Giảm chiều cao JTextField để đều với JLabel
-//    private void setTextFieldHeight(JTextField txt) {
-//        Dimension size = txt.getPreferredSize();
-//        size.height = 15;
-//        txt.setPreferredSize(size);
-//    }
+	private JPanel buildTablePanel() {
+		JPanel tableCard = new JPanel(new BorderLayout());
+		tableCard.setBackground(Color.WHITE);
+		tableCard.setBorder(
+				new CompoundBorder(new LineBorder(new Color(220, 220, 220), 1, true), new EmptyBorder(12, 12, 12, 12)));
+
+		JLabel lblTable = new JLabel("Danh sách khách hàng");
+		lblTable.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		lblTable.setForeground(NAVY_DARK);
+
+		String[] cols = { "STT", "Mã KH", "Họ Tên", "Số Điện Thoại", "Là Người Việt Nam" };
+		modelKH = new DefaultTableModel(cols, 0) {
+			@Override
+			public boolean isCellEditable(int row, int col) {
+				return false;
+			}
+		};
+		table = new JTable(modelKH);
+		styleTable(table);
+		table.addMouseListener(this);
+
+		tableCard.add(lblTable, BorderLayout.NORTH);
+		tableCard.add(new JScrollPane(table), BorderLayout.CENTER);
+
+		return tableCard;
+	}
+
+	// =============Style
+	private void styleField(JTextField txt) {
+		txt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		txt.setPreferredSize(new Dimension(0, 32));
+	}
+
+	private void styleButton(JButton btn) {
+		btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		btn.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btn.setPreferredSize(new Dimension(120, 35));
+		btn.setMaximumSize(new Dimension(120, 35));
+		btn.setFocusPainted(false);
+	}
+
+	private void styleTable(JTable t) {
+		t.setRowHeight(34);
+		t.setGridColor(new Color(230, 235, 240));
+		t.setShowHorizontalLines(true);
+		t.setShowVerticalLines(false);
+		t.setSelectionBackground(new Color(225, 238, 252));
+		t.setSelectionForeground(NAVY_DARK);
+
+		JTableHeader header = t.getTableHeader();
+		header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		header.setBackground(NAVY_DARK);
+		header.setForeground(Color.WHITE);
+		header.setPreferredSize(new Dimension(header.getPreferredSize().width, 38));
+
+		DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int col) {
+				Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+				if (!isSelected)
+					c.setBackground(row % 2 == 0 ? Color.WHITE : new Color(248, 250, 253));
+				setBorder(new EmptyBorder(0, 10, 0, 10));
+				return c;
+			}
+		};
+
+		for (int i = 0; i < t.getColumnCount(); i++) {
+			t.getColumnModel().getColumn(i).setCellRenderer(renderer);
+		}
+	}
+
+	// ================Events
 
 	private void xoaRongForm() {
 		txtHoTen.setText("");
@@ -206,9 +322,16 @@ public class KhachHang_GUI extends JPanel implements ActionListener, MouseListen
 				JOptionPane.showMessageDialog(this, "Không tìm thấy khách hàng với SĐT này!");
 			}
 		} else if (o.equals(btnSua)) {
+			if (txtMaKH.getText().trim().isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Chọn thông tin khách hàng cần sửa!");
+				return;
+			}
 			KhachHang kh = getFormData();
 			if (kh != null) {
-				if (khDAO.capNhatKhachHang(kh)) {
+				if (khDAO.isSoDienThoaiTonTaiKhacMa(kh.getSoDienThoai(), kh.getMaKhachHang())) {
+					JOptionPane.showMessageDialog(this, "Số điện thoại đã được sử dụng bởi khách khác!", "Cảnh báo",
+							JOptionPane.WARNING_MESSAGE);
+				} else if (khDAO.capNhatKhachHang(kh)) {
 					JOptionPane.showMessageDialog(this, "Cập nhật thông tin thành công!");
 					loadKhachHangToTable();
 				} else {
