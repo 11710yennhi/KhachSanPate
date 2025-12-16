@@ -61,7 +61,7 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         txtMaPhieu = new JTextField(14);    // dài hơn
 
         cbbLoc = new JComboBox<>(new String[] {
-                "Đã đặt", "Tới ngày nhận","Chưa nhận phòng", "Tới ngày trả", "Đang ở", "Đã hủy", "Hoàn thành"
+                "Đã đặt", "Tới ngày nhận","Chưa nhận phòng", "Tới ngày trả","Trễ hạn trả phòng", "Đang ở", "Đã hủy", "Hoàn thành"
         });
 
         JButton btnLocSDT = new JButton("Lọc SĐT");
@@ -73,8 +73,8 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         btnLocMa.addActionListener(e -> locTheoMa());
         btnLocTrangThai.addActionListener(e -> locTheoTrangThai());
         btnReset.addActionListener(e -> {
-            txtSDT.setText("");
-            txtMaPhieu.setText("");
+//            txtSDT.setText("");
+//            txtMaPhieu.setText("");
             taiDuLieu();
             cbbLoc.setSelectedIndex(0);
             locTheoTrangThai();
@@ -282,35 +282,59 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
                 .min(LocalDate::compareTo);
 
         Optional<LocalDate> maxTra = p.getDsChiTiet().stream()
-                .map(ChiTietPhieuDatPhong::getNgayTra)
+                .map(ChiTietPhieuDatPhong::getNgayTraThuc)
                 .filter(d -> d != null)
                 .max(LocalDate::compareTo);
 
         LocalDate nhanSomNhat = minNhan.orElse(null);
         LocalDate traTreNhat = maxTra.orElse(null);
-        if (nhanSomNhat.isBefore(today) 
-                && p.getTrangThai().equals("Đã đặt")&&!p.getTrangThai().equals("Đã hủy")) {
+     // Đã hủy luôn ưu tiên
+        if (p.getTrangThai().equals("Đã hủy")) {
+            return "Đã hủy";
+        }
+        // Trễ hạn trả phòng
+        if (traTreNhat != null 
+                && today.isAfter(traTreNhat) 
+                &&(p.getTrangThai().equals("Đang ở"))) {
+            return "Trễ hạn trả phòng";
+        }
+        // Tới ngày trả
+        if (traTreNhat != null 
+                && today.isEqual(traTreNhat) 
+                && p.getTrangThai().equals("Đang ở")) {
+            return "Tới ngày trả";
+        }
+        // Đang ở (ưu tiên cao)
+        if (p.getTrangThai().equals("Đang ở")) {
+            return "Đang ở";
+        }
+
+        // Chưa nhận phòng (quá ngày nhận nhưng chưa check-in)
+        if (nhanSomNhat != null 
+                && nhanSomNhat.isBefore(today) 
+                && p.getTrangThai().equals("Đã đặt")) {
             return "Chưa nhận phòng";
         }
 
-     // Tới ngày nhận
-        if (nhanSomNhat != null && today.isEqual(nhanSomNhat) && !p.getTrangThai().equals("Đã hủy")) { return "Tới ngày nhận"; }
-
-        // Đang ở: nhanSomNhat < today < traTreNhat
-        if (nhanSomNhat != null && traTreNhat != null) { 
-        	if (today.isAfter(nhanSomNhat) && today.isBefore(traTreNhat) && !p.getTrangThai().equals("Đã hủy")) { return "Đang ở"; } }
-
-
-        // Tới ngày trả
-        if (traTreNhat != null && today.isEqual(traTreNhat)&&!p.getTrangThai().equals("Đã hủy")) return "Tới ngày trả";
-
-        // Đã đặt: chưa tới ngày nhận (today < nhanSomNhat)
-        if (nhanSomNhat != null && today.isBefore(nhanSomNhat)&&!p.getTrangThai().equals("Đã hủy")) return "Đã đặt";
-
-        if(p.getTrangThai().equals("Đã hủy")) {
-        	return "Đã hủy";
+        // Tới ngày nhận
+        if (nhanSomNhat != null 
+                && today.isEqual(nhanSomNhat) 
+                && p.getTrangThai().equals("Đã đặt")) {
+            return "Tới ngày nhận";
         }
+
+     
+
+        // Đã đặt (chưa tới ngày nhận)
+        if (nhanSomNhat != null 
+                && today.isBefore(nhanSomNhat) 
+                && p.getTrangThai().equals("Đã đặt")) {
+            return "Đã đặt";
+        }
+
+        // Mặc định
         return "Hoàn thành";
+
     }
 
     /**
@@ -321,28 +345,99 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         String ma = txtMaPhieu.getText().trim();
         String loc = (String) cbbLoc.getSelectedItem();
 
+        // ===== 1. VALIDATE ĐIỀU KIỆN NHẬP =====
+        if (sdt.isEmpty() && ma.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Vui lòng nhập SĐT hoặc Mã phiếu để tìm kiếm",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return new ArrayList<>();
+        }
+
+        // ===== 2. VALIDATE SĐT =====
+        if (!sdt.isEmpty()) {
+            // chỉ cho nhập số
+            if (!sdt.matches("\\d+")) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "SĐT chỉ được chứa chữ số",
+                        "Thông báo",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return new ArrayList<>();
+            }
+
+            if (sdt.length() != 10) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "SĐT phải có đúng 10 chữ số",
+                        "Thông báo",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return new ArrayList<>();
+            }
+        }
+
         List<PhieuDatPhong> kq = new ArrayList<>();
 
+        String maTim = ma.toLowerCase(); // tìm không phân biệt hoa thường
+
+        // ===== 3. LỌC DANH SÁCH =====
         for (PhieuDatPhong p : dsPhieu) {
             boolean match = true;
 
+            // ---- LỌC THEO SĐT ----
             if (!sdt.isEmpty()) {
                 String pSdt = (p.getKhachHang() != null && p.getKhachHang().getSoDienThoai() != null)
-                        ? p.getKhachHang().getSoDienThoai() : "";
-                if (!pSdt.contains(sdt)) match = false;
+                        ? p.getKhachHang().getSoDienThoai()
+                        : "";
+                if (!pSdt.equals(sdt)) {
+                    match = false;
+                }
             }
 
+            // ---- LỌC THEO MÃ PHIẾU (TƯƠNG ĐƯƠNG) ----
             if (!ma.isEmpty()) {
-                String pMa = p.getMaPhieuDatPhong() == null ? "" : p.getMaPhieuDatPhong();
-                if (!pMa.contains(ma)) match = false;
+                String pMa = p.getMaPhieuDatPhong() != null
+                        ? p.getMaPhieuDatPhong().toLowerCase()
+                        : "";
+                if (!pMa.contains(maTim)) {
+                    match = false;
+                }
             }
 
+            // ---- LỌC THEO TRẠNG THÁI ----
             if (loc != null) {
                 String tt = xacDinhTrangThai(p);
-                if (!tt.equals(loc)) match = false;
+                if (!tt.equals(loc)) {
+                    match = false;
+                }
             }
 
-            if (match) kq.add(p);
+            if (match) {
+                kq.add(p);
+            }
+        }
+
+        // ===== 4. THÔNG BÁO KHÔNG TÌM THẤY =====
+        if (kq.isEmpty()) {
+            if (!sdt.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Không tìm thấy phiếu đặt phòng với SĐT này",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Không tìm thấy phiếu đặt phòng phù hợp",
+                        "Thông báo",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+            }
         }
 
         return kq;

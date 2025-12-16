@@ -73,7 +73,7 @@ public class TraPhong_GUI implements ActionListener {
                         + "• Ngày trả = Ngày nhận thực (" + ngayNhan + ")\n"
                         + "• Ngày trả thực = Ngày nhận thực\n"
                         + "• Số đêm = " + soDemO + "\n"
-                        + "• Thành tiền đã cập nhật lại"
++ "• Thành tiền đã cập nhật lại"
                     );
 
                     return;
@@ -122,7 +122,7 @@ public class TraPhong_GUI implements ActionListener {
                 }
 
                 // ===================== UPDATE LÊN UI =====================
-                dlp.setValueAt(ngayTraMoi.toString(), x, 5);
+                dlp.setValueAt(ngayTraMoi.toString(), x, 4);
 
                 long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTraMoi);
                 if (soDemO < 1) soDemO = 1;

@@ -238,7 +238,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 "Chi tiết phòng thuê",
                 TitledBorder.LEFT, TitledBorder.TOP, fontTieuDe, mauXanhDam));
 
-        String[] cols = {"STT", "Mã phòng", "Loại phòng", "Ngày nhận", "Ngày trả","Ngày trả thực", "Số đêm", "Giá", "Thành tiền"};
+        String[] cols = {"STT", "Mã phòng", "Loại phòng", "Ngày nhận", "Ngày trả Thực","Ngày trả", "Số đêm", "Giá", "Thành tiền"};
         dlp = new DefaultTableModel(cols, 0);
         tblPhong = new JTable(dlp);
         pChiTietPhong.add(new JScrollPane(tblPhong), BorderLayout.CENTER);
@@ -293,6 +293,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         kiemTraLayThongTinKHTuSDT();
         capNhatCBBCPPS();
         hienThiTienCocVaTienTongTienPhong();
+        kiemTraDeThemCPPS();
         
 //      btn.addActionListener(this);
       btnCapNhat.addActionListener(this);
@@ -355,6 +356,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		else if(o.equals(btnXNDP)) {
 			if(dieuKienNguoi()) {
 				moKhungNhap();
+				kiemTraDeThemCPPS();
 			}
 			
 		}
@@ -385,6 +387,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		}else if(o.equals(btnLuu)) {
 			if( kiemTraDuLieuNhap()&&dieuKienNguoi()) {
 				if(xuLyNutLuu()) {
+					kiemTraDeThemCPPS();
 					JOptionPane.showMessageDialog(null,"Lưu thành công!");
 					getDSLP();
 					return;
@@ -400,10 +403,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 			String mpdp= txtMPDP.getText();
 			if(mpdp.trim().length()!=0) {
 				moKhoaTatCaTruong();
-				txtMPDP.setText(taoMaPhieuDatPhongTuDong());
-				txtMKH.setText(taoMaKhachHangTuDong());
+				txtMPDP.setText("");
+				txtMKH.setText("");
 				txtTenKH.setText("");
+				txtTenKH.setEditable(false);
 				txtSDT.setText("");
+				txtSDT.setEditable(false);
 				txtNgayTao.setText(LocalDate.now().toString());
 				dlp.setRowCount(0);
 				dlctps.setRowCount(0);
@@ -476,44 +481,36 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	        JOptionPane.showMessageDialog(null, "Vui lòng chọn dòng cần xóa!");
 	        return;
 	    }
+
 	    String maPhong = dlp.getValueAt(x, 1).toString();
-	    LocalDate today = LocalDate.now();
+
+	    // Lấy danh sách chi tiết phiếu từ DB
 	    List<ChiTietPhieuDatPhong> ds = dsctpdp.getChiTietTheoMaPhieu(txtMPDP.getText());
 
 	    for (ChiTietPhieuDatPhong ct : ds) {
-
 	        if (ct.getPhong() == null) continue;
+
 	        if (maPhong.equals(ct.getPhong().getMaPhong())) {
-
-	            LocalDate ngayNhan = ct.getNgayNhanThuc();
-
-	            if (ngayNhan != null) {
-	                long daysBetween = ChronoUnit.DAYS.between(today, ngayNhan);
-	                if (daysBetween <= 2) {
-	                    JOptionPane.showMessageDialog(null,
-	                            "Phòng này có ngày nhận quá gần (≤ 2 ngày), không thể xóa!");
-	                    return;
-	                }
-	                int res = JOptionPane.showConfirmDialog(
-	                        null,
-	                        "Phòng này đã có trong hệ thống.\n" +
-	                        "Tuy nhiên ngày nhận vẫn còn sớm trước 2 ngày.\n" +
-	                        "Bạn có chắc muốn tiếp tục xóa không?",
-	                        "Xác nhận xóa",
-	                        JOptionPane.YES_NO_OPTION
-	                );
-
-	                if (res != JOptionPane.YES_OPTION) {
-	                    return; 
-	                }
-	            }
+	            JOptionPane.showMessageDialog(
+	                    null,
+	                    "Phòng này đã có trong hệ thống,\n" +
+	                    "không thể xóa.\n" +
+	                    "Bạn có thể chọn trả phòng sớm!",
+	                    "Không thể xóa",
+	                    JOptionPane.WARNING_MESSAGE
+	            );
+	            return;
 	        }
 	    }
+
+	    // Nếu KHÔNG có trong DB → cho xóa
 	    dlp.removeRow(x);
 	    capNhatSoThuTu();
 	    hienThiTienCocVaTienTongTienPhong();
+
 	    JOptionPane.showMessageDialog(null, "Xóa thành công!");
 	}
+
 	
 	private void capNhatSoThuTu() {
 	    for (int i = 0; i < dlp.getRowCount(); i++) {
@@ -1433,8 +1430,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         for (int i = 0; i < dlp.getRowCount(); i++) {
             Object oNhan = dlp.getValueAt(i, 3);
-            Object oTra  = dlp.getValueAt(i, 4);
-            Object oTraThuc = dlp.getValueAt(i, 5);
+            Object oTraThuc  = dlp.getValueAt(i, 4);
+            Object oTra = dlp.getValueAt(i, 5);
             Object oMaPhong = dlp.getValueAt(i, 1);
             // Chặn null 
             if (oNhan == null || oTra == null || oTraThuc == null || oMaPhong == null) {
@@ -1458,7 +1455,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
             String trangThai = String.valueOf(cboTrangThai.getSelectedItem());
 
             ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
-                tam, p, ngayNhan, ngayTra, trangThai, ngayTraThuc
+                tam, p, ngayNhan, ngayTraThuc, ngayTra
             );
 
             tam.themChiTiet(ct);
@@ -1541,6 +1538,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     public TaoPhieuDatPhong_GUI(PhieuDatPhong pdphong, String maNV) {
     	this(maNV);   	
     	getDuLieu(pdphong, maNV);
+    	kiemTraDeThemCPPS();
     	
     	
     }
@@ -1661,7 +1659,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
                 Phong p = new Phong(maPhong);
                 ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
-                        pd, p, ngayNhan, ngayTraThuc, trangThai, ngayTra
+                        pd, p, ngayNhan, ngayTraThuc, ngayTra
                 );
 
                 dsctpdp.themChiTietPhieuDatPhong(ct);
@@ -1773,7 +1771,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
                Phong p = new Phong(maPhong);
                ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
-                       pd, p, ngayNhan, ngayTraThuc, trangThai, ngayTra
+                       pd, p, ngayNhan, ngayTraThuc, ngayTra
                );
 
                dsctpdp.themChiTietPhieuDatPhong(ct);
@@ -1802,12 +1800,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	        return false;
 	    }
 
-	    // ===== CHỈ XỬ LÝ KHI ĐANG Ở =====
-	    if (!p.getTrangThai().equalsIgnoreCase("Đang ở")) {
-	        JOptionPane.showMessageDialog(null,
-	                "Phiếu không ở trạng thái ĐANG Ở!");
-	        return false;
-	    }
+//	    // ===== CHỈ XỬ LÝ KHI ĐANG Ở =====
+//	    if (!p.getTrangThai().equalsIgnoreCase("Đang ở")) {
+//	        JOptionPane.showMessageDialog(null,
+//	                "Phiếu không ở trạng thái ĐANG Ở!");
+//	        return false;
+//	    }
 
 	    List<ChiTietPhieuDatPhong> ds =
 	            dsctpdp.getChiTietTheoMaPhieu(ma);
@@ -1859,47 +1857,46 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
 	        ChiTietPhieuDatPhong ct = dsct.get(i);
 
-	        LocalDate ngayNhanThuc = ct.getNgayNhanThuc();
-	        LocalDate ngayTraThuc  = ct.getNgayTraThuc();
+	        LocalDate ngayNhan = ct.getNgayNhanThuc();
+	        LocalDate ngayTraDuKien = ct.getNgayTra();
 
-	        if (ngayNhanThuc == null || ngayTraThuc == null) continue;
+	        if (ngayNhan == null || ngayTraDuKien == null) continue;
 
-	        long soNgayConLai =
-	                ChronoUnit.DAYS.between(homNay, ngayNhanThuc);
+	        long tongSoDem = ChronoUnit.DAYS.between(ngayNhan, ngayTraDuKien);
 
-	        LocalDate ngayTraMoi;
+	        LocalDate ngayTraThucMoi;
 
-	        // ===== TH1: Hủy trước ≥ 3 ngày =====
-	        if (soNgayConLai >= 3) {
-
-	            ngayTraMoi = ngayNhanThuc;
-
+	        // ===== CASE 1: 1 ĐÊM =====
+	        if(tongSoDem <= 1) {
+	        	ngayTraThucMoi = ngayNhan;
+	            dlp.setValueAt(ngayNhan.toString(), i, 4);
+	            dlp.setValueAt(ngayNhan.toString(), i, 5);
 	        }
-	        // ===== TH2: Hủy sát ngày (≤ 2 ngày) =====
+	      
+	        // ===== CASE 2: HỦY SỚM (TRƯỚC ≥ 3 NGÀY) =====
+	        else if (homNay.isBefore(ngayNhan.minusDays(3))) {
+
+	            ngayTraThucMoi = ngayNhan;
+	            dlp.setValueAt(ngayNhan.toString(), i, 4);
+	            dlp.setValueAt(ngayNhan.toString(), i, 5);
+	        }
+	        // ===== CASE 3: HỦY SÁT NGÀY → TÍNH NGÀY GIỮA =====
 	        else {
 
-	            // 🔴 nếu hôm nay = ngày trả → giữ nguyên
-	            if (homNay.isEqual(ngayTraThuc)) {
+	            long epochGiua =
+	                    (ngayNhan.toEpochDay() + ngayTraDuKien.toEpochDay()) / 2;
+	            LocalDate ngayGiua = LocalDate.ofEpochDay(epochGiua);
 
-	                ngayTraMoi = ngayTraThuc;
-
+	            if (homNay.isAfter(ngayGiua)) {
+	                ngayTraThucMoi = homNay.plusDays(1);
 	            } else {
-
-	                long epochNhan = ngayNhanThuc.toEpochDay();
-	                long epochTra  = ngayTraThuc.toEpochDay();
-	                long epochGiua = (epochNhan + epochTra) / 2;
-
-	                ngayTraMoi = LocalDate.ofEpochDay(epochGiua);
+	                ngayTraThucMoi = ngayGiua;
 	            }
+
+	            dlp.setValueAt(ngayTraThucMoi.toString(), i, 4);
 	        }
 
-	        // ===== SET ngày trả =====
-	        dlp.setValueAt(ngayTraMoi.toString(), i, 4);
-	        dlp.setValueAt(ngayTraMoi.toString(), i, 5);
-
-	        // ===== TÍNH LẠI TIỀN =====
-	        long soDemO =
-	                ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraMoi);
+	        long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTraThucMoi);
 	        if (soDemO < 0) soDemO = 0;
 
 	        Phong phong = dsp.timPhongTheoMa(ct.getPhong().getMaPhong());
@@ -1914,14 +1911,18 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    cboTrangThai.setSelectedItem("Đã hủy");
 
 	    hienThiTienCocVaTienTongTienPhong();
-	    khoaTatCaTruong();
 	    xuLyNutLuu();
+	    khoaTatCaTruong();
+	   
 
 	    new HuyPhieuDatPhong_GUI(
 	            p.getMaPhieuDatPhong(),
-	            doiTuongTongTienPhong()
+	            doiTuongTongTienPhong(),
+	            dlp
 	    ).setVisible(true);
 	}
+
+
 
    private void khoaTatCaTruong() {
 	    // Khóa JDateChooser
@@ -1959,8 +1960,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    dateNgayNhan.setEnabled(true);
 	    dateNgayTra.setEnabled(true);
 	    // Mở JTextField
-	    txtSDT.setEditable(true);
-	    txtTenKH.setEditable(true);
+//	    txtSDT.setEditable(true);
+//	    txtTenKH.setEditable(true);
 	    txtNguoiLon.setEditable(true);
 	    txtTreEm.setEditable(true);
 	    txtThucTe.setEditable(true);
@@ -2016,4 +2017,13 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
        return "HD" + ngay + String.format("%03d", soMoi);
    }
+  public void kiemTraDeThemCPPS() {
+	  if(!cboTrangThai.getSelectedItem().equals("Đang ở")) {
+		  btnThemCP.setEnabled(false);
+		  btnXoaCP.setEnabled(false);
+	  }else {
+		  btnThemCP.setEnabled(true);
+		  btnXoaCP.setEnabled(true);
+	  }
+  }
 }

@@ -158,7 +158,7 @@ public class PhieuDatPhong {
         }
 
         tongTien = tongTienPhong + tongTienChiPhiPhatSinh;
-        tienCoc = tongTienPhongCoc * 0.5;
+        tienCoc = tongTienPhongCoc;
     }
 
     // ====== Getter cho các thuộc tính dẫn xuất ======

@@ -9,7 +9,6 @@ public class ChiTietPhieuDatPhong {
     private Phong phong;
     private LocalDate ngayNhanThuc;
     private LocalDate ngayTraThuc;
-    private String trangThai;
     private LocalDate ngayTra;   
 
     public ChiTietPhieuDatPhong() {
@@ -17,12 +16,11 @@ public class ChiTietPhieuDatPhong {
 
     public ChiTietPhieuDatPhong(PhieuDatPhong phieuDatPhong, Phong phong,
                                 LocalDate ngayNhanThuc, LocalDate ngayTraThuc,
-                                String trangThai, LocalDate ngayTra) {  
+                                 LocalDate ngayTra) {  
         this.phieuDatPhong = phieuDatPhong;
         this.phong = phong;
         this.ngayNhanThuc = ngayNhanThuc;
         this.ngayTraThuc = ngayTraThuc;
-        this.trangThai = trangThai;
         this.ngayTra = ngayTra;   
         getThanhTien();
     }
@@ -60,13 +58,6 @@ public class ChiTietPhieuDatPhong {
         this.ngayTraThuc = ngayTraThuc;
     }
 
-    public String getTrangThai() {
-        return trangThai;
-    }
-
-    public void setTrangThai(String trangThai) {
-        this.trangThai = trangThai;
-    }
 
     public LocalDate getNgayTra() {   
         return ngayTra;
@@ -96,33 +87,37 @@ public class ChiTietPhieuDatPhong {
                 : 1;  
 
         
-        return gia * this.getSoNgayKhongDoi() ;
+        return gia * this.getSoNgayTinhCoc() ;
     }
 
-    public int getSoNgay() {
-        if (ngayNhanThuc == null || ngayTra == null) {
+    public int getSoNgay() { 
+        if (ngayNhanThuc == null || ngayTraThuc == null) {
             return 0;
         }
 
-        long soNgay = ChronoUnit.DAYS.between(ngayNhanThuc, ngayTra);
+        long soNgay = ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraThuc);
         if (soNgay <= 0) {
             soNgay = 0; 
         }
 
         return (int) soNgay;
     }
-    public int getSoNgayKhongDoi() {
-    	 if (ngayNhanThuc == null || ngayTraThuc == null) {
-             return 0;
-         }
+    public int getSoNgayTinhCoc() {
 
-         long soNgay = ChronoUnit.DAYS.between(ngayNhanThuc, ngayTraThuc);
-         if (soNgay <= 0) {
-             soNgay = 0; 
-         }
+        if (ngayNhanThuc == null || ngayTra == null) {
+            return 0;
+        }
 
-         return (int) soNgay;
+        long tongSoNgay = ChronoUnit.DAYS.between(ngayNhanThuc, ngayTra);
+
+        if (tongSoNgay <= 0) {
+            return 0;
+        }
+
+        // lấy ngày giữa, lẻ thì làm tròn xuống
+        return (int) (tongSoNgay / 2);
     }
+
     @Override
     public int hashCode() {
         return Objects.hash(phieuDatPhong, phong);
@@ -143,6 +138,6 @@ public class ChiTietPhieuDatPhong {
     public String toString() {
         return "ChiTietPhieuDatPhong [phieuDatPhong=" + phieuDatPhong + ", phong=" + phong
                 + ", ngayNhanThuc=" + ngayNhanThuc + ", ngayTraThuc=" + ngayTraThuc
-                + ", trangThai=" + trangThai + ", ngayTra=" + ngayTra + "]";
+                + ", trangThai=" + ", ngayTra=" + ngayTra + "]";
     }
 }
