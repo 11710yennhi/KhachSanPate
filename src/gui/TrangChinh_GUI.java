@@ -112,6 +112,8 @@ public class TrangChinh_GUI extends JFrame {
         addMenu("Khách Hàng", "khachhang");
         addMenu("Nhân Viên", "nhanvien");
         addMenu("Tài Khoản", "taikhoan");
+        addMenu("HDSD", "huongdan");
+
 
         add(pnlMenu, BorderLayout.WEST);
     }
@@ -130,6 +132,8 @@ public class TrangChinh_GUI extends JFrame {
         pnlContent.add(new KhachHang_GUI(), "Khách Hàng");
         pnlContent.add(new NhanVien_GUI(), "Nhân Viên");
         pnlContent.add(new KhuyenMai_GUI(), "Khuyến Mãi");
+        pnlContent.add(new HuongDanSuDung_GUI(), "HDSD");
+
 
         add(pnlContent, BorderLayout.CENTER);
     }
