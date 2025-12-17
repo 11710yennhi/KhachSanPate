@@ -38,18 +38,6 @@ public class ThanhToan_DAO {
                 ps.executeUpdate();
             }
 
-            // 2️⃣ Cập nhật Chi Tiết Phiếu Đặt Phòng
-            String sqlCTPDP = """
-                UPDATE ChiTietPhieuDatPhong
-                SET ngayTra = ?, trangThai = N'Hoàn thành'
-                WHERE maPhieuDatPhong = ?
-            """;
-            try (PreparedStatement ps = con.prepareStatement(sqlCTPDP)) {
-                ps.setDate(1, Date.valueOf(LocalDate.now()));
-                ps.setString(2, maPDP);
-                ps.executeUpdate();
-            }
-
             // 3️⃣ Insert Hóa Đơn
             String sqlHD = """
                 INSERT INTO HoaDon

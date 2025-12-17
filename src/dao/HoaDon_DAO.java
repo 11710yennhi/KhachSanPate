@@ -8,11 +8,257 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.table.DefaultTableModel;
+
 public class HoaDon_DAO {
-	
+//	private PhieuDatPhong_DAO pdtDAO = new PhieuDatPhong_DAO();
+//    private ChiTietPhieuDatPhong_DAO ctPDPDAO = new ChiTietPhieuDatPhong_DAO();
+//    private ChiTietChiPhiPhatSinh_DAO cpDAO = new ChiTietChiPhiPhatSinh_DAO();
+//    private KhuyenMai_DAO kmDAO = new KhuyenMai_DAO();
 	public HoaDon_DAO() {
     }
 	
+	public List<Object[]> getDanhSachHoaDon() {
+	    List<Object[]> list = new ArrayList<>();
+
+	    String sql = """
+	        SELECT 
+	            maHoaDon,
+	            maPhieuDatPhong,
+	            maKhuyenMai,
+	            phuongThucThanhToan,
+	            tongThanhToan,
+	            ngayTao
+	        FROM HoaDon
+	        ORDER BY ngayTao DESC
+	    """;
+
+	    try (Connection con = ConnectDB.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql);
+	         ResultSet rs = ps.executeQuery()) {
+
+	        while (rs.next()) {
+	            Object[] row = new Object[]{
+	                rs.getString("maHoaDon"),
+	                rs.getString("maPhieuDatPhong"),
+	                rs.getString("maKhuyenMai"),
+	                rs.getString("phuongThucThanhToan"),
+	                rs.getDouble("tongThanhToan"),
+	                rs.getDate("ngayTao")
+	            };
+	            list.add(row);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return list;
+	}
+//========================Xử lý hiển thị thông tin cơ bản ======================
+	public Object[] getThongTinHoaDon(String maHoaDon) {
+
+        String sql = """
+            SELECT 
+                hd.maHoaDon,
+                hd.ngayTao,
+                nv.hoTen AS tenNhanVien,
+                STRING_AGG(p.maPhong, ', ') AS danhSachPhong
+            FROM HoaDon hd
+            JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+            JOIN NhanVien nv ON pdp.maNhanVien = nv.maNhanVien
+            JOIN ChiTietPhieuDatPhong ctpdp ON pdp.maPhieuDatPhong = ctpdp.maPhieuDatPhong
+            JOIN Phong p ON ctpdp.maPhong = p.maPhong
+            WHERE hd.maHoaDon = ?
+            GROUP BY hd.maHoaDon, hd.ngayTao, nv.hoTen
+        """;
+
+        try (Connection con = ConnectDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, maHoaDon);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return new Object[] {
+                    rs.getString("maHoaDon"),
+                    rs.getDate("ngayTao"),
+                    rs.getString("tenNhanVien"),
+                    rs.getString("danhSachPhong")
+                };
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+//=======================Xử lý bảng chi tiết phòng===========================
+	public void loadCTPhongByMaPDP(String maPDP, DefaultTableModel model) {
+
+	    String sql = """
+	        SELECT 
+	            p.maPhong,
+	            lp.tenLoaiPhong,
+	            ctpdp.ngayNhanThuc,
+	            ctpdp.ngayTra,
+	            ctpdp.ngayTraThuc,
+	            DATEDIFF(DAY, ctpdp.ngayNhanThuc, ctpdp.ngayTraThuc) AS soDem,
+	            lp.gia,
+	            DATEDIFF(DAY, ctpdp.ngayNhanThuc, ctpdp.ngayTraThuc) * lp.gia AS thanhTien
+	        FROM ChiTietPhieuDatPhong ctpdp
+	        JOIN Phong p ON ctpdp.maPhong = p.maPhong
+	        JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong
+	        WHERE ctpdp.maPhieuDatPhong = ?
+	    """;
+
+	    try (Connection con = ConnectDB.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+
+	        ps.setString(1, maPDP);
+	        ResultSet rs = ps.executeQuery();
+
+	        model.setRowCount(0);
+	        int stt = 1;
+
+	        while (rs.next()) {
+	            model.addRow(new Object[]{
+	                stt++,
+	                rs.getString("maPhong"),
+	                rs.getString("tenLoaiPhong"),
+	                rs.getDate("ngayNhanThuc"),
+	                rs.getDate("ngayTra"),
+	                rs.getDate("ngayTraThuc"),
+	                rs.getInt("soDem"),
+	                rs.getDouble("gia"),
+	                rs.getDouble("thanhTien")
+	            });
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+//===========================Load chí phí phát sinh======================
+	public void loadCTCPPSByMaPDP(String maPDP, DefaultTableModel model) {
+
+	    String sql = """
+	        SELECT 
+	            cpps.tenChiPhiPhatSinh,
+	            cpps.gia,
+	            ct.soLuong,
+	            cpps.gia * ct.soLuong AS thanhTien
+	        FROM ChiTietChiPhiPhatSinh ct
+	        JOIN ChiPhiPhatSinh cpps 
+	            ON ct.maChiPhiPhatSinh = cpps.maChiPhiPhatSinh
+	        WHERE ct.maPhieuDatPhong = ?
+	    """;
+
+	    try (Connection con = ConnectDB.getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+
+	        ps.setString(1, maPDP);
+	        ResultSet rs = ps.executeQuery();
+
+	        model.setRowCount(0);
+	        int stt = 1;
+
+	        while (rs.next()) {
+	            model.addRow(new Object[]{
+	                stt++,
+	                rs.getString("tenChiPhiPhatSinh"),
+	                rs.getDouble("gia"),
+	                rs.getInt("soLuong"),
+	                rs.getDouble("thanhTien")
+	            });
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+//=======================Lấy hóa đơn hôm nay==========================
+	public ResultSet getHoaDonHomNay() {
+	    String sql = """
+	        SELECT 
+	            maHoaDon,
+	            maPhieuDatPhong,
+	            maKhuyenMai,
+	            phuongThucThanhToan,
+	            tongThanhToan,
+	            ngayTao
+	        FROM HoaDon
+	        WHERE ngayTao = CAST(GETDATE() AS DATE)
+	        ORDER BY ngayTao DESC
+	    """;
+
+	    try {
+	        Connection con = ConnectDB.getInstance().getConnection();
+	        return con.prepareStatement(sql).executeQuery();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return null;
+	    }
+	}
+	//=======================Lấy hóa đơn theo datechooser==========================	
+	public ResultSet getHoaDonTheoKhoangNgay(java.util.Date tuNgay, java.util.Date denNgay) {
+
+	    String sql = """
+	        SELECT 
+	            maHoaDon,
+	            maPhieuDatPhong,
+	            maKhuyenMai,
+	            phuongThucThanhToan,
+	            tongThanhToan,
+	            ngayTao
+	        FROM HoaDon
+	        WHERE ngayTao BETWEEN ? AND ?
+	        ORDER BY ngayTao DESC
+	    """;
+
+	    try {
+	        Connection con = ConnectDB.getInstance().getConnection();
+	        PreparedStatement ps = con.prepareStatement(sql);
+
+	        ps.setDate(1, new java.sql.Date(tuNgay.getTime()));
+	        ps.setDate(2, new java.sql.Date(denNgay.getTime()));
+
+	        return ps.executeQuery();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return null;
+	    }
+	}
+//============================= tìm hóa đơn theo mã hóa đơn =========================
+	public ResultSet timHoaDonTheoMa(String maHD) {
+
+	    String sql = """
+	        SELECT 
+	            maHoaDon,
+	            maPhieuDatPhong,
+	            maKhuyenMai,
+	            phuongThucThanhToan,
+	            tongThanhToan,
+	            ngayTao
+	        FROM HoaDon
+	        WHERE maHoaDon LIKE ?
+	        ORDER BY ngayTao DESC
+	    """;
+
+	    try {
+	        Connection con = ConnectDB.getInstance().getConnection();
+	        PreparedStatement ps = con.prepareStatement(sql);
+
+	        ps.setString(1, "%" + maHD + "%");
+
+	        return ps.executeQuery();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return null;
+	    }
+	}
+
+
 	public boolean themHoaDon(
 	        String maHD,
 	        String maPDP,

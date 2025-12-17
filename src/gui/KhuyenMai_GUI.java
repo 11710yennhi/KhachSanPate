@@ -87,7 +87,7 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 		txtMaKM.setEditable(false);
 		txtNgayTao.setEditable(false);
 		
-		cboLoaiKM = new JComboBox<>(new String[]{"Tien", "%"});
+		cboLoaiKM = new JComboBox<>(new String[]{"Tiền", "%"});
 		txtSoTienApDung = new JTextField(50);
 		txtGiaTriGiam = new JTextField(50);
 		txtGiamToiDa = new JTextField(50);
