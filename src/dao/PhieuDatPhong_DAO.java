@@ -141,4 +141,37 @@ public class PhieuDatPhong_DAO {
         }
         return false;
     }
+    public boolean daCoPhong(String maPhieuDatPhong, String maPhong) {
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            con = ConnectDB.getInstance().getConnection();
+
+            String sql = """
+                SELECT 1
+                FROM ChiTietPhieuDatPhong
+                WHERE maPhieuDatPhong = ?
+                  AND maPhong = ?
+            """;
+
+            ps = con.prepareStatement(sql);
+            ps.setString(1, maPhieuDatPhong);
+            ps.setString(2, maPhong);
+
+            rs = ps.executeQuery();
+
+            return rs.next(); 
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception ignored) {}
+            try { if (ps != null) ps.close(); } catch (Exception ignored) {}
+        }
+
+        return false;
+    }
+
 }

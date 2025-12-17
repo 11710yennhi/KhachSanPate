@@ -62,7 +62,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     private int soTreEm = 0;
     private String mNV;
     private String maHD;
-
     
     public TaoPhieuDatPhong_GUI(String maNV) {
     	mNV= maNV;
@@ -457,6 +456,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 				soNguoiLon= 0;
 			   	soTreEm= 0;
 			    txtSoNguoiThuc.setText("0");  
+			    kiemTraDeThemCPPS();
 				
 			}
 		}else if (o.equals(btnGoiY)) {
@@ -1534,6 +1534,54 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
         return tam;
     }
+    public double tinhTienCocMoi() {
+
+        PhieuDatPhong pdpTam = new PhieuDatPhong(txtMPDP.getText());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (int i = 0; i < dlp.getRowCount(); i++) {
+
+            Object oNhan = dlp.getValueAt(i, 3);
+            Object oTraThuc = dlp.getValueAt(i, 4);
+            Object oTra = dlp.getValueAt(i, 5);
+            Object oMaPhong = dlp.getValueAt(i, 1);
+
+            if (oNhan == null || oTra == null || oTraThuc == null || oMaPhong == null)
+                continue;
+
+            LocalDate ngayNhan = LocalDate.parse(oNhan.toString(), formatter);
+            LocalDate ngayTraThuc = LocalDate.parse(oTraThuc.toString(), formatter);
+            LocalDate ngayTra = LocalDate.parse(oTra.toString(), formatter);
+
+            long soNgayO = ChronoUnit.DAYS.between(ngayNhan, ngayTra);
+
+            // Ở 1 ngày → không lấy cọc
+            if (soNgayO <= 1)
+                continue;
+
+            String maPhong = oMaPhong.toString().trim();
+
+            // Đã tồn tại trong DB → không tính cọc mới
+            if (pdp.daCoPhong(txtMPDP.getText(), maPhong))
+                continue;
+
+            Phong p = dsp.timPhongTheoMa(maPhong);
+            if (p == null)
+                continue;
+
+            ChiTietPhieuDatPhong ct = new ChiTietPhieuDatPhong(
+                pdpTam,
+                p,
+                ngayNhan,
+                ngayTraThuc,
+                ngayTra
+            );
+
+            pdpTam.themChiTiet(ct);
+        }
+
+        return pdpTam.getTienCoc();
+    }
 
 
 
@@ -1547,45 +1595,20 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         String maTam = txtMPDP.getText().trim();
         if (maTam.isEmpty()) {
             txtTienCocMoi.setText("0");
+            txtTienCocMoi.setEditable(false);
             return;
         }
-        List<ChiTietPhieuDatPhong> dstam = dsctpdp.getChiTietTheoMaPhieu(maTam);
-        double tongTam = 0;
-        int rowCount = dlp.getRowCount();
-
-        for (int r = 0; r < rowCount; r++) {
-            if (dlp.getValueAt(r, 1) == null || dlp.getValueAt(r, 8) == null)
-                continue;
-
-            String maPhongBang = dlp.getValueAt(r, 1).toString().trim();
-            String tienPhongStr = dlp.getValueAt(r, 8).toString().trim();
-            if (tienPhongStr.isEmpty())
-                continue;
-
-            boolean tonTaiTrongPhieu = false;
-            for (ChiTietPhieuDatPhong ct : dstam) {
-                if (maPhongBang.equals(ct.getPhong().getMaPhong())) {
-                    tonTaiTrongPhieu = true;
-                    break;
-                }
-            }
-            if (!tonTaiTrongPhieu) {
-                tongTam += Double.parseDouble(tienPhongStr);
-            }
-        }
-        tongTam = tongTam / 2;
-        txtTienCocMoi.setText(String.valueOf(tongTam));
+        txtTienCocMoi.setText(String.valueOf(tinhTienCocMoi()));
+        
     }
-
     public TaoPhieuDatPhong_GUI(PhieuDatPhong pdphong, String maNV) {
     	this(maNV);   	
     	getDuLieu(pdphong, maNV);
-    	kiemTraDeThemCPPS();
-    	
-    	
+    	kiemTraDeThemCPPS(); 	
     }
-   public void getDuLieu(PhieuDatPhong pdphong, String maNV){
-	   txtMPDP.setText(pdphong.getMaPhieuDatPhong());
+    
+   public void getDuLieu(PhieuDatPhong pdphong, String maNV){		
+	txtMPDP.setText(pdphong.getMaPhieuDatPhong());
    	txtMKH.setText(pdphong.getKhachHang().getMaKhachHang());
    	txtTenKH.setText(pdphong.getKhachHang().getHoTen());
    	txtTenKH.setEditable(true);
@@ -1640,6 +1663,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
    		khoaTatCaTruong();
    	}
    }
+   
+   
     private boolean xuLyNutLuu() {
         if (!kiemTraDuLieuNhap()) {
             JOptionPane.showMessageDialog(null, "Không có thông tin phiếu đặt phòng!");
