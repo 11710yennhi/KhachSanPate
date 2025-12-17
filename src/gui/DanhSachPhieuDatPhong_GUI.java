@@ -63,11 +63,32 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         cbbLoc = new JComboBox<>(new String[] {
                 "Đã đặt", "Tới ngày nhận","Chưa nhận phòng", "Tới ngày trả","Trễ hạn trả phòng", "Đang ở", "Đã hủy", "Hoàn thành"
         });
+        Color mauXanhDam = new Color(30, 61, 89);
+        Color mauVangDong = new Color(212, 175, 55);
+        Color mauNen = new Color(249, 249, 249);
+        Color mauHover = new Color(45, 85, 120);
 
-        JButton btnLocSDT = new JButton("Lọc SĐT");
-        JButton btnLocMa = new JButton("Lọc Mã");
-        JButton btnLocTrangThai = new JButton("Lọc Trạng Thái");
-        JButton btnReset = new JButton("Làm mới");
+  
+        JButton btnLocSDT = new JButton("🔍");
+        btnLocSDT.setBackground(mauXanhDam);
+        btnLocSDT.setForeground(Color.WHITE);
+
+    
+        JButton btnLocMa = new JButton("🔍");
+        btnLocMa.setBackground(mauXanhDam);
+        btnLocMa.setForeground(Color.WHITE);
+
+    
+        JButton btnLocTrangThai = new JButton("🔍");
+        btnLocTrangThai.setBackground(mauVangDong);
+        btnLocTrangThai.setForeground(Color.BLACK);
+
+ 
+        JButton btnReset = new JButton("♻️");
+        btnReset.setBackground(new Color(102, 187, 106));
+        btnReset.setForeground(Color.WHITE);
+
+
 
         btnLocSDT.addActionListener(e -> locTheoSDT());
         btnLocMa.addActionListener(e -> locTheoMa());

@@ -73,8 +73,14 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         mauXanhDam = new Color(30, 61, 89);
         mauVangDong = new Color(212, 175, 55);
         Font fontTieuDe = new Font("Segoe UI Semibold", Font.PLAIN, 16);
-
-        // ====== KHỞI TẠO DAO ======
+        Color xanhNgoc = new Color(72, 189, 157);
+        Color xanhLa = new Color(102, 187, 106);
+        Color xanhDuong = new Color(79, 195, 247);
+        Color doCanhBao = new Color(229, 57, 53);
+        Color xamXanh = new Color(120, 144, 156);
+        Color timNhat = new Color(171, 71, 188);
+        
+           // ====== KHỞI TẠO DAO ======
         dslp = new LoaiPhong_DAO();
         dsp = new Phong_DAO();
         dsctpdp = new ChiTietPhieuDatPhong_DAO();
@@ -289,6 +295,42 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
         add(splitPane, BorderLayout.CENTER);
         add(pBottom, BorderLayout.SOUTH);
+        
+//        btnInPhieu.setBackground(xanhDuong);
+//        btnInPhieu.setForeground(Color.WHITE);
+
+        btnXoa.setBackground(doCanhBao);
+        btnXoa.setForeground(Color.WHITE);
+
+        btnXoaCP.setBackground(doCanhBao);
+        btnXoaCP.setForeground(Color.WHITE);
+
+        btnThemCP.setBackground(xanhLa);
+        btnThemCP.setForeground(Color.WHITE);
+
+        btnLuu.setBackground(mauXanhDam);
+        btnLuu.setForeground(Color.WHITE);
+
+        btnHuy.setBackground(doCanhBao);
+        btnHuy.setForeground(Color.WHITE);
+
+        btnTT.setBackground(mauVangDong);
+        btnTT.setForeground(Color.BLACK);
+
+        btnXR.setBackground(xanhLa);
+        btnXR.setForeground(Color.WHITE);
+
+        btnCapNhat.setBackground(xanhLa);
+        btnCapNhat.setForeground(Color.WHITE);
+
+        btnXNDP.setBackground(xanhLa);
+        btnXNDP.setForeground(Color.WHITE);
+
+        btnTPS.setBackground(mauXanhDam);
+        btnTPS.setForeground(Color.WHITE);
+
+        btnGoiY.setBackground(mauXanhDam);
+        btnGoiY.setForeground(Color.WHITE);
         
         kiemTraLayThongTinKHTuSDT();
         capNhatCBBCPPS();
