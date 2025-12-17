@@ -36,6 +36,31 @@ public class TrangChinh_GUI extends JFrame {
         taoTieuDe();
         taoMenuTrai();
         taoNoiDung();
+        
+        pnlMenu.add(Box.createVerticalGlue());
+        JButton btnDangXuat = new JButton("Đăng xuất");
+        btnDangXuat.setMaximumSize(new Dimension(230, 42));
+        btnDangXuat.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnDangXuat.setBackground(new Color(212, 175, 55)); // vàng đồng
+        btnDangXuat.setForeground(new Color(30, 61, 89));
+        btnDangXuat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
+        btnDangXuat.setFocusPainted(false);
+        btnDangXuat.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
+
+        btnDangXuat.addActionListener(e -> {
+            int c = JOptionPane.showConfirmDialog(
+                    this,
+                    "Bạn có chắc chắn muốn đăng xuất?",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (c == JOptionPane.YES_OPTION) {
+                System.exit(0);
+            }
+        });
+
+        pnlMenu.add(btnDangXuat);
+
     }
 
     // ================= TIÊU ĐỀ =================
@@ -121,7 +146,7 @@ public class TrangChinh_GUI extends JFrame {
 
 
         pnlMenu.add(btn);
-        pnlMenu.add(Box.createRigidArea(new Dimension(0, 14)));
+        pnlMenu.add(Box.createRigidArea(new Dimension(0, 8)));
     }
 
     // ================= QL ĐẶT PHÒNG =================
@@ -176,7 +201,7 @@ public class TrangChinh_GUI extends JFrame {
         btn.setBackground(MAU_NUT);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 15));
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 12));
+        btn.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 12));
         btn.setFocusPainted(false);
 
         btn.addMouseListener(new MouseAdapter() {
@@ -196,13 +221,13 @@ public class TrangChinh_GUI extends JFrame {
 
     private JButton taoSubMenu(String text) {
         JButton btn = new JButton("• " + text);
-        btn.setMaximumSize(new Dimension(210, 38));
+        btn.setMaximumSize(new Dimension(210, 32));
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.setBackground(MAU_SUB);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 10));
+        btn.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 10));
         btn.setFocusPainted(false);
 
         // Hover
