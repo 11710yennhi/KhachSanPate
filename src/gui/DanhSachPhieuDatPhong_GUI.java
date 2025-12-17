@@ -157,7 +157,7 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
 
 
     private void locTheoMa() {
-        String ma = txtMaPhieu.getText().trim();
+        String ma = txtMaPhieu.getText().trim().toLowerCase();
         if (ma.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập mã phiếu để lọc");
             return;
@@ -166,11 +166,15 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         List<PhieuDatPhong> kq = new ArrayList<>();
 
         for (PhieuDatPhong p : dsPhieu) {
-            if (p.getMaPhieuDatPhong().contains(ma)) kq.add(p);
+            String maP = p.getMaPhieuDatPhong();
+            if (maP != null && maP.toLowerCase().contains(ma)) {
+                kq.add(p);
+            }
         }
 
         hienThiDanhSach(kq);
     }
+
 
     private void locTheoTrangThai() {
         String loc = (String) cbbLoc.getSelectedItem();
@@ -362,6 +366,8 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
      * Tìm theo SĐT, mã phiếu và trạng thái chọn trong combobox
      */
     private List<PhieuDatPhong> timKiem() {
+    	
+
         String sdt = txtSDT.getText().trim();
         String ma = txtMaPhieu.getText().trim();
         String loc = (String) cbbLoc.getSelectedItem();
@@ -379,21 +385,10 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
 
         // ===== 2. VALIDATE SĐT =====
         if (!sdt.isEmpty()) {
-            // chỉ cho nhập số
-            if (!sdt.matches("\\d+")) {
+            if (!sdt.matches("\\d{10}")) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "SĐT chỉ được chứa chữ số",
-                        "Thông báo",
-                        JOptionPane.WARNING_MESSAGE
-                );
-                return new ArrayList<>();
-            }
-
-            if (sdt.length() != 10) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "SĐT phải có đúng 10 chữ số",
+                        "SĐT phải gồm đúng 10 chữ số",
                         "Thông báo",
                         JOptionPane.WARNING_MESSAGE
                 );
@@ -401,67 +396,49 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
             }
         }
 
-        List<PhieuDatPhong> kq = new ArrayList<>();
-
-        String maTim = ma.toLowerCase(); // tìm không phân biệt hoa thường
+        List<PhieuDatPhong> ketQua = new ArrayList<>();
+        String maTim = ma.toLowerCase();
 
         // ===== 3. LỌC DANH SÁCH =====
         for (PhieuDatPhong p : dsPhieu) {
-            boolean match = true;
 
-            // ---- LỌC THEO SĐT ----
+            // --- SĐT ---
             if (!sdt.isEmpty()) {
-                String pSdt = (p.getKhachHang() != null && p.getKhachHang().getSoDienThoai() != null)
+                String sdtKH = (p.getKhachHang() != null)
                         ? p.getKhachHang().getSoDienThoai()
-                        : "";
-                if (!pSdt.equals(sdt)) {
-                    match = false;
-                }
+                        : null;
+
+                if (!sdt.equals(sdtKH)) continue;
             }
 
-            // ---- LỌC THEO MÃ PHIẾU (TƯƠNG ĐƯƠNG) ----
+            // --- MÃ PHIẾU (TƯƠNG ĐƯƠNG) ---
             if (!ma.isEmpty()) {
-                String pMa = p.getMaPhieuDatPhong() != null
-                        ? p.getMaPhieuDatPhong().toLowerCase()
-                        : "";
-                if (!pMa.contains(maTim)) {
-                    match = false;
-                }
+                String maP = p.getMaPhieuDatPhong();
+                if (maP == null || !maP.toLowerCase().contains(maTim))
+                    continue;
             }
 
-            // ---- LỌC THEO TRẠNG THÁI ----
+            // --- TRẠNG THÁI ---
             if (loc != null) {
-                String tt = xacDinhTrangThai(p);
-                if (!tt.equals(loc)) {
-                    match = false;
-                }
+                String trangThai = xacDinhTrangThai(p);
+                if (!loc.equals(trangThai))
+                    continue;
             }
 
-            if (match) {
-                kq.add(p);
-            }
+            ketQua.add(p);
         }
 
-        // ===== 4. THÔNG BÁO KHÔNG TÌM THẤY =====
-        if (kq.isEmpty()) {
-            if (!sdt.isEmpty()) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Không tìm thấy phiếu đặt phòng với SĐT này",
-                        "Thông báo",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-            } else {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Không tìm thấy phiếu đặt phòng phù hợp",
-                        "Thông báo",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
-            }
+        // ===== 4. THÔNG BÁO =====
+        if (ketQua.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Không tìm thấy phiếu đặt phòng phù hợp",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
         }
 
-        return kq;
+        return ketQua;
     }
 
     @Override
