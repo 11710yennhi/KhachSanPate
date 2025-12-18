@@ -27,7 +27,7 @@ public class TrangChinh_GUI extends JFrame {
 
 
     private boolean moQLDP = false;
-
+    private String maNV="NV01012023002";
     public TrangChinh_GUI() {
         setTitle("Pate Hotel - Hệ thống quản lý khách sạn");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -101,8 +101,8 @@ public class TrangChinh_GUI extends JFrame {
         pnlContent = new JPanel(cardLayout);
         pnlContent.setBackground(MAU_NEN);
 
-        pnlContent.add(new DanhSachPhieuDatPhong_GUI("NV01012023002"), "Danh Sách Phiếu Đặt Phòng");
-        pnlContent.add(new TaoPhieuDatPhong_GUI("NV01012023002"), "Tạo Phiếu Đặt Phòng");
+        pnlContent.add(new DanhSachPhieuDatPhong_GUI(maNV), "Danh Sách Phiếu Đặt Phòng");
+        pnlContent.add(new TaoPhieuDatPhong_GUI(maNV), "Tạo Phiếu Đặt Phòng");
         pnlContent.add(new Phong_GUI(), "Quản Lý Phòng");
         pnlContent.add(new HoaDon_GUI(), "Hóa Đơn");
         pnlContent.add(new ChiPhiPhatSinh_GUI(), "Chi Phí Phát Sinh");

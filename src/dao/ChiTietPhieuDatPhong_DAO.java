@@ -414,4 +414,32 @@ public class ChiTietPhieuDatPhong_DAO {
 
 		return list;
 	}
+	// 2) Số phiếu đặt phòng "check-in thành công" trong tháng
+    // =========================
+    public int getSoPhieuCheckInThanhCongTrongThang(int thang, int nam) {
+        int result = 0;
+        String sql = """
+            SELECT COUNT(DISTINCT p.maPhieuDatPhong) AS soPhieu
+            FROM ChiTietPhieuDatPhong ct
+            JOIN PhieuDatPhong p ON ct.maPhieuDatPhong = p.maPhieuDatPhong
+            WHERE ct.ngayNhanThuc IS NOT NULL
+              AND YEAR(ct.ngayNhanThuc) = ?
+              AND MONTH(ct.ngayNhanThuc) = ?
+              AND p.trangThai <> N'Đã hủy'
+              AND p.trangThai <> N'Đã đặt'
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, nam);
+            ps.setInt(2, thang);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) result = rs.getInt("soPhieu");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
 }

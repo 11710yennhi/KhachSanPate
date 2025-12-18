@@ -515,7 +515,14 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		       hdd.themHoaDon(taoMaHoaDon(), txtMPDP.getText(), null, "Chuyển khoản", p.getTongTienPhong(), 0.0, p.getTongTien(), LocalDate.now());
 		       
 		    }
-		}			
+		}
+		else if(o.equals(btnCapNhat)) {
+		        	if(xuLyChonNgay()) {
+		        		 getDSLP();
+		                 pPhongTrong.revalidate();
+		                 pPhongTrong.repaint();
+		        	}
+		}
 	}
 	public void xoaPhong() {
 	    int x = tblPhong.getSelectedRow();
@@ -788,13 +795,13 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         Date dNhan = dateNgayNhan.getDate();
         Date dTra  = dateNgayTra.getDate();
 
-        if (dNhan == null || dTra == null) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Vui lòng chọn đầy đủ ngày nhận và ngày trả"
-            );
-            return;
-        }
+//        if (dNhan == null || dTra == null) {
+//            JOptionPane.showMessageDialog(
+//                    null,
+//                    "Vui lòng chọn đầy đủ ngày nhận và ngày trả"
+//            );
+//            return;
+//        }
 
         LocalDate ngayNhanMoi = dNhan.toInstant()
                 .atZone(ZoneId.systemDefault())
@@ -804,13 +811,13 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate();
 
-        if (!ngayTraMoi.isAfter(ngayNhanMoi)) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Ngày trả phải lớn hơn ngày nhận"
-            );
-            return;
-        }
+//        if (!ngayTraMoi.isAfter(ngayNhanMoi)) {
+//            JOptionPane.showMessageDialog(
+//                    null,
+//                    "Ngày trả phải lớn hơn ngày nhận"
+//            );
+//            return;
+//        }
 
         // ===== 2. CLEAR UI =====
         pPhongTrong.removeAll();
@@ -895,6 +902,10 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
         // Nếu chưa chọn đủ 2 ngày
         if (ngayNhan == null || ngayTra == null) {
+        	JOptionPane.showMessageDialog(null,
+                    "Vui lòng chọn ngày nhận và ngày trả đúng trước khi chọn phòng!",
+                    "Thiếu thông tin",
+                    JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
@@ -924,10 +935,10 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         }
 
         //
-        long khoangCach = ChronoUnit.DAYS.between(homNay, tra);
+        long khoangCach = ChronoUnit.DAYS.between(nhan, tra);
         if (khoangCach > 31) {
             JOptionPane.showMessageDialog(this,
-                "Khách sạn chỉ cho phép đặt tối đa 31 ngày kể từ hôm nay!",
+                "Khách sạn chỉ cho phép đặt tối đa 31 ngày!",
                 "Lỗi chọn ngày",
                 JOptionPane.ERROR_MESSAGE);
             dateNgayTra.setDate(null);
@@ -1019,12 +1030,18 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                             JOptionPane.WARNING_MESSAGE);
                         return;
                     }
+                    if(dlp.getRowCount()>11) {
+                    	JOptionPane.showMessageDialog(null,"Chỉ được đặt tối đa 12 phòng");
+                    	return;
+                    }
+                    if(!xuLyChonNgay()) return;
                 }
 
                 //  Tính số đêm ở và thành tiền
                 long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTra);
                 double gia = phong.getLoaiPhong().getGia();
                 double thanhTien = soDemO * gia;
+                
                 dlp.addRow(new Object[]{
                     dlp.getRowCount() + 1,                 // STT
                     phong.getMaPhong(),                    // Mã phòng
@@ -1036,6 +1053,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                     gia,                                   // Giá/đêm
                     thanhTien                              // Thành tiền
                 });
+               
                 hienThiTienCocVaTienTongTienPhong();
 //                JOptionPane.showMessageDialog(null,
 //                    "Đã thêm phòng " + maPhong + " vào danh sách!");
@@ -1119,11 +1137,14 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         pPhongTrong.add(lblThongBao, BorderLayout.CENTER);
 
         // ====== SỰ KIỆN ======
-        btnCapNhat.addActionListener(e -> {
-            getDSLP();
-            pPhongTrong.revalidate();
-            pPhongTrong.repaint();
-        });
+//        btnCapNhat.addActionListener(e -> {
+//        	if(xuLyChonNgay()) {
+//        		 getDSLP();
+//                 pPhongTrong.revalidate();
+//                 pPhongTrong.repaint();
+//        	}
+//           
+//        });
 
         btnThemNguoi.addActionListener(e -> {
             JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Nhập số người", true);
@@ -1767,13 +1788,13 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     public List<Phong> layDanhSachPhongTrong() {
         Date dNhan = dateNgayNhan.getDate();
         Date dTra  = dateNgayTra.getDate();
-        if (dNhan == null || dTra == null) {
-            JOptionPane.showMessageDialog(
-                null,
-                "Vui lòng chọn ngày nhận và ngày trả!"
-            );
-            return null;
-        }
+//        if (dNhan == null || dTra == null) {
+//            JOptionPane.showMessageDialog(
+//                null,
+//                "Vui lòng chọn ngày nhận và ngày trả!"
+//            );
+//            return null;
+//        }
         if (!xuLyChonNgay())
             return null;
         LocalDate ngayNhan = dNhan.toInstant()
