@@ -44,7 +44,6 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
     public KhuyenMai_GUI() {
         setLayout(new BorderLayout(12, 12));
         setBackground(BG);
-//        setBorder(new EmptyBorder(12, 12, 12, 12));
 
         initForm();
 
@@ -56,7 +55,7 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
         }
     }
 
-    // ================= INIT FORM (GIỮ LOGIC) =================
+    // ================= INIT FORM =================
     private void initForm() {
 
         // ===== HEADER =====
@@ -71,17 +70,22 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
         header.add(title, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // ===== FORM =====
+     // ===== FORM =====
         JPanel card = new JPanel(new BorderLayout(10, 10));
         card.setBackground(Color.WHITE);
         card.setBorder(new CompoundBorder(
                 new LineBorder(BORDER, 1, true),
-                new EmptyBorder(16, 16, 16, 16)
+                new EmptyBorder(16, 5, 16, 500)
         ));
 
-        JPanel form = new JPanel(new GridLayout(5, 4, 12, 12));
+        JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 12, 8, 12);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // ===== INIT FIELD =====
         txtMaKM = createField(false);
         txtTenKM = createField(true);
         txtNgayTao = createField(false);
@@ -95,24 +99,65 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
         dateNgayBatDau = new JDateChooser();
         dateNgayKetThuc = new JDateChooser();
 
-        form.add(label("Mã KM")); form.add(txtMaKM);
-        form.add(label("Tên KM")); form.add(txtTenKM);
-        form.add(label("Ngày tạo")); form.add(txtNgayTao);
-        form.add(label("Loại KM")); form.add(cboLoaiKM);
-        form.add(label("Số tiền áp dụng")); form.add(txtSoTienApDung);
-        form.add(label("Giá trị giảm")); form.add(txtGiaTriGiam);
-        form.add(label("Giảm tối đa")); form.add(txtGiamToiDa);
-        form.add(label("Ngày bắt đầu")); form.add(dateNgayBatDau);
-        form.add(label("Ngày kết thúc")); form.add(dateNgayKetThuc);
+        styleDateChooser(dateNgayBatDau);
+        styleDateChooser(dateNgayKetThuc);
 
-        card.add(form, BorderLayout.CENTER);
+        // mặc định hôm nay
+        Date today = new Date();
+        dateNgayBatDau.setDate(today);
+        dateNgayKetThuc.setDate(today);
+
+
+        // ===== ROW 0 =====
+        gbc.gridy = 0;
+        addLabel(form, gbc, 0, "Mã KM");
+        addField(form, gbc, 1, txtMaKM);
+        addLabel(form, gbc, 2, "Ngày tạo");
+        addField(form, gbc, 3, txtNgayTao);
+
+        // ===== ROW 1 =====
+        gbc.gridy = 1;
+        addLabel(form, gbc, 0, "Tên KM");
+        addField(form, gbc, 1, txtTenKM);
+        addLabel(form, gbc, 2, "Loại KM");
+        addField(form, gbc, 3, cboLoaiKM);
+
+        // ===== ROW 2 =====
+        gbc.gridy = 2;
+        addLabel(form, gbc, 0, "Số tiền áp dụng");
+        addField(form, gbc, 1, txtSoTienApDung);
+        addLabel(form, gbc, 2, "Giá trị giảm");
+        addField(form, gbc, 3, txtGiaTriGiam);
+
+        // ===== ROW 3 =====
+        gbc.gridy = 3;
+        addLabel(form, gbc, 0, "Giảm tối đa");
+        addField(form, gbc, 1, txtGiamToiDa);
+        addLabel(form, gbc, 2, "");      // giữ layout
+        addField(form, gbc, 3, new JLabel(""));
+
+        // ===== ROW 4 =====
+        gbc.gridy = 4;
+        addLabel(form, gbc, 0, "Ngày bắt đầu");
+        addField(form, gbc, 1, dateNgayBatDau);
+        addLabel(form, gbc, 2, "Ngày kết thúc");
+        addField(form, gbc, 3, dateNgayKetThuc);
+
+        // ===== WRAPPER =====
+        JPanel formWrapper = new JPanel(new BorderLayout());
+        formWrapper.setOpaque(false);
+        formWrapper.setBorder(new EmptyBorder(16, 24, 16, 24));
+        formWrapper.add(form, BorderLayout.CENTER);
+
+        card.add(formWrapper, BorderLayout.CENTER);
+
 
         // ===== BUTTON =====
         btnThem = createButton("Thêm", GOLD, NAVY_DARK);
         btnluu = createButton("Lưu", NAVY, Color.WHITE);
         btnTimKiem = createButton("Tìm kiếm", new Color(230,236,244), NAVY_DARK);
 
-        JPanel pBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel pBtn = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         pBtn.setOpaque(false);
         pBtn.add(btnThem);
         pBtn.add(btnluu);
@@ -146,6 +191,42 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 
         generateMaKhuyenMai();
     }
+    //============ hỗ trợ giao diện==================
+    private void styleDateChooser(JDateChooser dc) {
+        // format
+        dc.setDateFormatString("dd/MM/yyyy");
+
+        // lấy editor (JTextField bên trong)
+        JTextField editor = ((JTextField) dc.getDateEditor().getUiComponent());
+
+        editor.setFont(FONT);                       // cùng font
+        editor.setBackground(Color.WHITE);          // nền trắng
+        editor.setForeground(Color.BLACK);
+
+        editor.setBorder(new EmptyBorder(6, 8, 6, 8)); // padding trong
+
+        Dimension size = new Dimension(300, 38);    // giống JTextField
+        dc.setPreferredSize(size);
+        dc.setMinimumSize(size);
+        
+        Border fieldBorder = new LineBorder(BORDER, 1, true);
+        editor.setBorder(fieldBorder);
+        dc.setBorder(fieldBorder);
+    }
+
+
+    private void addLabel(JPanel p, GridBagConstraints gbc, int x, String text) {
+        gbc.gridx = x;
+        gbc.weightx = 0;
+        p.add(label(text), gbc);
+    }
+
+    private void addField(JPanel p, GridBagConstraints gbc, int x, Component c) {
+        gbc.gridx = x;
+        gbc.weightx = 1; // FIELD GIÃN
+        p.add(c, gbc);
+    }
+
 	//============ Phương thức ===============
 	
 	private void generateMaKhuyenMai() {
@@ -394,8 +475,13 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
         JLabel l = new JLabel(text);
         l.setFont(FONT);
         l.setForeground(NAVY_DARK);
+
+        // padding: top, left, bottom, right
+        l.setBorder(new EmptyBorder(0, 100, 0, 0)); // đẩy vô bên trái ?px
+
         return l;
     }
+
 
     private JTextField createField(boolean editable) {
         JTextField f = new JTextField();

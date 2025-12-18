@@ -77,6 +77,38 @@ public class TaiKhoan_DAO {
 	        return false;
 	    }
 	}
+	public boolean taoTaiKhoanMacDinh(String maNhanVien) {
+        try {
+            String sql = """
+                INSERT INTO TaiKhoan(maNhanVien, matKhau)
+                VALUES (?, ?)
+            """;
 
+            PreparedStatement ps = ConnectDB.getInstance().getConnection().prepareStatement(sql);
+
+            ps.setString(1, maNhanVien);
+            ps.setString(2, "123456"); // mật khẩu mặc định
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+	public boolean kiemTraTonTai(String maNV) {
+	    try {
+	        String sql = "SELECT maNhanVien FROM TaiKhoan WHERE maNhanVien = ?";
+	        PreparedStatement ps = ConnectDB.getInstance()
+	                                        .getConnection()
+	                                        .prepareStatement(sql);
+	        ps.setString(1, maNV);
+	        ResultSet rs = ps.executeQuery();
+	        return rs.next();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
 
 }

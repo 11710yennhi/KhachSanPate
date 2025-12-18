@@ -19,6 +19,7 @@ import com.toedter.calendar.JDateChooser;
 
 import connectDB.ConnectDB;
 import dao.NhanVien_DAO;
+import dao.TaiKhoan_DAO;
 import entity.NhanVien;
 
 public class NhanVien_GUI extends JPanel implements ActionListener, MouseListener {
@@ -637,6 +638,7 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
             if (nvDAO.create(nv)) {
                 JOptionPane.showMessageDialog(this, "Thêm nhân viên thành công! Mã: " + nv.getMaNhanVien());
                 loadNhanVienToTable();
+                taoTaiKhoanMacDinh();
                 clearForm();
             } else {
                 JOptionPane.showMessageDialog(this, "Thêm thất bại!");
@@ -801,6 +803,36 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         UIManager.put("Table.font", ui);
         UIManager.put("TableHeader.font", new Font(FONT_UI, Font.BOLD, 13));
         UIManager.put("TitledBorder.font", new Font(FONT_UI, Font.BOLD, 13));
+    }
+    
+    private void taoTaiKhoanMacDinh() {
+
+        String maNV = txtMaNV.getText().trim();
+
+        if (maNV.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã nhân viên!");
+            return;
+        }
+
+        TaiKhoan_DAO tkDAO = new TaiKhoan_DAO();
+
+        // kiểm tra đã tồn tại tài khoản chưa
+        if (tkDAO.kiemTraTonTai(maNV)) {
+            JOptionPane.showMessageDialog(this, "Tài khoản đã tồn tại!");
+            return;
+        }
+
+        boolean ok = tkDAO.taoTaiKhoanMacDinh(maNV);
+
+        if (ok) {
+            JOptionPane.showMessageDialog(this,
+                "Tạo tài khoản thành công!\n" +
+                "Tài khoản: " + maNV + "\n" +
+                "Mật khẩu mặc định: 123456"
+            );
+        } else {
+            JOptionPane.showMessageDialog(this, "Tạo tài khoản thất bại!");
+        }
     }
 
     // ===== chạy thử =====

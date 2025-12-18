@@ -51,6 +51,37 @@ public class HoaDon_DAO {
 	    }
 	    return list;
 	}
+	public ResultSet timHoaDonTheoMaPDP(String maPDP) {
+	    ResultSet rs = null;
+	    try {
+	        String sql = """
+	            SELECT maHoaDon,
+	                   maPhieuDatPhong,
+	                   maKhuyenMai,
+	                   phuongThucThanhToan,
+	                   tongTienPhong,
+	                   tongTienCPPS,
+	                   tongThanhToan,
+	                   ngayTao
+	            FROM HoaDon
+	            WHERE maPhieuDatPhong = ?
+	        """;
+
+	        PreparedStatement ps = ConnectDB.getInstance()
+	                                        .getConnection()
+	                                        .prepareStatement(sql);
+	        ps.setString(1, maPDP);
+	        rs = ps.executeQuery();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return rs;
+	}
+
+
+
+
 //========================Xử lý hiển thị thông tin cơ bản ======================
 	public Object[] getThongTinHoaDon(String maHoaDon) {
 
