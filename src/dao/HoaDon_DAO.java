@@ -362,5 +362,331 @@ public class HoaDon_DAO {
 
 	    return d;
 	}
+	//======DASHBOARD
+	
+		// 1) Doanh thu theo THÁNG trong NĂM
+	    // =========================
+	    public double[] getDoanhThu12ThangTrongNam_Chot(int nam) {
+	        double[] arr = new double[12]; // index 0..11 tương ứng tháng 1..12
+	        String sql = """
+	            SELECT MONTH(hd.ngayTao) AS thang, COALESCE(SUM(hd.tongThanhToan), 0) AS doanhThu
+	            FROM HoaDon hd
+	            WHERE YEAR(hd.ngayTao) = ?
+	            GROUP BY MONTH(hd.ngayTao)
+	            ORDER BY MONTH(hd.ngayTao)
+	        """;
 
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+	            try (ResultSet rs = ps.executeQuery()) {
+	                while (rs.next()) {
+	                    int thang = rs.getInt("thang");
+	                    double dt = rs.getDouble("doanhThu");
+	                    if (thang >= 1 && thang <= 12) arr[thang - 1] = dt;
+	                }
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return arr;
+	    }
+	    
+	   
+	    
+	    // 3) Tiền mặt đã kết trong ngày (theo Hóa đơn)
+	    // =========================
+	    public double getTienMatKetTrongNgay(LocalDate ngay) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(hd.tongThanhToan), 0) AS tienMat
+	            FROM HoaDon hd
+	            WHERE hd.ngayTao = ?
+	              AND (hd.phuongThucThanhToan LIKE N'%Tiền mặt%')
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setDate(1, java.sql.Date.valueOf(ngay));
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("tienMat");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    //================THONG KE
+	 // 1) Doanh thu tiền phòng theo tháng/năm (lấy từ HoaDon.tongTienPhong)
+	    public double getDoanhThuPhongTheoThang(int thang, int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(hd.tongTienPhong), 0) AS doanhThuPhong
+	            FROM HoaDon hd
+	            WHERE YEAR(hd.ngayTao) = ? AND MONTH(hd.ngayTao) = ?
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+	            ps.setInt(2, thang);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("doanhThuPhong");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    // 2) Doanh thu dịch vụ theo tháng/năm
+	    //    (tính từ chi tiết CPPS, nhưng lọc theo tháng/năm của HoaDon.ngayTao)
+	    public double getDoanhThuDichVuTheoThang(int thang, int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(cps.gia * ct.soLuong), 0) AS doanhThuDichVu
+	            FROM HoaDon hd
+	            JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiTietChiPhiPhatSinh ct ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiPhiPhatSinh cps ON cps.maChiPhiPhatSinh = ct.maChiPhiPhatSinh
+	            WHERE YEAR(hd.ngayTao) = ? AND MONTH(hd.ngayTao) = ?
+	              AND LOWER(cps.loaiChiPhiPhatSinh) LIKE N'%dịch vụ%'
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+	            ps.setInt(2, thang);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("doanhThuDichVu");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    // 3) Doanh thu phí phạt theo tháng/năm
+	    public double getDoanhThuPhatTheoThang(int thang, int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(cps.gia * ct.soLuong), 0) AS doanhThuPhat
+	            FROM HoaDon hd
+	            JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiTietChiPhiPhatSinh ct ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiPhiPhatSinh cps ON cps.maChiPhiPhatSinh = ct.maChiPhiPhatSinh
+	            WHERE YEAR(hd.ngayTao) = ? AND MONTH(hd.ngayTao) = ?
+	              AND LOWER(cps.loaiChiPhiPhatSinh) LIKE N'%phạt%'
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+	            ps.setInt(2, thang);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("doanhThuPhat");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    // 4) Tổng doanh thu tháng (lấy từ HoaDon.tongThanhToan) => số chốt
+	    public double getTongDoanhThuThang(int thang, int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(hd.tongThanhToan), 0) AS tongDoanhThu
+	            FROM HoaDon hd
+	            WHERE YEAR(hd.ngayTao) = ? AND MONTH(hd.ngayTao) = ?
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+	            ps.setInt(2, thang);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("tongDoanhThu");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+	    
+	    public double getTongDoanhThuNgay() {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(hd.tongThanhToan), 0) AS tongDoanhThu
+	            FROM HoaDon hd
+	            WHERE hd.ngayTao = Getdate()
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("tongDoanhThu");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+	    
+	    public double getTongDoanhThuThangTruoc(int thang, int nam) {
+	        int thangTruoc = thang - 1;
+	        int namTruoc = nam;
+	        if (thangTruoc == 0) {
+	            thangTruoc = 12;
+	            namTruoc = nam - 1;
+	        }
+	        return getTongDoanhThuThang(thangTruoc, namTruoc);
+	    }
+
+	    public double getTongDoanhThuThangCungKyNamTruoc(int thang, int nam) {
+	        return getTongDoanhThuThang(thang, nam - 1);
+	    }
+	    
+	    public double getDoanhThuPhongTheoNam(int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(hd.tongTienPhong), 0) AS doanhThuPhong
+	            FROM HoaDon hd
+	            WHERE YEAR(hd.ngayTao) = ?
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("doanhThuPhong");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    public double getDoanhThuDichVuTheoNam(int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(cps.gia * ct.soLuong), 0) AS doanhThuDichVu
+	            FROM HoaDon hd
+	            JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiTietChiPhiPhatSinh ct ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiPhiPhatSinh cps ON cps.maChiPhiPhatSinh = ct.maChiPhiPhatSinh
+	            WHERE YEAR(hd.ngayTao) = ?
+	              AND LOWER(cps.loaiChiPhiPhatSinh) LIKE N'%dịch vụ%'
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("doanhThuDichVu");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    public double getDoanhThuPhatTheoNam(int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(cps.gia * ct.soLuong), 0) AS doanhThuPhat
+	            FROM HoaDon hd
+	            JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiTietChiPhiPhatSinh ct ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN ChiPhiPhatSinh cps ON cps.maChiPhiPhatSinh = ct.maChiPhiPhatSinh
+	            WHERE YEAR(hd.ngayTao) = ?
+	              AND LOWER(cps.loaiChiPhiPhatSinh) LIKE N'%phạt%'
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("doanhThuPhat");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    // Tổng doanh thu năm: lấy từ HoaDon.tongThanhToan (số chốt)
+	    public double getTongDoanhThuNam(int nam) {
+	        double result = 0;
+	        String sql = """
+	            SELECT COALESCE(SUM(hd.tongThanhToan), 0) AS tongDoanhThu
+	            FROM HoaDon hd
+	            WHERE YEAR(hd.ngayTao) = ?
+	        """;
+
+	        try (Connection con = ConnectDB.getInstance().getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setInt(1, nam);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) result = rs.getDouble("tongDoanhThu");
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return result;
+	    }
+
+	    public double getTongDoanhThuNamTruoc(int nam) {
+	        return getTongDoanhThuNam(nam - 1);
+	    }
+	    
+	    //  THÁNG CAO NHẤT / THẤP NHẤT (DÙNG TỔNG DOANH THU CHỐT)
+	    // =========================
+
+	    public int getThangDoanhThuCaoNhat(int nam) {
+	        double max = -1;
+	        int thangMax = 1;
+	        for (int thang = 1; thang <= 12; thang++) {
+	            double dt = getTongDoanhThuThang(thang, nam);
+	            if (dt > max) {
+	                max = dt;
+	                thangMax = thang;
+	            }
+	        }
+	        return thangMax;
+	    }
+
+	    public int getThangDoanhThuThapNhat(int nam) {
+	        double min = Double.MAX_VALUE;
+	        int thangMin = 1;
+	        for (int thang = 1; thang <= 12; thang++) {
+	            double dt = getTongDoanhThuThang(thang, nam);
+	            if (dt < min) {
+	                min = dt;
+	                thangMin = thang;
+	            }
+	        }
+	        return thangMin;
+	    }
+	    
 }
