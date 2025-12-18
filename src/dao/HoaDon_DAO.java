@@ -11,10 +11,7 @@ import java.util.List;
 import javax.swing.table.DefaultTableModel;
 
 public class HoaDon_DAO {
-//	private PhieuDatPhong_DAO pdtDAO = new PhieuDatPhong_DAO();
-//    private ChiTietPhieuDatPhong_DAO ctPDPDAO = new ChiTietPhieuDatPhong_DAO();
-//    private ChiTietChiPhiPhatSinh_DAO cpDAO = new ChiTietChiPhiPhatSinh_DAO();
-//    private KhuyenMai_DAO kmDAO = new KhuyenMai_DAO();
+
 	public HoaDon_DAO() {
     }
 	

@@ -1,238 +1,151 @@
 package gui;
 
-import java.awt.BorderLayout;
-
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Label;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
+import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 import com.toedter.calendar.JDateChooser;
 
 import connectDB.ConnectDB;
 import dao.KhuyenMai_DAO;
-import dao.NhanVien_DAO;
 import entity.KhuyenMai;
-import entity.NhanVien;
 
-public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListener{
-	private JTextField txtMaKM, txtTenKM, txtNgayTao, txtNgayBatDau
-	, txtSoTienApDung, txtGiaTriGiam, txtNgayKetThuc, txtGiamToiDa;
-	private JComboBox<String> cboLoaiKM;
+public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListener {
+
+    // ===== THEME (KHÔNG TẠO CLASS MỚI) =====
+    private final Color NAVY = new Color(10, 52, 89);
+    private final Color NAVY_DARK = new Color(7, 40, 68);
+    private final Color GOLD = new Color(218, 177, 55);
+    private final Color BG = new Color(245, 247, 250);
+    private final Color BORDER = new Color(220, 227, 235);
+
+    private final Font FONT = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 14);
+
+    private JTextField txtMaKM, txtTenKM, txtNgayTao, txtSoTienApDung,
+            txtGiaTriGiam, txtGiamToiDa;
+    private JComboBox<String> cboLoaiKM;
     private JDateChooser dateNgayBatDau, dateNgayKetThuc;
     private JButton btnThem, btnluu, btnTimKiem;
     private JTable table;
     private DefaultTableModel modelKM;
-    
+
     private KhuyenMai_DAO kmDAO = new KhuyenMai_DAO();
-    
-	public KhuyenMai_GUI() {
-		setLayout(new BorderLayout());
-	        initForm();
-	        try {
-	            ConnectDB.getInstance().connect();
-	            loadKhuyenMaiToTable();
-	        } catch (Exception e) {
-	            JOptionPane.showMessageDialog(this, "Không thể kết nối CSDL: " + e.getMessage());
-	        }
-	}
-	private void initForm() {
-		// ------------Form nhap lieu ------------
-		JLabel lblmaKM = new JLabel("Mã khuyến mãi"); //1
-		JLabel lbltenKM = new JLabel("Tên khuyến mãi"); //1
-		JLabel lblngayTao = new JLabel("Ngày tạo"); //2
-		JLabel lblngayBatDau = new JLabel("Ngày bắt đầu"); //3
-		JLabel lblngayKetThuc = new JLabel("Ngày kết thúc"); //3
-		JLabel lblloaiKM = new JLabel("Loại khuyến mãi"); //4
-		JLabel lblsoTienApDung = new JLabel("Số tiền áp dụng"); //4
-		JLabel lblgiaTriGiam = new JLabel("Giá trị giảm"); //5
-		JLabel lblgiamToiDa = new JLabel("Giảm tối đa"); //5
-		
-		txtMaKM = new JTextField(50);
-		txtTenKM = new JTextField(50);
-		txtNgayTao = new JTextField(50);
-		
-		txtMaKM.setEditable(false);
-		txtNgayTao.setEditable(false);
-		
-		cboLoaiKM = new JComboBox<>(new String[]{"Tiền", "%"});
-		txtSoTienApDung = new JTextField(50);
-		txtGiaTriGiam = new JTextField(50);
-		txtGiamToiDa = new JTextField(50);
-		
-		dateNgayBatDau = new JDateChooser();
-        dateNgayBatDau.setDateFormatString("dd/MM/yyyy");
-        dateNgayBatDau.setDate(new Date());
-        
+
+    // ================= CONSTRUCTOR =================
+    public KhuyenMai_GUI() {
+        setLayout(new BorderLayout(12, 12));
+        setBackground(BG);
+//        setBorder(new EmptyBorder(12, 12, 12, 12));
+
+        initForm();
+
+        try {
+            ConnectDB.getInstance().connect();
+            loadKhuyenMaiToTable();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Không thể kết nối CSDL");
+        }
+    }
+
+    // ================= INIT FORM (GIỮ LOGIC) =================
+    private void initForm() {
+
+        // ===== HEADER =====
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(NAVY);
+        header.setBorder(new EmptyBorder(16, 20, 16, 20));
+
+        JLabel title = new JLabel("QUẢN LÝ KHUYẾN MÃI");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        title.setForeground(Color.WHITE);
+
+        header.add(title, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
+
+        // ===== FORM =====
+        JPanel card = new JPanel(new BorderLayout(10, 10));
+        card.setBackground(Color.WHITE);
+        card.setBorder(new CompoundBorder(
+                new LineBorder(BORDER, 1, true),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
+
+        JPanel form = new JPanel(new GridLayout(5, 4, 12, 12));
+        form.setOpaque(false);
+
+        txtMaKM = createField(false);
+        txtTenKM = createField(true);
+        txtNgayTao = createField(false);
+        txtSoTienApDung = createField(true);
+        txtGiaTriGiam = createField(true);
+        txtGiamToiDa = createField(true);
+
+        cboLoaiKM = new JComboBox<>(new String[]{"Tiền", "%"});
+        styleCombo(cboLoaiKM);
+
+        dateNgayBatDau = new JDateChooser();
         dateNgayKetThuc = new JDateChooser();
-        dateNgayKetThuc.setDateFormatString("dd/MM/yyyy");
-        dateNgayKetThuc.setDate(new Date());
-         
-		JPanel khung = new JPanel();
-		khung.setLayout(new BoxLayout(khung, BoxLayout.Y_AXIS));
-		khung.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.GRAY),
-				"Khuyến Mãi",
-				TitledBorder.LEFT, TitledBorder.TOP, new Font("Segoe UI", Font.BOLD, 14)));
-		
-		JPanel mainpanel = new JPanel(new GridLayout(5, 3, 1, 10));
-		
-		mainpanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
-		JPanel p1 = new JPanel();
-		p1.setLayout(new BoxLayout(p1, BoxLayout.Y_AXIS));
-		JPanel p2 = new JPanel();
-		p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
-		JPanel p3= new JPanel();
-		p3.setLayout(new BoxLayout(p3, BoxLayout.Y_AXIS));
-		JPanel p4= new JPanel();
-		p4.setLayout(new BoxLayout(p4, BoxLayout.Y_AXIS));
-		JPanel p5= new JPanel();
-		p5.setLayout(new BoxLayout(p5, BoxLayout.Y_AXIS));
-		JPanel p6= new JPanel();
-		p6.setLayout(new BoxLayout(p6, BoxLayout.Y_AXIS));
-		JPanel p7= new JPanel();
-		p7.setLayout(new BoxLayout(p7, BoxLayout.Y_AXIS));
-		JPanel p8= new JPanel();
-		p8.setLayout(new BoxLayout(p8, BoxLayout.Y_AXIS));
-		JPanel p9= new JPanel();
-		p9.setLayout(new BoxLayout(p9, BoxLayout.Y_AXIS));
-		JPanel p10= new JPanel();
-		p10.setLayout(new BoxLayout(p10, BoxLayout.Y_AXIS));
-		
-		Dimension sizetxt = new Dimension(400,30);
-		txtMaKM.setMaximumSize(sizetxt);
-		txtTenKM.setMaximumSize(sizetxt);
-		txtNgayTao.setMaximumSize(sizetxt);
-		dateNgayBatDau.setMaximumSize(sizetxt);
-		dateNgayKetThuc.setMaximumSize(sizetxt);
-		cboLoaiKM.setMaximumSize(sizetxt);
-		txtSoTienApDung.setMaximumSize(sizetxt);
-		txtGiaTriGiam.setMaximumSize(sizetxt);
-		txtGiamToiDa.setMaximumSize(sizetxt);
+        form.add(label("Mã KM")); form.add(txtMaKM);
+        form.add(label("Tên KM")); form.add(txtTenKM);
+        form.add(label("Ngày tạo")); form.add(txtNgayTao);
+        form.add(label("Loại KM")); form.add(cboLoaiKM);
+        form.add(label("Số tiền áp dụng")); form.add(txtSoTienApDung);
+        form.add(label("Giá trị giảm")); form.add(txtGiaTriGiam);
+        form.add(label("Giảm tối đa")); form.add(txtGiamToiDa);
+        form.add(label("Ngày bắt đầu")); form.add(dateNgayBatDau);
+        form.add(label("Ngày kết thúc")); form.add(dateNgayKetThuc);
 
-		mainpanel.add(p1);
-		mainpanel.add(p2);
-		mainpanel.add(p3);
-		mainpanel.add(p4);
-		mainpanel.add(p5);
-		mainpanel.add(p6);
-		mainpanel.add(p7);
-		mainpanel.add(p8);
-		mainpanel.add(p9);
-		mainpanel.add(p10);
-		
-		lblmaKM.setAlignmentX(Component.LEFT_ALIGNMENT);
-		txtMaKM.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lbltenKM.setAlignmentX(Component.LEFT_ALIGNMENT);
-		txtTenKM.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblngayTao.setAlignmentX(Component.LEFT_ALIGNMENT);
-		txtNgayTao.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblngayBatDau.setAlignmentX(Component.LEFT_ALIGNMENT);
-		dateNgayBatDau.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblngayKetThuc.setAlignmentX(Component.LEFT_ALIGNMENT);
-		dateNgayKetThuc.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblloaiKM.setAlignmentX(Component.LEFT_ALIGNMENT);
-		cboLoaiKM.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblsoTienApDung.setAlignmentX(Component.LEFT_ALIGNMENT);
-		txtSoTienApDung.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblgiaTriGiam.setAlignmentX(Component.LEFT_ALIGNMENT);
-		txtGiaTriGiam.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblgiamToiDa.setAlignmentX(Component.LEFT_ALIGNMENT);
-		txtGiamToiDa.setAlignmentX(Component.LEFT_ALIGNMENT);
-		
-		
-		p1.add(lblmaKM);
-		p1.add(txtMaKM);
-		p3.add(lbltenKM);
-		p3.add(txtTenKM);
-		p4.add(lblngayTao);
-		p4.add(txtNgayTao);
-		p5.add(lblngayBatDau);
-		p5.add(dateNgayBatDau);
-		p6.add(lblngayKetThuc);
-		p6.add(dateNgayKetThuc);
-		p7.add(lblloaiKM);
-		p7.add(cboLoaiKM);
-		p8.add(lblsoTienApDung);
-		p8.add(txtSoTienApDung);
-		p9.add(lblgiaTriGiam);
-		p9.add(txtGiaTriGiam);
-		p10.add(lblgiamToiDa);
-		p10.add(txtGiamToiDa);
-		
-		JPanel ptam = new JPanel();
-		khung.add(ptam);
-		khung.add(mainpanel);
-//-------------button--------
-		btnThem = new JButton("Thêm");
-        btnTimKiem = new JButton("Tìm kiếm");
-        btnluu = new JButton("Lưu");
-        
-        JPanel pbtn = new JPanel();
-        pbtn.setLayout(new BoxLayout(pbtn, BoxLayout.X_AXIS));
-        pbtn.add(Box.createHorizontalStrut(5));
-        pbtn.add(btnThem);
-        pbtn.add(Box.createRigidArea(new Dimension(30, 30)));
-        pbtn.add(btnluu);
-        pbtn.add(Box.createRigidArea(new Dimension(30, 30)));
-        pbtn.add(btnTimKiem);
-        pbtn.add(Box.createRigidArea(new Dimension(1300, 30)));
-        
-        khung.add(pbtn);
-//------------------Bảng dữ liệu-------------
-      String[] cols = {"STT", "Mã Khuyến Mãi", "Tên Khuyến Mãi", "Ngày tạo", "Loại KM"
-      		, "Số tiền áp dụng", "Giá trị giảm", "Giảm tối đa"
-      		, "Ngày bắt đầu", "Ngày kết thúc"};
-      modelKM = new DefaultTableModel(cols, 0);
-      table = new JTable(modelKM);
-      table.addMouseListener(this);
-      table.setAlignmentX(Component.LEFT_ALIGNMENT);
-      
-      JScrollPane scroll = new JScrollPane(table);
-      
-      khung.add(new JScrollPane(table));
-      
-      loadKhuyenMaiToTable();
-      generateMaKhuyenMai();
-      
-      this.add(khung);
-      
-      btnThem.addActionListener(this);
-      btnTimKiem.addActionListener(this);
-      btnluu.addActionListener(this);
-}
+        card.add(form, BorderLayout.CENTER);
+
+        // ===== BUTTON =====
+        btnThem = createButton("Thêm", GOLD, NAVY_DARK);
+        btnluu = createButton("Lưu", NAVY, Color.WHITE);
+        btnTimKiem = createButton("Tìm kiếm", new Color(230,236,244), NAVY_DARK);
+
+        JPanel pBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        pBtn.setOpaque(false);
+        pBtn.add(btnThem);
+        pBtn.add(btnluu);
+        pBtn.add(btnTimKiem);
+
+        card.add(pBtn, BorderLayout.SOUTH);
+
+        // ===== TABLE =====
+        String[] cols = {"STT","Mã KM","Tên KM","Ngày tạo","Loại",
+                "Số tiền áp dụng","Giá trị giảm","Giảm tối đa",
+                "Ngày bắt đầu","Ngày kết thúc"};
+
+        modelKM = new DefaultTableModel(cols, 0);
+        table = new JTable(modelKM);
+        table.addMouseListener(this);
+        styleTable(table);
+
+        JScrollPane scroll = new JScrollPane(table);
+
+        JPanel center = new JPanel(new BorderLayout(12, 12));
+        center.setOpaque(false);
+        center.add(card, BorderLayout.NORTH);
+        center.add(scroll, BorderLayout.CENTER);
+
+        add(center, BorderLayout.CENTER);
+
+        // ===== EVENT =====
+        btnThem.addActionListener(this);
+        btnluu.addActionListener(this);
+        btnTimKiem.addActionListener(this);
+
+        generateMaKhuyenMai();
+    }
 	//============ Phương thức ===============
 	
 	private void generateMaKhuyenMai() {
@@ -475,7 +388,53 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
     @Override public void mouseReleased(MouseEvent e) {}
     @Override public void mouseEntered(MouseEvent e) {}
     @Override public void mouseExited(MouseEvent e) {}
+    
+    // ================= STYLE HELPER =================
+    private JLabel label(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(FONT);
+        l.setForeground(NAVY_DARK);
+        return l;
+    }
 
+    private JTextField createField(boolean editable) {
+        JTextField f = new JTextField();
+        f.setEditable(editable);
+        f.setFont(FONT);
+        f.setBorder(new CompoundBorder(
+                new LineBorder(BORDER,1,true),
+                new EmptyBorder(8,10,8,10)
+        ));
+        return f;
+    }
+
+    private void styleCombo(JComboBox<?> cb) {
+        cb.setFont(FONT);
+        cb.setBorder(new LineBorder(BORDER,1,true));
+    }
+
+    private JButton createButton(String text, Color bg, Color fg) {
+        JButton b = new JButton(text);
+        b.setFont(FONT_BOLD);
+        b.setBackground(bg);
+        b.setForeground(fg);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setBorder(new EmptyBorder(10,18,10,18));
+        return b;
+    }
+
+    private void styleTable(JTable t) {
+        t.setRowHeight(34);
+        t.setFont(FONT);
+        t.setSelectionBackground(new Color(225,238,252));
+        t.setShowVerticalLines(false);
+
+        JTableHeader h = t.getTableHeader();
+        h.setFont(FONT_BOLD);
+        h.setBackground(NAVY_DARK);
+        h.setForeground(Color.WHITE);
+    }
  // ===== CHẠY THỬ =====
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

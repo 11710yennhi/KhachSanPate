@@ -27,8 +27,8 @@ public class TrangChinh_GUI extends JFrame {
 
 
     private boolean moQLDP = false;
-    private String maNV="NV01012023002";
-    public TrangChinh_GUI() {
+    private String maNV= PhienDangNhap.maNhanVienDangNhap;
+    public TrangChinh_GUI(String maNhanVien) {
         setTitle("Pate Hotel - Hệ thống quản lý khách sạn");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -109,8 +109,9 @@ public class TrangChinh_GUI extends JFrame {
         pnlContent.add(new KhachHang_GUI(), "Khách Hàng");
         pnlContent.add(new NhanVien_GUI(), "Nhân Viên");
         pnlContent.add(new KhuyenMai_GUI(), "Khuyến Mãi");
+        pnlContent.add(new TaiKhoan_GUI(), "Tài Khoản");
         pnlContent.add(new HuongDanSuDung_GUI(), "Hướng Dẫn Sử Dụng");
-
+        
 
         add(pnlContent, BorderLayout.CENTER);
         pnlMenu.add(Box.createVerticalGlue()); // đẩy nút xuống dưới
@@ -133,7 +134,7 @@ public class TrangChinh_GUI extends JFrame {
 
             if (chon == JOptionPane.YES_OPTION) {
                 dispose(); // đóng TrangChinh
-                // new DangNhap_GUI().setVisible(true); // nếu có màn đăng nhập
+                new DangNhap_GUI().setVisible(true); // nếu có màn đăng nhập
             }
         });
 
@@ -286,6 +287,6 @@ public class TrangChinh_GUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new TrangChinh_GUI().setVisible(true));
+        SwingUtilities.invokeLater(() -> new TrangChinh_GUI(PhienDangNhap.maNhanVienDangNhap).setVisible(true));
     }
 }
