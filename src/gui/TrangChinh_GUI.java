@@ -20,6 +20,8 @@ public class TrangChinh_GUI extends JFrame {
     private final Color MAU_NEN = new Color(249, 249, 249);
     private final Color MAU_SUB = new Color(55, 105, 145);
     private JButton btnSubDangChon = null;
+    private final Color MAU_DANG_XUAT = new Color(241, 196, 15); // vàng
+
 //    private final Color MAU_SUB = new Color(65, 110, 160);
     private final Color MAU_SUB_CHON = new Color(90, 155, 210);
 
@@ -36,31 +38,6 @@ public class TrangChinh_GUI extends JFrame {
         taoTieuDe();
         taoMenuTrai();
         taoNoiDung();
-        
-        pnlMenu.add(Box.createVerticalGlue());
-        JButton btnDangXuat = new JButton("Đăng xuất");
-        btnDangXuat.setMaximumSize(new Dimension(230, 42));
-        btnDangXuat.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnDangXuat.setBackground(new Color(212, 175, 55)); // vàng đồng
-        btnDangXuat.setForeground(new Color(30, 61, 89));
-        btnDangXuat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 14));
-        btnDangXuat.setFocusPainted(false);
-        btnDangXuat.setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 12));
-
-        btnDangXuat.addActionListener(e -> {
-            int c = JOptionPane.showConfirmDialog(
-                    this,
-                    "Bạn có chắc chắn muốn đăng xuất?",
-                    "Xác nhận",
-                    JOptionPane.YES_NO_OPTION
-            );
-            if (c == JOptionPane.YES_OPTION) {
-                System.exit(0);
-            }
-        });
-
-        pnlMenu.add(btnDangXuat);
-
     }
 
     // ================= TIÊU ĐỀ =================
@@ -112,7 +89,7 @@ public class TrangChinh_GUI extends JFrame {
         addMenu("Khách Hàng", "khachhang");
         addMenu("Nhân Viên", "nhanvien");
         addMenu("Tài Khoản", "taikhoan");
-        addMenu("HDSD", "huongdan");
+        addMenu("Hướng Dẫn Sử Dụng", "huongdan");
 
 
         add(pnlMenu, BorderLayout.WEST);
@@ -127,15 +104,41 @@ public class TrangChinh_GUI extends JFrame {
         pnlContent.add(new DanhSachPhieuDatPhong_GUI(), "Danh Sách Phiếu Đặt Phòng");
         pnlContent.add(new TaoPhieuDatPhong_GUI("NV01122018001"), "Tạo Phiếu Đặt Phòng");
         pnlContent.add(new Phong_GUI(), "Quản Lý Phòng");
-        pnlContent.add(new HoaDon_GUI(), "Hóa Đơn");
+//        pnlContent.add(new HoaDon_GUI(), "Hóa Đơn");
         pnlContent.add(new ChiPhiPhatSinh_GUI(), "Chi Phí Phát Sinh");
         pnlContent.add(new KhachHang_GUI(), "Khách Hàng");
         pnlContent.add(new NhanVien_GUI(), "Nhân Viên");
         pnlContent.add(new KhuyenMai_GUI(), "Khuyến Mãi");
-        pnlContent.add(new HuongDanSuDung_GUI(), "HDSD");
+        pnlContent.add(new HuongDanSuDung_GUI(), "Hướng Dẫn Sử Dụng");
 
 
         add(pnlContent, BorderLayout.CENTER);
+        pnlMenu.add(Box.createVerticalGlue()); // đẩy nút xuống dưới
+
+        JButton btnDangXuat = new JButton("Đăng Xuất");
+        btnDangXuat.setMaximumSize(new Dimension(230, 36));
+        btnDangXuat.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnDangXuat.setBackground(MAU_DANG_XUAT);
+        btnDangXuat.setForeground(Color.BLACK);
+        btnDangXuat.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 15));
+        btnDangXuat.setFocusPainted(false);
+
+        btnDangXuat.addActionListener(e -> {
+            int chon = JOptionPane.showConfirmDialog(
+                    this,
+                    "Bạn có chắc muốn đăng xuất?",
+                    "Xác nhận",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (chon == JOptionPane.YES_OPTION) {
+                dispose(); // đóng TrangChinh
+                // new DangNhap_GUI().setVisible(true); // nếu có màn đăng nhập
+            }
+        });
+
+        pnlMenu.add(btnDangXuat);
+
     }
 
     // ================= MENU BUTTON =================
@@ -150,7 +153,7 @@ public class TrangChinh_GUI extends JFrame {
 
 
         pnlMenu.add(btn);
-        pnlMenu.add(Box.createRigidArea(new Dimension(0, 8)));
+        pnlMenu.add(Box.createRigidArea(new Dimension(0, 4)));
     }
 
     // ================= QL ĐẶT PHÒNG =================
@@ -197,7 +200,7 @@ public class TrangChinh_GUI extends JFrame {
     private JButton taoNutMenu(String text, String iconName) {
         JButton btn = new JButton(text);
         btn.setIcon(loadIcon(iconName));
-        btn.setMaximumSize(new Dimension(230, 52));
+        btn.setMaximumSize(new Dimension(230, 38));
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.setHorizontalAlignment(SwingConstants.LEFT);
         btn.setIconTextGap(18);
@@ -205,7 +208,7 @@ public class TrangChinh_GUI extends JFrame {
         btn.setBackground(MAU_NUT);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 15));
-        btn.setBorder(BorderFactory.createEmptyBorder(6, 16, 6, 12));
+        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 10));
         btn.setFocusPainted(false);
 
         btn.addMouseListener(new MouseAdapter() {
@@ -225,13 +228,13 @@ public class TrangChinh_GUI extends JFrame {
 
     private JButton taoSubMenu(String text) {
         JButton btn = new JButton("• " + text);
-        btn.setMaximumSize(new Dimension(210, 32));
+        btn.setMaximumSize(new Dimension(210, 28));
         btn.setAlignmentX(Component.CENTER_ALIGNMENT);
         btn.setBackground(MAU_SUB);
         btn.setForeground(Color.WHITE);
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
-        btn.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 10));
+        btn.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 10));
         btn.setFocusPainted(false);
 
         // Hover
