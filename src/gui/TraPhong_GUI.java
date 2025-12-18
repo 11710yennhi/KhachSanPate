@@ -69,11 +69,7 @@ public class TraPhong_GUI implements ActionListener {
 
                     JOptionPane.showMessageDialog(
                         null,
-                        "Trả phòng quá sớm — hệ thống đã tự động cập nhật:\n"
-                        + "• Ngày trả = Ngày nhận thực (" + ngayNhan + ")\n"
-                        + "• Ngày trả thực = Ngày nhận thực\n"
-                        + "• Số đêm = " + soDemO + "\n"
-+ "• Thành tiền đã cập nhật lại"
+                        "Trả phòng thành công!"
                     );
 
                     return;

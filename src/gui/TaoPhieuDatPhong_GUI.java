@@ -1227,7 +1227,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                     }
                 }
 
-                // 3. Không cho số âm
+             // 3. Không cho số âm
                 if (nguoiLon < 0 || treEm < 0) {
                     JOptionPane.showMessageDialog(
                         dlg,
@@ -1238,7 +1238,11 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                     return;
                 }
 
-                int tong = nguoiLon + treEm;
+                // 🔹 Trẻ em tính 1/2 người, làm tròn LÊN
+                int treEmDaTinh = (int) Math.ceil(treEm / 2.0);
+
+                // 🔹 Tổng số người ở thực
+                int tong = nguoiLon + treEmDaTinh;
 
                 // 4. Giới hạn khách sạn
                 if (tong > 35) {
@@ -1257,6 +1261,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 txtSoNguoiThuc.setText(String.valueOf(tong));
 
                 dlg.dispose();
+
             });
 
 

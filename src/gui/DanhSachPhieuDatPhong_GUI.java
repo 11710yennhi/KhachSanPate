@@ -27,13 +27,14 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
     private ChiTietPhieuDatPhong_DAO ctDAO;
     private List<PhieuDatPhong> dsPhieu;
     private KhachHang_DAO khd;
+    private String maNV;
 
-    public DanhSachPhieuDatPhong_GUI() {
+    public DanhSachPhieuDatPhong_GUI(String manv) {
         phieuDAO = new PhieuDatPhong_DAO();
         ctDAO = new ChiTietPhieuDatPhong_DAO();
         dsPhieu = new ArrayList<>();
         khd = new KhachHang_DAO();
-
+        maNV= manv;
         setLayout(new BorderLayout());
         add(khungTimKiem(), BorderLayout.NORTH);
         add(khungDanhSach(), BorderLayout.CENTER);
@@ -273,7 +274,7 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
                 // Mở form chi tiết / sửa phiếu
                 JFrame frame = new JFrame("Phiếu: " + p.getMaPhieuDatPhong());
                 frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                frame.setContentPane(new TaoPhieuDatPhong_GUI(p,"NV01122018001"));
+                frame.setContentPane(new TaoPhieuDatPhong_GUI(p,maNV));
                 frame.pack();
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);

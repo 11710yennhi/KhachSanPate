@@ -101,10 +101,10 @@ public class TrangChinh_GUI extends JFrame {
         pnlContent = new JPanel(cardLayout);
         pnlContent.setBackground(MAU_NEN);
 
-        pnlContent.add(new DanhSachPhieuDatPhong_GUI(), "Danh Sách Phiếu Đặt Phòng");
-        pnlContent.add(new TaoPhieuDatPhong_GUI("NV01122018001"), "Tạo Phiếu Đặt Phòng");
+        pnlContent.add(new DanhSachPhieuDatPhong_GUI("NV01012023002"), "Danh Sách Phiếu Đặt Phòng");
+        pnlContent.add(new TaoPhieuDatPhong_GUI("NV01012023002"), "Tạo Phiếu Đặt Phòng");
         pnlContent.add(new Phong_GUI(), "Quản Lý Phòng");
-//        pnlContent.add(new HoaDon_GUI(), "Hóa Đơn");
+        pnlContent.add(new HoaDon_GUI(), "Hóa Đơn");
         pnlContent.add(new ChiPhiPhatSinh_GUI(), "Chi Phí Phát Sinh");
         pnlContent.add(new KhachHang_GUI(), "Khách Hàng");
         pnlContent.add(new NhanVien_GUI(), "Nhân Viên");

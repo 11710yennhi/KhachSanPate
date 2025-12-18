@@ -177,4 +177,33 @@ public class ChiTietPhieuDatPhong_DAO {
 
         return new ChiTietPhieuDatPhong(phieu, phong, ngayNhan, ngayTraThuc, ngayTra);
     }
+    public boolean isPhongDangO(String maPhong) {
+	    String sql = """
+	        SELECT COUNT(*) AS cnt
+	        FROM ChiTietPhieuDatPhong ct
+	        JOIN PhieuDatPhong pdp
+	            ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+	        WHERE pdp.trangThai = N'Đang ở'
+	          AND ct.maPhong = ?
+	          AND ct.ngayNhanThuc <= CAST(GETDATE() AS DATE)
+	          AND ct.ngayTraThuc  > CAST(GETDATE() AS DATE)
+	    """;
+
+	    try (Connection con = ConnectDB.getInstance().getConnection();
+	         PreparedStatement ps = con.prepareStatement(sql)) {
+
+	        ps.setString(1, maPhong);
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                return rs.getInt("cnt") > 0;
+	            }
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return false;
+	}
 }

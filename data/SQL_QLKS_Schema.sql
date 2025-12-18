@@ -1,4 +1,4 @@
-CREATE DATABASE QuanLyKhachSanPate;
+CREATE DATABASE QLKS;
 GO
 USE QLKS;
 GO
@@ -25,7 +25,7 @@ CREATE TABLE KhuyenMai (
     maKhuyenMai    VARCHAR(13)   PRIMARY KEY,
     tenKhuyenMai   NVARCHAR(100),
     ngayTao        DATE          DEFAULT GETDATE(),
-    ngayBatDau     DATE          NOT NULL CHECK (ngayBatDau >= GETDATE()),
+    ngayBatDau     DATE          NOT NULL CHECK (ngayBatDau >= CAST(GETDATE() AS DATE)),
     ngayKetThuc    DATE          NOT NULL,
     loaiKhuyenMai  NVARCHAR(50)  NOT NULL,
     soTienApDung   FLOAT         NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE Phong (
 );
 
 CREATE TABLE ChiPhiPhatSinh (
-    maChiPhiPhatSinh   VARCHAR(13)   PRIMARY KEY,
+    maChiPhiPhatSinh   VARCHAR(15)   PRIMARY KEY,
     tenChiPhiPhatSinh  NVARCHAR(100) UNIQUE NOT NULL,
     loaiChiPhiPhatSinh NVARCHAR(100) NOT NULL,
     gia                FLOAT         CHECK (gia > 0)
@@ -82,7 +82,6 @@ CREATE TABLE ChiTietPhieuDatPhong (
     maPhong          VARCHAR(4)   NOT NULL,
     ngayNhanThuc     DATE,
     ngayTraThuc      DATE,
-    trangThai        NVARCHAR(50),
     ngayTra          DATE,
     PRIMARY KEY (maPhieuDatPhong, maPhong),
     FOREIGN KEY (maPhieuDatPhong) REFERENCES PhieuDatPhong(maPhieuDatPhong),
@@ -91,7 +90,7 @@ CREATE TABLE ChiTietPhieuDatPhong (
 
 CREATE TABLE ChiTietChiPhiPhatSinh (
     maPhieuDatPhong     VARCHAR(14) NOT NULL,
-    maChiPhiPhatSinh    VARCHAR(13) NOT NULL,
+    maChiPhiPhatSinh    VARCHAR(15) NOT NULL,
     soLuong             INT         DEFAULT 1 CHECK (soLuong > 0),
     PRIMARY KEY (maPhieuDatPhong, maChiPhiPhatSinh),
     FOREIGN KEY (maChiPhiPhatSinh)    REFERENCES ChiPhiPhatSinh(maChiPhiPhatSinh),
