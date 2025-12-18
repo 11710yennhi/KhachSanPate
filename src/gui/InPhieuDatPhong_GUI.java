@@ -101,7 +101,7 @@ public class InPhieuDatPhong_GUI extends JFrame implements ActionListener {
 
         // ===== BẢNG PHÒNG =====
         String[] cols = {
-                "STT", "Mã phòng", "Loại phòng",
+                "STT", "MP", "LP",
                 "Ngày nhận", "Ngày trả", "Ngày trả thực",
                 "Số đêm", "Giá", "Thành tiền"
         };
@@ -116,12 +116,12 @@ public class InPhieuDatPhong_GUI extends JFrame implements ActionListener {
 
         table.getColumnModel().getColumn(0).setPreferredWidth(40);   // STT
         table.getColumnModel().getColumn(1).setPreferredWidth(80);   // Mã phòng
-        table.getColumnModel().getColumn(2).setPreferredWidth(220);  // Loại phòng
-        table.getColumnModel().getColumn(3).setPreferredWidth(90);  // Ngày nhận
-        table.getColumnModel().getColumn(4).setPreferredWidth(90);  // Ngày trả
-        table.getColumnModel().getColumn(5).setPreferredWidth(90);  // Ngày trả thực tế
-        table.getColumnModel().getColumn(6).setPreferredWidth(60);   // Số đêm
-        table.getColumnModel().getColumn(7).setPreferredWidth(90);   // Giá
+        table.getColumnModel().getColumn(2).setPreferredWidth(110);  // Loại phòng
+        table.getColumnModel().getColumn(3).setPreferredWidth(125);  // Ngày nhận
+        table.getColumnModel().getColumn(4).setPreferredWidth(125);  // Ngày trả
+        table.getColumnModel().getColumn(5).setPreferredWidth(130);  // Ngày trả thực tế
+        table.getColumnModel().getColumn(6).setPreferredWidth(70);   // Số đêm
+        table.getColumnModel().getColumn(7).setPreferredWidth(80);   // Giá
         table.getColumnModel().getColumn(8).setPreferredWidth(150);  // Thành tiền
 
       

@@ -3,10 +3,12 @@ package gui;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
@@ -19,6 +21,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import com.toedter.calendar.JDateChooser;
@@ -37,7 +40,7 @@ import entity.NhanVien;
 
 public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, MouseListener{
     private static final long serialVersionUID = 1L;
-
+   
     // ====== BIẾN TOÀN CỤC ======
     private JDateChooser dateNgayNhan, dateNgayTra;
     private JTextField txtSDT, txtTenKH, txtNgayTao, txtTienCoc, txtNV, txtMKH, txtMPDP, txtNguoiLon, txtTreEm, txtThucTe, txtSoNguoiThuc,txtTienCocMoi;
@@ -48,6 +51,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     private JTable tblPhong, tblChiPhi;
     private JLabel lblTongTien, lblTongCP, lblTongTatCa,lblThongBao;
     private Color mauXanhDam, mauVangDong;
+    private final Color MAU_PHONG_DA_CHON = new Color(214, 234, 248);
     private LoaiPhong_DAO dslp;
     private Phong_DAO dsp;
     private ChiTietPhieuDatPhong_DAO dsctpdp;
@@ -63,6 +67,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     private int soTreEm = 0;
     private String mNV;
     private String maHD;
+    private Set<String> dsPhongDaChon = new HashSet<>();
     
     public TaoPhieuDatPhong_GUI(String maNV) {
     	mNV= maNV;
@@ -252,6 +257,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
             }
         };
         tblPhong = new JTable(dlp);
+        
+
         pChiTietPhong.add(new JScrollPane(tblPhong), BorderLayout.CENTER);
 
         JPanel pPhongBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -364,15 +371,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	public void actionPerformed(ActionEvent e) {
 		Object o= e.getSource();
 		if (o.equals(btnInPhieu)&&kiemTraDuLieuNhap()&&dieuKienNguoi()) {
-		    if (txtMPDP.getText().trim().isEmpty()) {
-		        JOptionPane.showMessageDialog(this,
-		                "Vui lòng nhập đầy đủ thông tin trước khi khởi tạo!");
-		        return;
-		    }
 		    if (!ktraThongTinPDP())
 		        return;
-		    KhachHang nkh = new KhachHang( txtMKH.getText(), txtTenKH.getText(), txtSDT.getText(), chkVN.isSelected() );
-		 
+		    KhachHang checkKH= khd.getKhachHangTheoSDT(txtSDT.getText());
+		    if(checkKH==null) {
+		    	checkKH= new KhachHang( taoMaKhachHangTuDong(), txtTenKH.getText(), txtSDT.getText(), chkVN.isSelected() );
+		    }		 
 		    int soNguoiLonVL = (txtNguoiLon.getText().trim().isEmpty()
                     || txtNguoiLon.getText().trim().equals("0"))? 1 : Integer.parseInt(txtNguoiLon.getText().trim());
 
@@ -380,8 +384,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                     || txtTreEm.getText().trim().equals("0"))? 1 : Integer.parseInt(txtTreEm.getText().trim());
 
 		    PhieuDatPhong phieuTam = new PhieuDatPhong(
-		        txtMPDP.getText(),
-		        nkh,
+		       taoMaPhieuDatPhongTuDong(),
+		        checkKH,
 		        new NhanVien(txtNV.getText()),
 		        LocalDate.now(),
 		        cboTrangThai.getSelectedItem().toString(),
@@ -391,9 +395,10 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		    int luaChon = JOptionPane.showConfirmDialog( null, "Bấm Yes để xác nhận tạo phiếu", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
 		    if (luaChon == JOptionPane.YES_OPTION) {
 		    	xuLyNutInPhieu();
-		    	 new InPhieuDatPhong_GUI( phieuTam, (DefaultTableModel) tblPhong.getModel(), nkh, txtNV.getText(),
+		    	 new InPhieuDatPhong_GUI( phieuTam, (DefaultTableModel) tblPhong.getModel(), checkKH, txtNV.getText(),
 				 cboTrangThai.getSelectedItem().toString(), doiTuongTongTienPhong(), Double.parseDouble(txtTienCocMoi.getText()));
-		    	
+		    	txtMPDP.setText(phieuTam.getMaPhieuDatPhong());
+		    	txtMKH.setText(phieuTam.getKhachHang().getMaKhachHang());
 				 getDSLP();
 		    } 
 
@@ -984,23 +989,33 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
             btnPhong.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             btnPhong.setMargin(new Insets(2, 2, 2, 2));
 
-            //  Hiệu ứng hover
             btnPhong.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    btnPhong.setBackground(mauVangDong);
-                    btnPhong.setForeground(Color.WHITE);
+                    if (!dsPhongDaChon.contains(maPhong)) {
+                        btnPhong.setBackground(mauVangDong);
+                        btnPhong.setForeground(Color.WHITE);
+                    }
                 }
 
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent evt) {
-                    btnPhong.setBackground(Color.WHITE);
-                    btnPhong.setForeground(mauXanhDam);
+                    if (!dsPhongDaChon.contains(maPhong)) {
+                        btnPhong.setBackground(Color.WHITE);
+                        btnPhong.setForeground(mauXanhDam);
+                    }
                 }
             });
 
             //  Sự kiện khi người dùng click vào phòng
             btnPhong.addActionListener(e -> {
+            	if (dsPhongDaChon.contains(maPhong)) {
+                    JOptionPane.showMessageDialog(null,
+                        "Phòng này đã được chọn!",
+                        "Thông báo",
+                        JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
                 Phong phong = dsp.timPhongTheoMa(maPhong);
                 if (phong == null) return;
                 
@@ -1062,10 +1077,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                     gia,                                   // Giá/đêm
                     thanhTien                              // Thành tiền
                 });
+                dsPhongDaChon.add(maPhong);
+                btnPhong.setBackground(MAU_PHONG_DA_CHON);
+                btnPhong.setForeground(mauXanhDam);
                
                 hienThiTienCocVaTienTongTienPhong();
-//                JOptionPane.showMessageDialog(null,
-//                    "Đã thêm phòng " + maPhong + " vào danh sách!");
+
             });
 
             grid.add(btnPhong);
@@ -1318,19 +1335,19 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     public void moKhungNhap() {
     	int i= dlp.getRowCount();
     	if(i>0) {
-    		if(txtMPDP.getText().trim().equals("")) {
-    			txtMPDP.setText(taoMaPhieuDatPhongTuDong());
-    		}
-//    		txtMPDP.setText(taoMaPhieuDatPhongTuDong());
+//    		if(txtMPDP.getText().trim().equals("")) {
+//    			txtMPDP.setText(taoMaPhieuDatPhongTuDong());
+//    		}
+    		txtMPDP.setText("");
     	KhachHang tam= khd.getKhachHangTheoSDT(txtSDT.getText().trim());
     	if(tam==null) {
-    		txtMKH.setText(taoMaKhachHangTuDong());
+    		txtMKH.setText("");
     	}else {
     		txtMKH.setText(tam.getMaKhachHang());
     	}  
     	KhachHang t= khd.getKhachHangTheoMa(txtMKH.getText().trim());
     	if(t==null) {
-    		txtMKH.setText(taoMaKhachHangTuDong());
+    		txtMKH.setText("");
     	}else {
     		txtMKH.setText(tam.getMaKhachHang());
     	}  
@@ -1780,16 +1797,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 pd.themChiPhiPhatSinh(ctCP);
             }
 
-//            JOptionPane.showMessageDialog(null,
-//                    laPhieuMoi ? "Thêm phiếu đặt phòng thành công!" :
-//                            "Cập nhật phiếu đặt phòng thành công!");
-
             return true;   
 
         } catch (Exception ex) {
             ex.printStackTrace();
-//            JOptionPane.showMessageDialog(null,
-//                    "Lỗi khi lưu phiếu: " + ex.getMessage());
+            JOptionPane.showMessageDialog(null,
+                    "Lỗi khi lưu phiếu: " + ex.getMessage());
             return false; 
         }
     }
@@ -1824,10 +1837,15 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
        }
 
        try {
-           String maPDP = txtMPDP.getText().trim();
-
+    	   String maPDP = txtMPDP.getText().trim();
+    	   if(maPDP.length()==0) {
+    		   maPDP= taoMaPhieuDatPhongTuDong();
+    	   }
            // ====== 1. KHÁCH HÀNG ======
            String maKH = txtMKH.getText().trim();
+           if(maKH.length()==0) {
+        	   maKH= taoMaKhachHangTuDong();
+           }
            String tenKH = txtTenKH.getText().trim();
            String sdt = txtSDT.getText().trim();
            boolean laVN = chkVN.isSelected();
