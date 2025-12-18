@@ -15,7 +15,7 @@ public class NhanVien_DAO {
 
     public List<NhanVien> docTuBang() {
         List<NhanVien> dsnv = new ArrayList<>();
-        String sql = "SELECT * FROM NhanVien ORDER BY maNhanVien";
+        String sql = "SELECT * FROM NhanVien order by ngayTao desc ";
 
         try (Connection con = ConnectDB.getInstance().getConnection();
              Statement st = con.createStatement();

@@ -259,4 +259,30 @@ public class Phong_DAO {
         LoaiPhong lp = new LoaiPhong(maLoai, tenLoai, sucChua, gia, moTa);
         return new Phong(maPhong, lp, trangThai);
     }
+    
+    //==========DASHBOARD=====================
+  //Trạng thái bảo trì
+    public int countPhongBaoTri() {
+        int result = 0;
+
+        String sql = """
+            SELECT COUNT(*) AS cnt
+            FROM Phong
+            WHERE trangThai = N'Bảo trì'
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                result = rs.getInt("cnt");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
 }

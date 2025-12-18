@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.*;
+
 import java.awt.event.*;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -11,8 +12,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
+import dao.ChiPhiPhatSinh_DAO;
+import dao.ChiTietPhieuDatPhong_DAO;
 import dao.LoaiPhong_DAO;
 import dao.Phong_DAO;
+import dao.ChiTietPhieuDatPhong_DAO;
 import entity.LoaiPhong;
 import entity.Phong;
 
@@ -40,6 +44,7 @@ public class Phong_GUI extends JPanel implements ActionListener, MouseListener {
 
     private final Phong_DAO phongDAO = new Phong_DAO();
     private final LoaiPhong_DAO loaiPhongDAO = new LoaiPhong_DAO();
+    private final ChiTietPhieuDatPhong_DAO ctpdpDAO= new ChiTietPhieuDatPhong_DAO();
 
     private boolean isRowSelected = false;
 
@@ -468,22 +473,15 @@ public class Phong_GUI extends JPanel implements ActionListener, MouseListener {
             Phong p = new Phong(maPhong, lp, trangThai);
 
             // nếu có thì update, không có thì insert
-            if (phongDAO.timPhongTheoMa(maPhong) != null) {
+            if (phongDAO.timPhongTheoMa(maPhong) != null && !ctpdpDAO.isPhongDangO(maPhong)) {
                 if (phongDAO.capNhatPhong(p)) {
                     JOptionPane.showMessageDialog(this, "Cập nhật phòng thành công!");
                     loadTablePhong();
-                    focusPhongOnTable(maPhong);
                 } else {
                     JOptionPane.showMessageDialog(this, "Cập nhật phòng thất bại!");
                 }
             } else {
-                if (phongDAO.themPhong(p)) {
-                    JOptionPane.showMessageDialog(this, "Thêm phòng thành công!");
-                    loadTablePhong();
-                    clearForm();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Thêm phòng thất bại!");
-                }
+            	JOptionPane.showMessageDialog(this, "Phòng đang ở không thể bảo trì!");
             }
         }
     }

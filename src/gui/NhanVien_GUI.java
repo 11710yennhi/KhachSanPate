@@ -3,6 +3,7 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,11 +30,9 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
     private static final Color LIGHT_BG = new Color(245, 247, 250);
     private static final Color BORDER = new Color(220, 227, 235);
 
-    // ===== Font yêu cầu =====
     private static final String FONT_UI = "Segoe UI";
     private static final String FONT_EMOJI = "Segoe UI Emoji";
 
-    // ===== Size =====
     private static final Dimension SEARCH_BTN_SIZE = new Dimension(52, 38);
     private static final Dimension DATE_SIZE = new Dimension(240, 38);
 
@@ -49,6 +48,9 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
     private final NhanVien_DAO nvDAO = new NhanVien_DAO();
 
     private boolean isRowSelected = false;
+
+    // ✅ Trạng thái cho phép nhập mã NV chỉ để tìm kiếm
+    private boolean isSearchModeMaNV = false;
 
     private static final DateTimeFormatter VIEW_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter PARSE_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -73,7 +75,7 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         try {
             ConnectDB.getInstance().connect();
             loadNhanVienToTable();
-            clearForm();
+            clearForm(); // ✅ clear sẽ tự sinh mã NV sẵn
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Không thể kết nối CSDL: " + e.getMessage());
         }
@@ -235,10 +237,18 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         txtMaNV = new JTextField();
         styleField(txtMaNV);
 
+        // ✅ mặc định KHÔNG cho nhập mã (vì mã tự sinh)
+        txtMaNV.setEditable(false);
+        txtMaNV.setBackground(new Color(248, 250, 253));
+        txtMaNV.setToolTipText("Mã nhân viên tự phát sinh. Bấm 🔍 để nhập mã tìm kiếm.");
+
         btnSearchMa = buildSearchButton("Tìm nhanh theo mã nhân viên");
         btnSearchMa.addActionListener(this);
 
-        txtMaNV.addActionListener(e -> timTheoMa());
+        // ✅ Enter chỉ dùng khi đang ở search mode
+        txtMaNV.addActionListener(e -> {
+            if (isSearchModeMaNV) timTheoMa();
+        });
 
         p.add(txtMaNV, BorderLayout.CENTER);
         p.add(btnSearchMa, BorderLayout.EAST);
@@ -336,34 +346,18 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         }
     }
 
-    private void setFormEditable(boolean editable, boolean allowEditMaNV) {
-        txtMaNV.setEditable(allowEditMaNV);
-
-        txtHoTen.setEditable(editable);
-        txtSoDT.setEditable(editable);
-        txtEmail.setEditable(editable);
-
-        rdoNam.setEnabled(editable);
-        rdoNu.setEnabled(editable);
-
-        rdoQuanLy.setEnabled(editable);
-        rdoNhanVien.setEnabled(editable);
-
-        rdoHoatDong.setEnabled(editable);
-        rdoNghi.setEnabled(editable);
-
-        dateNgaySinh.setEnabled(editable);
-        dateNgayTao.setEnabled(editable);
-
-        btnSearchMa.setEnabled(true);
-        btnSearchSdt.setEnabled(true);
-    }
-
     private void clearForm() {
         isRowSelected = false;
         table.clearSelection();
 
-        txtMaNV.setText("");
+        // ✅ tự sinh mã sẵn, KHÔNG cho nhập
+        LocalDate ngayTao = LocalDate.now();
+        String maMoi = nvDAO.generateMaNhanVien(ngayTao);
+        txtMaNV.setText(maMoi);
+        txtMaNV.setEditable(false);
+        txtMaNV.setBackground(new Color(248, 250, 253));
+        isSearchModeMaNV = false;
+
         txtHoTen.setText("");
         txtSoDT.setText("");
         txtEmail.setText("");
@@ -375,8 +369,7 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         dateNgaySinh.setDate(null);
         dateNgayTao.setDate(new Date());
 
-        setFormEditable(true, true);
-        txtMaNV.requestFocus();
+        txtHoTen.requestFocus();
     }
 
     private LocalDate toLocalDate(JDateChooser chooser) {
@@ -384,29 +377,67 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         return chooser.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
-    // ===== Validate (có ngày sinh) =====
+    // ✅ check trùng SĐT / Email (loại trừ chính nó khi update)
+    private boolean isDuplicateSoDT(String soDT, String excludeMaNV) {
+        ArrayList<NhanVien> list = (ArrayList<NhanVien>) nvDAO.docTuBang();
+        for (NhanVien nv : list) {
+            if (nv == null) continue;
+            if (excludeMaNV != null && excludeMaNV.equalsIgnoreCase(nv.getMaNhanVien())) continue;
+            if (soDT.equals(nv.getSoDienThoai())) return true;
+        }
+        return false;
+    }
+
+    private boolean isDuplicateEmail(String email, String excludeMaNV) {
+        ArrayList<NhanVien> list = (ArrayList<NhanVien>) nvDAO.docTuBang();
+        for (NhanVien nv : list) {
+            if (nv == null) continue;
+            if (excludeMaNV != null && excludeMaNV.equalsIgnoreCase(nv.getMaNhanVien())) continue;
+            if (email.equalsIgnoreCase(nv.getEmail())) return true;
+        }
+        return false;
+    }
+
+    // ===== Validate (18-60, không trùng SĐT/Gmail) =====
     private boolean validateFormForSave(boolean isInsert) {
         String hoTen = txtHoTen.getText().trim();
         String soDT = txtSoDT.getText().trim();
         String email = txtEmail.getText().trim();
         String ma = txtMaNV.getText().trim();
 
-        if (!isInsert && ma.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Thiếu mã nhân viên để cập nhật!");
+        if (ma.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Thiếu mã nhân viên!");
             return false;
         }
+
         if (hoTen.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Họ tên không được để trống!");
             return false;
         }
-        if (dateNgaySinh.getDate() == null) {
+
+        LocalDate ngaySinh = toLocalDate(dateNgaySinh);
+        if (ngaySinh == null) {
             JOptionPane.showMessageDialog(this, "Ngày sinh không được để trống!");
             return false;
         }
+
+        LocalDate today = LocalDate.now();
+        if (ngaySinh.isAfter(today)) {
+            JOptionPane.showMessageDialog(this, "Ngày sinh không hợp lệ (không được lớn hơn hôm nay).");
+            return false;
+        }
+
+        int age = Period.between(ngaySinh, today).getYears();
+        if (age < 18 || age > 60) {
+            JOptionPane.showMessageDialog(this, "Nhân viên phải từ đủ 18 tuổi đến 60 tuổi!");
+            return false;
+        }
+
         if (!soDT.matches("^0\\d{9}$")) {
             JOptionPane.showMessageDialog(this, "Số điện thoại phải bắt đầu bằng 0 và gồm đúng 10 số!");
             return false;
         }
+
         if (email.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Email không được để trống!");
             return false;
@@ -420,13 +451,39 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
             return false;
         }
 
+        // ✅ kiểm tra trùng
+        // - insert: exclude = null
+        // - update: exclude = ma hiện tại
+        String exclude = isInsert ? null : ma;
+
+        if (isDuplicateSoDT(soDT, exclude)) {
+            JOptionPane.showMessageDialog(this, "Số điện thoại bị trùng! Vui lòng nhập SĐT khác.");
+            return false;
+        }
+
+        if (isDuplicateEmail(email, exclude)) {
+            JOptionPane.showMessageDialog(this, "Email bị trùng! Vui lòng nhập email khác.");
+            return false;
+        }
+
         return true;
     }
 
     private NhanVien getFormDataForInsertOrUpdate(boolean isInsert) {
         if (!validateFormForSave(isInsert)) return null;
 
-        String ma = txtMaNV.getText().trim();
+        String ma;
+        LocalDate ngayTao = toLocalDate(dateNgayTao);
+        if (ngayTao == null) ngayTao = LocalDate.now();
+
+        // ✅ yêu cầu: mã NV luôn tự sinh khi thêm, không cho nhập
+        if (isInsert) {
+            ma = nvDAO.generateMaNhanVien(ngayTao);
+            txtMaNV.setText(ma);
+        } else {
+            ma = txtMaNV.getText().trim();
+        }
+
         String ten = txtHoTen.getText().trim();
         String sdt = txtSoDT.getText().trim();
         String email = txtEmail.getText().trim();
@@ -436,18 +493,33 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         boolean tt = rdoHoatDong.isSelected();
 
         LocalDate ngaySinh = toLocalDate(dateNgaySinh);
-        LocalDate ngayTao = toLocalDate(dateNgayTao);
-        if (ngayTao == null) ngayTao = LocalDate.now();
-
-        if (isInsert && ma.isEmpty()) {
-            ma = nvDAO.generateMaNhanVien(ngayTao);
-            txtMaNV.setText(ma);
-        }
 
         return new NhanVien(ma, ten, gt, ngaySinh, sdt, email, cv, ngayTao, tt);
     }
 
-    // ===== Tìm nhanh =====
+    // ================= SEARCH UX =================
+
+    private void enableSearchModeMaNV() {
+        isSearchModeMaNV = true;
+        txtMaNV.setEditable(true);
+        txtMaNV.setBackground(Color.WHITE);
+        txtMaNV.setText("");
+        txtMaNV.requestFocus();
+        txtMaNV.selectAll();
+        txtMaNV.setToolTipText("Nhập mã NV để tìm, xong bấm Enter hoặc 🔍.");
+    }
+
+    private void disableSearchModeMaNVAndRestoreGenerated() {
+        isSearchModeMaNV = false;
+        txtMaNV.setEditable(false);
+        txtMaNV.setBackground(new Color(248, 250, 253));
+        // trả lại mã tự sinh sẵn để chuẩn bị thêm
+        LocalDate ngayTao = toLocalDate(dateNgayTao);
+        if (ngayTao == null) ngayTao = LocalDate.now();
+        txtMaNV.setText(nvDAO.generateMaNhanVien(ngayTao));
+        txtMaNV.setToolTipText("Mã nhân viên tự phát sinh. Bấm 🔍 để nhập mã tìm kiếm.");
+    }
+
     private void timTheoMa() {
         String ma = txtMaNV.getText().trim();
         if (ma.isEmpty()) {
@@ -497,8 +569,12 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         if (row < 0) return;
 
         isRowSelected = true;
+        isSearchModeMaNV = false;
 
         txtMaNV.setText(modelNV.getValueAt(row, 1).toString());
+        txtMaNV.setEditable(false);
+        txtMaNV.setBackground(new Color(248, 250, 253));
+
         txtHoTen.setText(modelNV.getValueAt(row, 2).toString());
 
         String gt = modelNV.getValueAt(row, 3).toString();
@@ -527,8 +603,6 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         String tt = modelNV.getValueAt(row, 9).toString();
         rdoHoatDong.setSelected(tt.equalsIgnoreCase("Đang làm"));
         rdoNghi.setSelected(tt.equalsIgnoreCase("Nghỉ"));
-
-        setFormEditable(true, false); // khóa mã, còn lại sửa được
     }
 
     // ================= EVENTS =================
@@ -537,7 +611,17 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
     public void actionPerformed(ActionEvent e) {
         Object o = e.getSource();
 
-        if (o == btnSearchMa) { timTheoMa(); return; }
+        if (o == btnSearchMa) {
+            // ✅ bấm 🔍: nếu đang không search mode -> bật search mode để nhập mã
+            // nếu đang search mode -> thực hiện tìm luôn
+            if (!isSearchModeMaNV) {
+                enableSearchModeMaNV();
+            } else {
+                timTheoMa();
+            }
+            return;
+        }
+
         if (o == btnSearchSdt) { timTheoSoDT(); return; }
 
         if (o == btnXoaRong) {
@@ -546,6 +630,7 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         }
 
         if (o == btnThem) {
+            // ✅ thêm: luôn tự sinh mã, user không nhập mã
             NhanVien nv = getFormDataForInsertOrUpdate(true);
             if (nv == null) return;
 
@@ -572,7 +657,6 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
                 JOptionPane.showMessageDialog(this, "Cập nhật thành công!");
                 loadNhanVienToTable();
                 focusNhanVienOnTable(nv.getMaNhanVien());
-                setFormEditable(true, false);
             } else {
                 JOptionPane.showMessageDialog(this, "Cập nhật thất bại!");
             }
@@ -590,7 +674,7 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
     @Override public void mouseEntered(MouseEvent e) {}
     @Override public void mouseExited(MouseEvent e) {}
 
-    // ================= STYLE HELPERS =================
+    // ================= STYLE HELPERS (giữ nguyên style của bạn) =================
 
     private void addLabel(JPanel p, GridBagConstraints gbc, int gridx, String text) {
         gbc.gridx = gridx;
@@ -615,7 +699,6 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         f.setPreferredSize(new Dimension(260, 38));
     }
 
-    // ✅ DateChooser rộng + không che
     private void styleDateChooser(JDateChooser dc) {
         dc.setFont(new Font(FONT_UI, Font.PLAIN, 14));
         dc.setPreferredSize(DATE_SIZE);
@@ -648,7 +731,6 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         return b;
     }
 
-    // ✅ Nút tìm: không bị phóng + dùng Segoe UI Emoji, fallback "Tìm"
     private JButton buildSearchButton(String tip) {
         JButton b = new JButton();
         b.setToolTipText(tip);
@@ -663,7 +745,6 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         b.setMinimumSize(SEARCH_BTN_SIZE);
         b.setMaximumSize(SEARCH_BTN_SIZE);
 
-        // set icon text
         setMagnifierText(b);
         return b;
     }
@@ -676,7 +757,6 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
             b.setText(icon);
             b.setFont(emojiFont);
         } else {
-            // fallback nếu máy không hỗ trợ emoji
             b.setText("Tìm");
             b.setFont(new Font(FONT_UI, Font.BOLD, 12));
         }
@@ -712,7 +792,6 @@ public class NhanVien_GUI extends JPanel implements ActionListener, MouseListene
         }
     }
 
-    // ✅ set font mặc định toàn app
     private void applyGlobalFontDefaults() {
         Font ui = new Font(FONT_UI, Font.PLAIN, 13);
         UIManager.put("Label.font", ui);
