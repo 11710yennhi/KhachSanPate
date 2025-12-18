@@ -1,6 +1,9 @@
 package dao;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,92 +14,97 @@ import entity.Phong;
 
 public class Phong_DAO {
 
+    private static final String SQL_SELECT_ALL = """
+        SELECT p.maPhong, p.trangThai,
+               p.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, COALESCE(lp.moTa,'') AS moTa
+        FROM Phong p
+        LEFT JOIN LoaiPhong lp ON LTRIM(RTRIM(p.maLoaiPhong)) = LTRIM(RTRIM(lp.maLoaiPhong))
+        ORDER BY p.maPhong
+    """;
+
+    private static final String SQL_SELECT_BY_TRANGTHAI = """
+        SELECT p.maPhong, p.trangThai,
+               p.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, COALESCE(lp.moTa,'') AS moTa
+        FROM Phong p
+        LEFT JOIN LoaiPhong lp ON LTRIM(RTRIM(p.maLoaiPhong)) = LTRIM(RTRIM(lp.maLoaiPhong))
+        WHERE LTRIM(RTRIM(p.trangThai)) = ?
+        ORDER BY p.maPhong
+    """;
+
+    private static final String SQL_SELECT_BY_MALOAIPHONG = """
+        SELECT p.maPhong, p.trangThai,
+               p.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, COALESCE(lp.moTa,'') AS moTa
+        FROM Phong p
+        LEFT JOIN LoaiPhong lp ON LTRIM(RTRIM(p.maLoaiPhong)) = LTRIM(RTRIM(lp.maLoaiPhong))
+        WHERE LTRIM(RTRIM(p.maLoaiPhong)) = ?
+        ORDER BY p.maPhong
+    """;
+
+    private static final String SQL_FIND_BY_MA = """
+        SELECT RTRIM(LTRIM(p.maPhong)) AS maPhong, 
+               RTRIM(LTRIM(p.trangThai)) AS trangThai,
+               RTRIM(LTRIM(lp.maLoaiPhong)) AS maLoaiPhong, 
+               RTRIM(LTRIM(lp.tenLoaiPhong)) AS tenLoaiPhong, 
+               lp.sucChua, lp.gia, COALESCE(lp.moTa, '') AS moTa
+        FROM Phong p 
+        LEFT JOIN LoaiPhong lp ON LTRIM(RTRIM(p.maLoaiPhong)) = LTRIM(RTRIM(lp.maLoaiPhong))
+        WHERE LTRIM(RTRIM(p.maPhong)) = ?
+    """;
+
     // ======= LẤY TOÀN BỘ PHÒNG =======
     public List<Phong> getAllPhong() {
-        List<Phong> dsPhong = new ArrayList<>();
-        try (Connection conn = ConnectDB.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                 "SELECT p.maPhong, p.trangThai, p.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, lp.moTa " +
-                 "FROM Phong p JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong");
-             ResultSet rs = stmt.executeQuery()) {
+        List<Phong> ds = new ArrayList<>();
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(SQL_SELECT_ALL);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                String maPhong = rs.getString("maPhong");
-                String trangThai = rs.getString("trangThai");
-                String maLoai = rs.getString("maLoaiPhong");
-                String tenLoai = rs.getString("tenLoaiPhong");
-                int sucChua = rs.getInt("sucChua");
-                double gia = rs.getDouble("gia");
-                String moTa = rs.getString("moTa");
-
-                LoaiPhong loaiPhong = new LoaiPhong(maLoai, tenLoai, sucChua, gia, moTa);
-                dsPhong.add(new Phong(maPhong, loaiPhong, trangThai));
+                ds.add(mapPhong(rs));
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return dsPhong;
+        return ds;
     }
 
     // ======= LẤY PHÒNG TRỐNG =======
     public List<Phong> getPhongTrong() {
-        List<Phong> dsPhongTrong = new ArrayList<>();
-        try (Connection conn = ConnectDB.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                 "SELECT p.maPhong, p.trangThai, p.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, lp.moTa " +
-                 "FROM Phong p JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong " +
-                 "WHERE p.trangThai = N'Trống'");
-             ResultSet rs = stmt.executeQuery()) {
+        List<Phong> ds = new ArrayList<>();
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(SQL_SELECT_BY_TRANGTHAI)) {
 
-            while (rs.next()) {
-                String maPhong = rs.getString("maPhong");
-                String trangThai = rs.getString("trangThai");
-                String maLoai = rs.getString("maLoaiPhong");
-                String tenLoai = rs.getString("tenLoaiPhong");
-                int sucChua = rs.getInt("sucChua");
-                double gia = rs.getDouble("gia");
-                String moTa = rs.getString("moTa");
+            ps.setString(1, "Trống");
 
-                LoaiPhong loaiPhong = new LoaiPhong(maLoai, tenLoai, sucChua, gia, moTa);
-                dsPhongTrong.add(new Phong(maPhong, loaiPhong, trangThai));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ds.add(mapPhong(rs));
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return dsPhongTrong;
+        return ds;
     }
 
     // ======= LẤY PHÒNG THEO MÃ LOẠI PHÒNG =======
     public List<Phong> getPhongTheoMaLoaiPhong(String maLoaiPhong) {
-        List<Phong> dsPhong = new ArrayList<>();
-        try (Connection conn = ConnectDB.getInstance().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                 "SELECT p.maPhong, p.trangThai, p.maLoaiPhong, lp.tenLoaiPhong, lp.sucChua, lp.gia, lp.moTa " +
-                 "FROM Phong p JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong " +
-                 "WHERE p.maLoaiPhong = ?")) {
+        List<Phong> ds = new ArrayList<>();
+        if (maLoaiPhong == null) return ds;
 
-            stmt.setString(1, maLoaiPhong);
-            ResultSet rs = stmt.executeQuery();
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(SQL_SELECT_BY_MALOAIPHONG)) {
 
-            while (rs.next()) {
-                String maPhong = rs.getString("maPhong");
-                String trangThai = rs.getString("trangThai");
-                String maLoai = rs.getString("maLoaiPhong");
-                String tenLoai = rs.getString("tenLoaiPhong");
-                int sucChua = rs.getInt("sucChua");
-                double gia = rs.getDouble("gia");
-                String moTa = rs.getString("moTa");
+            ps.setString(1, maLoaiPhong.trim());
 
-                LoaiPhong loaiPhong = new LoaiPhong(maLoai, tenLoai, sucChua, gia, moTa);
-                dsPhong.add(new Phong(maPhong, loaiPhong, trangThai));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ds.add(mapPhong(rs));
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return dsPhong;
+        return ds;
     }
 
     // ======= THÊM PHÒNG =======
@@ -104,11 +112,14 @@ public class Phong_DAO {
         String sql = "INSERT INTO Phong (maPhong, maLoaiPhong, trangThai) VALUES (?, ?, ?)";
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, phong.getMaPhong());
-            ps.setString(2, phong.getLoaiPhong() != null ? phong.getLoaiPhong().getMaLoaiPhong() : null);
-            ps.setString(3, phong.getTrangThai());
+
+            ps.setString(1, phong.getMaPhong().trim());
+            ps.setString(2, phong.getLoaiPhong() != null ? phong.getLoaiPhong().getMaLoaiPhong().trim() : null);
+            ps.setString(3, phong.getTrangThai().trim());
+
             return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            // trùng khóa, lỗi FK...
             e.printStackTrace();
         }
         return false;
@@ -119,11 +130,13 @@ public class Phong_DAO {
         String sql = "UPDATE Phong SET maLoaiPhong=?, trangThai=? WHERE maPhong=?";
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, phong.getLoaiPhong() != null ? phong.getLoaiPhong().getMaLoaiPhong() : null);
-            ps.setString(2, phong.getTrangThai());
-            ps.setString(3, phong.getMaPhong());
+
+            ps.setString(1, phong.getLoaiPhong() != null ? phong.getLoaiPhong().getMaLoaiPhong().trim() : null);
+            ps.setString(2, phong.getTrangThai().trim());
+            ps.setString(3, phong.getMaPhong().trim());
+
             return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
@@ -134,9 +147,11 @@ public class Phong_DAO {
         String sql = "DELETE FROM Phong WHERE maPhong=?";
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, maPhong);
+
+            ps.setString(1, maPhong.trim());
             return ps.executeUpdate() > 0;
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            // nếu phòng đang được tham chiếu (FK) thì sẽ lỗi
             e.printStackTrace();
         }
         return false;
@@ -144,76 +159,53 @@ public class Phong_DAO {
 
     // ======= TÌM PHÒNG THEO MÃ =======
     public Phong timPhongTheoMa(String maPhongInput) {
-        Phong phong = null;
-        String sql = """
-            SELECT RTRIM(LTRIM(p.maPhong)) AS maPhong, 
-                   RTRIM(LTRIM(p.trangThai)) AS trangThai,
-                   RTRIM(LTRIM(lp.maLoaiPhong)) AS maLoaiPhong, 
-                   RTRIM(LTRIM(lp.tenLoaiPhong)) AS tenLoaiPhong, 
-                   lp.sucChua, lp.gia, COALESCE(lp.moTa, '') AS moTa
-            FROM Phong p 
-            LEFT JOIN LoaiPhong lp ON LTRIM(RTRIM(p.maLoaiPhong)) = LTRIM(RTRIM(lp.maLoaiPhong))
-            WHERE LTRIM(RTRIM(p.maPhong)) = ?
-        """;
+        if (maPhongInput == null || maPhongInput.trim().isEmpty()) return null;
+
         try (Connection con = ConnectDB.getInstance().getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(SQL_FIND_BY_MA)) {
 
             ps.setString(1, maPhongInput.trim());
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                String maPhong = rs.getString("maPhong");
-                String trangThai = rs.getString("trangThai");
-                String maLoai = rs.getString("maLoaiPhong");
-                String tenLoai = rs.getString("tenLoaiPhong");
-                int sucChua = rs.getInt("sucChua");
-                double gia = rs.getDouble("gia");
-                String moTa = rs.getString("moTa");
-
-                LoaiPhong loaiPhong = new LoaiPhong(maLoai, tenLoai, sucChua, gia, moTa);
-                phong = new Phong(maPhong, loaiPhong, trangThai);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return phong;
-    }
-    
- // ======= LẤY MÃ PHÒNG CAO NHẤT THEO LOẠI (VD: P1, P2, P3) =======
-    public String getLastRoomCodeByLoai(String prefix) {
-        String lastCode = null;
-        String sql = """
-            SELECT TOP 1 maPhong
-            FROM Phong
-            WHERE maPhong LIKE ?
-            ORDER BY 
-                TRY_CAST(SUBSTRING(maPhong, LEN(?) + 1, LEN(maPhong) - LEN(?)) AS INT) DESC
-        """;
-
-        try (Connection con = ConnectDB.getInstance().getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setString(1, prefix + "%"); // ví dụ prefix = "P1" → tìm P101, P102...
-            ps.setString(2, prefix);
-            ps.setString(3, prefix);
-
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                lastCode = rs.getString("maPhong").trim();
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapPhong(rs);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return lastCode; // null nếu chưa có phòng nào với prefix đó
+        return null;
     }
-    
-    public List<Phong> getDSPhongTrongTheoNgay(
-            LocalDate ngayNhanMoi,
-            LocalDate ngayTraMoi) {
 
+    // ======= LẤY MÃ PHÒNG CAO NHẤT THEO PREFIX (P1/P2/P3...) =======
+    public String getLastRoomCodeByLoai(String prefix) {
+        if (prefix == null || prefix.trim().isEmpty()) return null;
+
+        String sql = """
+            SELECT TOP 1 maPhong
+            FROM Phong
+            WHERE maPhong LIKE ?
+            ORDER BY TRY_CAST(SUBSTRING(maPhong, LEN(?) + 1, LEN(maPhong) - LEN(?)) AS INT) DESC
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            String pfx = prefix.trim();
+            ps.setString(1, pfx + "%");
+            ps.setString(2, pfx);
+            ps.setString(3, pfx);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getString("maPhong").trim();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // ======= DS PHÒNG TRỐNG THEO NGÀY (giữ lại như bạn đang dùng) =======
+    public List<Phong> getDSPhongTrongTheoNgay(LocalDate ngayNhanMoi, LocalDate ngayTraMoi) {
         List<Phong> dsPhong = new ArrayList<>();
 
         String sql = """
@@ -226,8 +218,7 @@ public class Phong_DAO {
             AND NOT EXISTS (
                 SELECT 1
                 FROM ChiTietPhieuDatPhong ct
-                JOIN PhieuDatPhong pdp
-                  ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+                JOIN PhieuDatPhong pdp ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
                 WHERE ct.maPhong = p.maPhong
                   AND pdp.trangThai NOT IN (N'Đã hủy', N'Hoàn thành')
                   AND ? < ct.ngayTra
@@ -238,27 +229,13 @@ public class Phong_DAO {
         try (Connection con = ConnectDB.getInstance().getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setDate(1, Date.valueOf(ngayNhanMoi));
-            ps.setDate(2, Date.valueOf(ngayTraMoi));
+            ps.setDate(1, java.sql.Date.valueOf(ngayNhanMoi));
+            ps.setDate(2, java.sql.Date.valueOf(ngayTraMoi));
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-
-                LoaiPhong lp = new LoaiPhong(
-                        rs.getString("maLoaiPhong"),
-                        rs.getString("tenLoaiPhong"),
-                        rs.getInt("sucChua"),
-                        rs.getDouble("gia"),
-                        rs.getString("moTa")
-                );
-
-                Phong p = new Phong(
-                        rs.getString("maPhong"),
-                        lp,
-                        rs.getString("trangThai")
-                );
-
-                dsPhong.add(p);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    dsPhong.add(mapPhong(rs));
+                }
             }
 
         } catch (Exception e) {
@@ -268,4 +245,18 @@ public class Phong_DAO {
         return dsPhong;
     }
 
+    // ======= Mapper =======
+    private Phong mapPhong(ResultSet rs) throws SQLException {
+        String maPhong = rs.getString("maPhong") != null ? rs.getString("maPhong").trim() : "";
+        String trangThai = rs.getString("trangThai") != null ? rs.getString("trangThai").trim() : "";
+
+        String maLoai = rs.getString("maLoaiPhong") != null ? rs.getString("maLoaiPhong").trim() : "";
+        String tenLoai = rs.getString("tenLoaiPhong") != null ? rs.getString("tenLoaiPhong").trim() : "";
+        int sucChua = rs.getInt("sucChua");
+        double gia = rs.getDouble("gia");
+        String moTa = rs.getString("moTa") != null ? rs.getString("moTa").trim() : "";
+
+        LoaiPhong lp = new LoaiPhong(maLoai, tenLoai, sucChua, gia, moTa);
+        return new Phong(maPhong, lp, trangThai);
+    }
 }
