@@ -79,7 +79,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         mauVangDong = new Color(212, 175, 55);
         Font fontTieuDe = new Font("Segoe UI Semibold", Font.PLAIN, 16);
         Color xanhNgoc = new Color(72, 189, 157);
-        Color xanhLa = new Color(102, 187, 106);
+        Color nauNhat = new Color(90, 155, 210); 
         Color xanhDuong = new Color(79, 195, 247);
         Color doCanhBao = new Color(229, 57, 53);
         Color xamXanh = new Color(120, 144, 156);
@@ -315,10 +315,10 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         btnXoa.setForeground(Color.WHITE);
 
         btnXoaCP.setBackground(doCanhBao);
-        btnXoaCP.setForeground(Color.WHITE);
+        btnXoaCP.setForeground(Color.BLACK);
 
-        btnThemCP.setBackground(xanhLa);
-        btnThemCP.setForeground(Color.WHITE);
+        btnThemCP.setBackground(nauNhat);
+        btnThemCP.setForeground(Color.BLACK);
 
         btnLuu.setBackground(mauXanhDam);
         btnLuu.setForeground(Color.WHITE);
@@ -329,14 +329,14 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         btnTT.setBackground(mauVangDong);
         btnTT.setForeground(Color.BLACK);
 
-        btnXR.setBackground(xanhLa);
-        btnXR.setForeground(Color.WHITE);
+        btnXR.setBackground(nauNhat);
+        btnXR.setForeground(Color.BLACK);
 
-        btnCapNhat.setBackground(xanhLa);
-        btnCapNhat.setForeground(Color.WHITE);
+        btnCapNhat.setBackground(nauNhat);
+        btnCapNhat.setForeground(Color.BLACK);
 
-        btnXNDP.setBackground(xanhLa);
-        btnXNDP.setForeground(Color.WHITE);
+        btnXNDP.setBackground(nauNhat);
+        btnXNDP.setForeground(Color.BLACK);
 
         btnTPS.setBackground(mauXanhDam);
         btnTPS.setForeground(Color.WHITE);
