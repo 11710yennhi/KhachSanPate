@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
@@ -244,7 +245,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 TitledBorder.LEFT, TitledBorder.TOP, fontTieuDe, mauXanhDam));
 
         String[] cols = {"STT", "Mã phòng", "Loại phòng", "Ngày nhận", "Ngày trả Thực","Ngày trả", "Số đêm", "Giá", "Thành tiền"};
-        dlp = new DefaultTableModel(cols, 0);
+        dlp = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
         tblPhong = new JTable(dlp);
         pChiTietPhong.add(new JScrollPane(tblPhong), BorderLayout.CENTER);
 
@@ -426,7 +432,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		}else if(o.equals(btnXoaCP)) {
 			xoaCPPSXB();
 		}else if(o.equals(btnLuu)) {
-			if( kiemTraDuLieuNhap()&&dieuKienNguoi()) {
+			if( kiemTraDuLieuNhap()&&dieuKienNguoi()&&kiemTraTrangThai(pdp.timPhieuDatPhongTheoMa(txtMPDP.getText().trim()))) {
 				if(xuLyNutLuu()) {
 					kiemTraDeThemCPPS();
 					JOptionPane.showMessageDialog(null,"Lưu thành công!");
@@ -691,7 +697,14 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         pChiPhiTop.add(btnXoaCP);
         pChiPhi.add(pChiPhiTop, BorderLayout.NORTH);
 
-        dlctps = new DefaultTableModel(new String[]{"Tên chi phí", "Giá", "Số lượng", "Thành tiền", "Mã"}, 0);
+        dlctps = new DefaultTableModel(
+                new String[]{"Tên chi phí", "Giá", "Số lượng", "Thành tiền", "Mã"}, 0) {
+        	
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
         tblChiPhi = new JTable(dlctps);
         tblChiPhi.getColumnModel().getColumn(4).setMinWidth(0);
         tblChiPhi.getColumnModel().getColumn(4).setMaxWidth(0);
@@ -795,13 +808,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         Date dNhan = dateNgayNhan.getDate();
         Date dTra  = dateNgayTra.getDate();
 
-//        if (dNhan == null || dTra == null) {
-//            JOptionPane.showMessageDialog(
-//                    null,
-//                    "Vui lòng chọn đầy đủ ngày nhận và ngày trả"
-//            );
-//            return;
-//        }
+        if (dNhan == null || dTra == null) {
+            return;
+        }
 
         LocalDate ngayNhanMoi = dNhan.toInstant()
                 .atZone(ZoneId.systemDefault())
@@ -2119,4 +2128,43 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		  btnXoaCP.setEnabled(true);
 	  }
   }
+  public boolean kiemTraTrangThai(PhieuDatPhong p) {
+
+	    if (p == null) {
+	        JOptionPane.showMessageDialog(null,
+	            "Bạn không được đổi trạng thái khi không có dữ liệu!",
+	            "Thông báo",
+	            JOptionPane.WARNING_MESSAGE);
+	        return false;
+	    }
+
+	    List<ChiTietPhieuDatPhong> ds =
+	        dsctpdp.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
+
+	    if (ds == null || ds.isEmpty()) {
+	        JOptionPane.showMessageDialog(null,
+	            "Không có danh sách phòng chi tiết",
+	            "Thông báo",
+	            JOptionPane.WARNING_MESSAGE);
+	        return false;
+	    }
+
+	    LocalDate today = LocalDate.now();
+
+	    LocalDate nhanSomNhat = ds.stream()
+	        .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
+	        .filter(d -> d != null)
+	        .min(LocalDate::compareTo)
+	        .orElse(null);
+	    if (nhanSomNhat != null && today.isBefore(nhanSomNhat)&&!cboTrangThai.getSelectedItem().equals("Đã đặt")) {
+	        JOptionPane.showMessageDialog(null,
+	            "Bạn không được đổi trạng thái là Đang ở khi chưa tới ngày nhận phòng!",
+	            "Thông báo",
+	            JOptionPane.WARNING_MESSAGE);
+	        return false;
+	    }
+
+	    return true;
+	}
+
 }

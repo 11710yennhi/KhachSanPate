@@ -34,13 +34,13 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
         );
 
         setTitle("PHIẾU HỦY ĐẶT PHÒNG");
-        setSize(800, 860);
+        setSize(650, 720);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         JPanel main = new JPanel();
         main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
-        main.setBorder(new EmptyBorder(20, 35, 20, 35));
+        main.setBorder(new EmptyBorder(15, 25, 15, 25));
         add(main);
 
         addTieuDe(main);
@@ -56,7 +56,7 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
 
     private void addTieuDe(JPanel main) {
         JLabel lbl = new JLabel("PHIẾU HỦY ĐẶT PHÒNG");
-        lbl.setFont(new Font("Serif", Font.BOLD, 26));
+        lbl.setFont(new Font("Serif", Font.BOLD, 22));
         lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
         main.add(lbl);
         main.add(Box.createVerticalStrut(10));
@@ -67,7 +67,7 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
         JLabel ks2 = new JLabel("Địa chỉ: 12 Nguyễn Văn Bảo, P4, Gò Vấp, TP.HCM");
         JLabel ks3 = new JLabel("Số điện thoại: 1233456789");
 
-        ks1.setFont(new Font("SansSerif", Font.BOLD, 15));
+        ks1.setFont(new Font("SansSerif", Font.BOLD, 14));
         ks1.setAlignmentX(Component.CENTER_ALIGNMENT);
         ks2.setAlignmentX(Component.CENTER_ALIGNMENT);
         ks3.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -79,7 +79,7 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
     }
 
     private void addThongTinPhieu(JPanel main) {
-        JPanel info = new JPanel(new GridLayout(5, 1, 5, 5));
+    	JPanel info = new JPanel(new GridLayout(5, 1, 3, 3));
         info.setOpaque(false);
 
         info.add(new JLabel("Mã phiếu: " + phieu.getMaPhieuDatPhong()));
@@ -106,7 +106,7 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
         tbl.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
         JScrollPane sp = new JScrollPane(tbl);
-        sp.setPreferredSize(new Dimension(720, 180));
+        sp.setPreferredSize(new Dimension(600, 150));
         main.add(sp);
         main.add(Box.createVerticalStrut(15));
     }
@@ -117,7 +117,7 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
         JPanel money = new JPanel(new GridLayout(5, 1, 3, 3));
         money.setOpaque(false);
 
-        Font bold = new Font("SansSerif", Font.BOLD, 16);
+        Font bold = new Font("SansSerif", Font.BOLD, 14);
 
         money.add(labelBold("Tổng tiền phòng: " +
                 formatVND(tam.getTongTienPhong()), bold));

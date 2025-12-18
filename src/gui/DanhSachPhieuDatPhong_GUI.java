@@ -298,67 +298,42 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
      * Xác định trạng thái của phiếu dựa trên toàn bộ dsChiTiet (chỉ dùng ngayNhanThuc và ngayTra)
      */
     private String xacDinhTrangThai(PhieuDatPhong p) {
-        if (p == null || p.getDsChiTiet() == null || p.getDsChiTiet().isEmpty()) return "Không có chi tiết";
+    	List<ChiTietPhieuDatPhong> ds= ctDAO.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
+        if (p == null || ds == null ||ds.isEmpty()) return "Không có chi tiết";
 
         LocalDate today = LocalDate.now();
-
-        Optional<LocalDate> minNhan = p.getDsChiTiet().stream()
+        
+        Optional<LocalDate> minNhan = ds.stream()
                 .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
                 .filter(d -> d != null)
                 .min(LocalDate::compareTo);
 
-        Optional<LocalDate> maxTra = p.getDsChiTiet().stream()
+        Optional<LocalDate> maxTra = ds.stream()
                 .map(ChiTietPhieuDatPhong::getNgayTraThuc)
                 .filter(d -> d != null)
                 .max(LocalDate::compareTo);
-
+        String trangThai = p.getTrangThai();
         LocalDate nhanSomNhat = minNhan.orElse(null);
         LocalDate traTreNhat = maxTra.orElse(null);
-     // Đã hủy luôn ưu tiên
-        if (p.getTrangThai().equals("Đã hủy")) {
-            return "Đã hủy";
-        }
-        // Trễ hạn trả phòng
-        if (traTreNhat != null 
-                && today.isAfter(traTreNhat) 
-                &&(p.getTrangThai().equals("Đang ở"))) {
-            return "Trễ hạn trả phòng";
-        }
-        // Tới ngày trả
-        if (traTreNhat != null 
-                && today.isEqual(traTreNhat) 
-                && p.getTrangThai().equals("Đang ở")) {
-            return "Tới ngày trả";
-        }
-        // Đang ở (ưu tiên cao)
-        if (p.getTrangThai().equals("Đang ở")) {
+        if ("Đã hủy".equals(trangThai)) return "Đã hủy";
+
+        if ("Đang ở".equals(trangThai)) {
+            if (traTreNhat != null && today.isAfter(traTreNhat))
+                return "Trễ hạn trả phòng";
+            if (traTreNhat != null && today.isEqual(traTreNhat))
+                return "Tới ngày trả";
             return "Đang ở";
         }
 
-        // Chưa nhận phòng (quá ngày nhận nhưng chưa check-in)
-        if (nhanSomNhat != null 
-                && nhanSomNhat.isBefore(today) 
-                && p.getTrangThai().equals("Đã đặt")) {
-            return "Chưa nhận phòng";
+        if ("Đã đặt".equals(trangThai)) {
+            if (nhanSomNhat != null && nhanSomNhat.isBefore(today))
+                return "Chưa nhận phòng";
+            if (nhanSomNhat != null && today.isEqual(nhanSomNhat))
+                return "Tới ngày nhận";
+            if (nhanSomNhat != null && today.isBefore(nhanSomNhat))
+                return "Đã đặt";
         }
 
-        // Tới ngày nhận
-        if (nhanSomNhat != null 
-                && today.isEqual(nhanSomNhat) 
-                && p.getTrangThai().equals("Đã đặt")) {
-            return "Tới ngày nhận";
-        }
-
-     
-
-        // Đã đặt (chưa tới ngày nhận)
-        if (nhanSomNhat != null 
-                && today.isBefore(nhanSomNhat) 
-                && p.getTrangThai().equals("Đã đặt")) {
-            return "Đã đặt";
-        }
-
-        // Mặc định
         return "Hoàn thành";
 
     }
