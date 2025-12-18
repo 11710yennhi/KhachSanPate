@@ -213,11 +213,11 @@ public class ChiPhiPhatSinh_DAO {
 		List<ChiPhiPhatSinh> danhSach = getAllChiPhiPhatSinh();
 		int dem = 0;
 		for (ChiPhiPhatSinh cp : danhSach) {
-			if (cp.getMaChiPhiPhatSinh().contains("CP" + ngay + thang + nam)) {
+			if (cp.getMaChiPhiPhatSinh().contains("CPPS" + ngay + thang + nam)) {
 				dem++;
 			}
 		}
 		dem++;
-		return String.format("CP%s%s%s%03d", ngay, thang, nam, dem);
+		return String.format("CPPS%s%s%s%03d", ngay, thang, nam, dem);
 	}
 }
