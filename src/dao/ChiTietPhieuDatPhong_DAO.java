@@ -442,4 +442,31 @@ public class ChiTietPhieuDatPhong_DAO {
         }
         return result;
     }
+    public int countPhongDangCoKhach() {
+        int result = 0;
+
+        String sql = """
+            SELECT COUNT(*) AS cnt
+            FROM ChiTietPhieuDatPhong ct
+            JOIN PhieuDatPhong p 
+                ON ct.maPhieuDatPhong = p.maPhieuDatPhong
+            WHERE p.trangThai = N'Đang ở'
+              AND ct.ngayNhanThuc <= CAST(GETDATE() AS DATE)
+              AND ct.ngayTra  > CAST(GETDATE() AS DATE)
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                result = rs.getInt("cnt");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
 }
