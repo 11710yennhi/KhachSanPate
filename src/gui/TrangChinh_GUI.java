@@ -4,6 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+import dao.NhanVien_DAO;
+import entity.NhanVien;
+
 public class TrangChinh_GUI extends JFrame {
 
     private static final long serialVersionUID = 1L;
@@ -24,11 +27,18 @@ public class TrangChinh_GUI extends JFrame {
 
 //    private final Color MAU_SUB = new Color(65, 110, 160);
     private final Color MAU_SUB_CHON = new Color(90, 155, 210);
+    private boolean coQuyenQuanLy;
 
-
+    private NhanVien_DAO nvd;
     private boolean moQLDP = false;
-    private String maNV= PhienDangNhap.maNhanVienDangNhap;
+    private String maNV;
+    
     public TrangChinh_GUI(String maNhanVien) {
+        maNV = maNhanVien;
+        nvd = new NhanVien_DAO();
+
+        coQuyenQuanLy = kiemTraPhanQuyen(maNV); 
+
         setTitle("Pate Hotel - Hệ thống quản lý khách sạn");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -40,6 +50,13 @@ public class TrangChinh_GUI extends JFrame {
         taoNoiDung();
     }
 
+    public boolean kiemTraPhanQuyen(String maNhanVien) {
+    	NhanVien nv= nvd.findByMa(maNhanVien);
+    	if(nv==null) return true;
+    	if(nv.isChucVu()==true) return true;
+    	if(nv.isChucVu()==false) return false;
+    	return true;
+    }
     // ================= TIÊU ĐỀ =================
     private void taoTieuDe() {
         JPanel p = new JPanel(new BorderLayout());
@@ -81,15 +98,18 @@ public class TrangChinh_GUI extends JFrame {
 
         addMenu("Dashboard", "Dashboard");
         addMenuQLDP();
-        addMenu("Quản Lý Phòng", "phong");
-        addMenu("Khuyến Mãi", "khuyenmai");
-        addMenu("Chi Phí Phát Sinh", "chiphiphatsinh");
-        addMenu("Hóa Đơn", "hoadon");
-        addMenu("Thống Kê", "thongke");
         addMenu("Khách Hàng", "khachhang");
-        addMenu("Nhân Viên", "nhanvien");
+        addMenu("Hóa Đơn", "hoadon");
         addMenu("Tài Khoản", "taikhoan");
         addMenu("Hướng Dẫn Sử Dụng", "huongdan");
+        if (coQuyenQuanLy) {
+            addMenu("Quản Lý Phòng", "phong");
+            addMenu("Khuyến Mãi", "khuyenmai");
+            addMenu("Chi Phí Phát Sinh", "chiphiphatsinh");
+            addMenu("Thống Kê", "thongke");
+            addMenu("Nhân Viên", "nhanvien");
+        }
+
 
 
         add(pnlMenu, BorderLayout.WEST);
@@ -97,9 +117,9 @@ public class TrangChinh_GUI extends JFrame {
 
     // ================= NỘI DUNG =================
     private void taoNoiDung() {
-        cardLayout = new CardLayout();
-        pnlContent = new JPanel(cardLayout);
-        pnlContent.setBackground(MAU_NEN);
+    	cardLayout = new CardLayout();
+    	pnlContent = new JPanel(cardLayout);
+    	pnlContent.setBackground(MAU_NEN);
         pnlContent.add(new Dashboard_GUI(), "Dashboard");
         pnlContent.add(new DanhSachPhieuDatPhong_GUI(maNV), "Danh Sách Phiếu Đặt Phòng");
         pnlContent.add(new TaoPhieuDatPhong_GUI(maNV), "Tạo Phiếu Đặt Phòng");
@@ -110,7 +130,7 @@ public class TrangChinh_GUI extends JFrame {
         pnlContent.add(new KhachHang_GUI(), "Khách Hàng");
         pnlContent.add(new NhanVien_GUI(), "Nhân Viên");
         pnlContent.add(new KhuyenMai_GUI(), "Khuyến Mãi");
-        pnlContent.add(new TaiKhoan_GUI(), "Tài Khoản");
+//        pnlContent.add(new TaiKhoan_GUI(maNV), "Tài Khoản");
         pnlContent.add(new HuongDanSuDung_GUI(), "Hướng Dẫn Sử Dụng");
         
 
@@ -148,11 +168,10 @@ public class TrangChinh_GUI extends JFrame {
         JButton btn = taoNutMenu(text, iconName);
 
         btn.addActionListener(e -> {
-            resetSubDangChon();   
+            resetSubDangChon();
             doiNutDangChon(btn);
             cardLayout.show(pnlContent, text);
         });
-
 
         pnlMenu.add(btn);
         pnlMenu.add(Box.createRigidArea(new Dimension(0, 4)));

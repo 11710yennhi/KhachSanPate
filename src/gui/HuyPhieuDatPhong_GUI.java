@@ -10,15 +10,15 @@ import entity.*;
 
 public class HuyPhieuDatPhong_GUI extends JFrame {
 
-    // ===== DAO (chỉ lấy thông tin phiếu & khách) =====
+    
     private PhieuDatPhong_DAO pdpDAO = new PhieuDatPhong_DAO();
     private KhachHang_DAO khDAO = new KhachHang_DAO();
 
     // ===== DATA =====
-    private PhieuDatPhong phieu;      // phiếu gốc (hiển thị thông tin)
-    private PhieuDatPhong tam;        // phiếu đã chốt tiền
+    private PhieuDatPhong phieu;      
+    private PhieuDatPhong tam;        
     private KhachHang khach;
-    private DefaultTableModel modelDaChot; // BẢNG ĐÃ CHỐT
+    private DefaultTableModel modelDaChot; 
 
     // ===== CONSTRUCTOR =====
     public HuyPhieuDatPhong_GUI(String maPhieu,
@@ -126,7 +126,7 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
                 formatVND(tam.getTienCoc()), bold));
 
         money.add(labelBold("TIỀN KHÁCH CẦN TRẢ: " +
-                formatVND(tam.getTongTien() - tam.getTienCoc()), bold));
+                formatVND(tam.getTongTienPhong() - tam.getTienCoc()), bold));
 
         main.add(money);
     }

@@ -208,47 +208,7 @@ public class ChiTietPhieuDatPhong_DAO {
 
 	    return false;
 	}
- // ===========DASHBOARD==============
-    // 6) Cảnh báo hôm nay: cần check-in / check-out
-    public int countCanCheckInHomNay() {
-        int result = 0;
-        String sql = """
-            SELECT COUNT(DISTINCT ct.maPhieuDatPhong) AS cnt
-        		FROM ChiTietPhieuDatPhong ct
-        			JOIN PhieuDatPhong pdp ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
-        		WHERE pdp.trangThai = N'Đã đặt'
-        			AND ct.ngayNhanThuc = CAST(GETDATE() AS DATE)
-
-        """;
-        try (Connection con = ConnectDB.getInstance().getConnection()) {
-			PreparedStatement stmt = con.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			if (rs.next()) result = rs.getInt("cnt");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-        return result;
-    }
-    
-    public int countCanCheckOutHomNay() {
-    	int result = 0;
-        String sql = """
-            SELECT COUNT(DISTINCT ct.maPhieuDatPhong) AS cnt
-        		FROM ChiTietPhieuDatPhong ct
-        			JOIN PhieuDatPhong pdp ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
-        		WHERE pdp.trangThai = N'Đang ở'
-        			AND ct.ngayTraThuc = CAST(GETDATE() AS DATE)
-
-        """;
-        try (Connection con = ConnectDB.getInstance().getConnection()) {
-			PreparedStatement stmt = con.prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			if (rs.next()) result = rs.getInt("cnt");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-        return result;
-    }
+ 
     
     //==========Thong ke
     public Map<String, Integer> getTongSoNgayOPhongTheoThang(int thang, int nam) {
