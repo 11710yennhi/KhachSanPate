@@ -206,4 +206,210 @@ public class ChiTietPhieuDatPhong_DAO {
 
 	    return false;
 	}
+ // ===========DASHBOARD==============
+    // 6) Cảnh báo hôm nay: cần check-in / check-out
+    public int countCanCheckInHomNay() {
+        int result = 0;
+        String sql = """
+            SELECT COUNT(DISTINCT ct.maPhieuDatPhong) AS cnt
+        		FROM ChiTietPhieuDatPhong ct
+        			JOIN PhieuDatPhong pdp ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+        		WHERE pdp.trangThai = N'Đã đặt'
+        			AND ct.ngayNhanThuc = CAST(GETDATE() AS DATE)
+
+        """;
+        try (Connection con = ConnectDB.getInstance().getConnection()) {
+			PreparedStatement stmt = con.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) result = rs.getInt("cnt");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        return result;
+    }
+    
+    public int countCanCheckOutHomNay() {
+    	int result = 0;
+        String sql = """
+            SELECT COUNT(DISTINCT ct.maPhieuDatPhong) AS cnt
+        		FROM ChiTietPhieuDatPhong ct
+        			JOIN PhieuDatPhong pdp ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+        		WHERE pdp.trangThai = N'Đang ở'
+        			AND ct.ngayTraThuc = CAST(GETDATE() AS DATE)
+
+        """;
+        try (Connection con = ConnectDB.getInstance().getConnection()) {
+			PreparedStatement stmt = con.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) result = rs.getInt("cnt");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+        return result;
+    }
+    
+    //==========Thong ke
+    public Map<String, Integer> getTongSoNgayOPhongTheoThang(int thang, int nam) {
+		Map<String, Integer> result = new HashMap<>();
+
+		String sql = """
+				SELECT
+					lp.tenLoaiPhong,
+					SUM(
+						DATEDIFF(
+						    DAY,
+					        CASE WHEN ct.ngayNhanThuc < ? THEN ? ELSE ct.ngayNhanThuc END,
+					        CASE WHEN ct.ngayTra > ? THEN ? ELSE ct.ngayTra END
+					    )
+					) AS soLuotO
+				FROM ChiTietPhieuDatPhong ct
+					JOIN PhieuDatPhong pdp ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+					JOIN Phong p ON ct.maPhong = p.maPhong
+					JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong
+				WHERE
+					pdp.trangThai <> N'Đã hủy'
+					AND ct.ngayNhanThuc < ?
+					AND ct.ngayTra  > ?
+				GROUP BY lp.tenLoaiPhong;
+							""";
+		LocalDate start = LocalDate.of(nam, thang, 1);
+		LocalDate end = start.plusMonths(1);
+
+		try (Connection con = ConnectDB.getInstance().getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)) {
+
+			ps.setDate(1, java.sql.Date.valueOf(start));
+			ps.setDate(2, java.sql.Date.valueOf(start));
+			ps.setDate(3, java.sql.Date.valueOf(end));
+			ps.setDate(4, java.sql.Date.valueOf(end));
+			ps.setDate(5, java.sql.Date.valueOf(end));
+			ps.setDate(6, java.sql.Date.valueOf(start));
+
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				result.put(rs.getString("tenLoaiPhong"), rs.getInt("soLuotO"));
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return result;
+	}
+
+	public Map<String, Integer> getTongSoNgayOPhongTheoNam(int nam) {
+		Map<String, Integer> map = new HashMap<>();
+
+		String sql = """
+				SELECT
+					lp.tenLoaiPhong,
+					SUM(
+						DATEDIFF(
+						    DAY,
+					        CASE WHEN ct.ngayNhanThuc < ? THEN ? ELSE ct.ngayNhanThuc END,
+					        CASE WHEN ct.ngayTra > ? THEN ? ELSE ct.ngayTra END
+					    )
+					) AS soLuot
+				FROM ChiTietPhieuDatPhong ct
+					JOIN PhieuDatPhong pdp ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+					JOIN Phong p ON ct.maPhong = p.maPhong
+					JOIN LoaiPhong lp ON p.maLoaiPhong = lp.maLoaiPhong
+					WHERE
+					    pdp.trangThai <> N'Đã hủy'
+					    AND ct.ngayNhanThuc < ?
+					    AND ct.ngayTra  > ?
+					GROUP BY lp.tenLoaiPhong;
+								""";
+		LocalDate start = LocalDate.of(nam, 1, 1);
+		LocalDate end = LocalDate.of(nam + 1, 1, 1);
+
+		try (Connection con = ConnectDB.getInstance().getConnection()) {
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setDate(1, java.sql.Date.valueOf(start));
+			ps.setDate(2, java.sql.Date.valueOf(start));
+			ps.setDate(3, java.sql.Date.valueOf(end));
+			ps.setDate(4, java.sql.Date.valueOf(end));
+			ps.setDate(5, java.sql.Date.valueOf(end));
+			ps.setDate(6, java.sql.Date.valueOf(start));
+
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				map.put(rs.getString("tenLoaiPhong"), rs.getInt("soLuot"));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return map;
+	}
+
+	public List<LocalDate[]> getDanhSachPhongDangOTrongThang(int thang, int nam) {
+		List<LocalDate[]> list = new ArrayList<>();
+
+		String sql = """
+
+						SELECT ct.ngayNhanThuc, ct.ngayTra
+				FROM ChiTietPhieuDatPhong ct
+				JOIN PhieuDatPhong pdp
+				    ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+				WHERE pdp.trangThai <> N'Đã hủy'
+				  AND ct.ngayNhanThuc < ?
+				  AND ct.ngayTra  > ?
+						  """;
+
+		LocalDate start = LocalDate.of(nam, thang, 1);
+		LocalDate end = start.plusMonths(1);
+
+		try (Connection con = ConnectDB.getInstance().getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setDate(1, Date.valueOf(end));
+			ps.setDate(2, Date.valueOf(start));
+
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				list.add(new LocalDate[] { rs.getDate("ngayNhanThuc").toLocalDate(),
+						rs.getDate("ngayTra").toLocalDate() });
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return list;
+	}
+
+	public List<LocalDate[]> getDanhSachPhongDangOTrongNam(int nam) {
+		List<LocalDate[]> list = new ArrayList<>();
+
+		String sql = """
+
+						      SELECT ct.ngayNhanThuc, ct.ngayTra
+				FROM ChiTietPhieuDatPhong ct
+				JOIN PhieuDatPhong pdp
+				    ON ct.maPhieuDatPhong = pdp.maPhieuDatPhong
+				WHERE pdp.trangThai <> N'Đã hủy'
+				  AND ct.ngayNhanThuc < ?
+				  AND ct.ngayTra  > ?
+						""";
+
+		LocalDate start = LocalDate.of(nam, 1, 1);
+		LocalDate end = LocalDate.of(nam + 1, 1, 1);
+
+		try (Connection con = ConnectDB.getInstance().getConnection();
+				PreparedStatement ps = con.prepareStatement(sql)) {
+			ps.setDate(1, Date.valueOf(end));
+			ps.setDate(2, Date.valueOf(start));
+
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				list.add(new LocalDate[] { rs.getDate("ngayNhanThuc").toLocalDate(),
+						rs.getDate("ngayTra").toLocalDate() });
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return list;
+	}
 }
