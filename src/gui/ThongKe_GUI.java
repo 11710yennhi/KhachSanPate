@@ -40,7 +40,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PiePlot;
-import org.jfree.chart.renderer.category.BarRenderer; // ✅ BAR
+import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
@@ -70,6 +70,10 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
     private static final int HEIGHT_KETLUAN = 150;
 
     private static final String TABLE_TITLE = "Bảng doanh thu Khách sạn pate";
+
+    // ✅✅✅ CHỈNH SỬA: giữ lại centerPanel để bật/tắt giao diện thống kê
+    private JPanel centerPanel;
+    private boolean dashboardVisible = false;
 
     // ================== BÊN TRÁI ==================
     private JComboBox<Integer> cboThangTrai;
@@ -111,15 +115,15 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
     private DecimalFormat df = new DecimalFormat("#,##0");
 
     public ThongKe_GUI() {
-    	hoaDonDAO = new HoaDon_DAO();
-    	ctPdpDAO = new ChiTietPhieuDatPhong_DAO();
+        hoaDonDAO = new HoaDon_DAO();
+        ctPdpDAO = new ChiTietPhieuDatPhong_DAO();
 
         initGUI();
         loadDefaultValues();
 
-        // mặc định: trái xem THÁNG hiện tại, phải xem NĂM hiện tại
-        capNhatThangTrai();
-        capNhatNamPhai();
+        // ✅✅✅ CHỈNH SỬA: KHÔNG load dữ liệu sẵn nữa
+        // capNhatThangTrai();
+        // capNhatNamPhai();
     }
 
     private void initGUI() {
@@ -185,8 +189,8 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         pnlNorth.add(topFilterPanel, BorderLayout.CENTER);
         add(pnlNorth, BorderLayout.NORTH);
 
-        // ===== TRUNG TÂM =====
-        JPanel centerPanel = new JPanel(new java.awt.GridLayout(1, 2, 10, 0));
+        // ===== TRUNG TÂM (THỐNG KÊ) =====
+        centerPanel = new JPanel(new java.awt.GridLayout(1, 2, 10, 0));
         centerPanel.setBackground(COLOR_NAVY);
 
         String[] cols = { "Kỳ", "Doanh thu phòng", "Dịch vụ", "Phí phạt", "Tổng doanh thu" };
@@ -283,6 +287,10 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
 
         centerPanel.add(leftPanel);
         centerPanel.add(rightPanel);
+
+        //  ẩn thống kê lúc mới chạy
+        centerPanel.setVisible(false);
+
         add(centerPanel, BorderLayout.CENTER);
 
         // ===== SỰ KIỆN =====
@@ -290,6 +298,16 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         btnXemNamTrai.addActionListener(this);
         btnXemThangPhai.addActionListener(this);
         btnXemNamPhai.addActionListener(this);
+    }
+
+    //  hàm bật dashboard
+    private void showDashboard() {
+        if (!dashboardVisible) {
+            dashboardVisible = true;
+            centerPanel.setVisible(true);
+            revalidate();
+            repaint();
+        }
     }
 
     // ========== UI HELPERS ==========
@@ -408,6 +426,9 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
 
+        // ✅✅✅ CHỈNH SỬA: bấm nút mới hiện thống kê
+        showDashboard();
+
         if (src == btnXemThangTrai) capNhatThangTrai();
         else if (src == btnXemNamTrai) capNhatNamTrai();
         else if (src == btnXemThangPhai) capNhatThangPhai();
@@ -476,7 +497,6 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         double dtPhatLastYear = hoaDonDAO.getDoanhThuPhatTheoThang(thang, namCungKy);
         double tongLastYear = dtPhongLastYear + dtDvLastYear + dtPhatLastYear;
 
-        // PIE DOANH THU
         panelChart.removeAll();
         if (tongNow <= 0) {
             panelChart.add(createNoDataLabel("Không có dữ liệu doanh thu cho tháng " + thang + "/" + nam), BorderLayout.CENTER);
@@ -497,7 +517,6 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         panelChart.revalidate();
         panelChart.repaint();
 
-        // BẢNG
         model.setRowCount(0);
         model.addRow(new Object[] { "Tháng " + thang + "/" + nam, formatCurrency(dtPhongNow), formatCurrency(dtDvNow), formatCurrency(dtPhatNow), formatCurrency(tongNow) });
         model.addRow(new Object[] { "Tháng trước (" + thangTruoc + "/" + namTruoc + ")", formatCurrency(dtPhongPrev), formatCurrency(dtDvPrev), formatCurrency(dtPhatPrev), formatCurrency(tongPrev) });
@@ -684,7 +703,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         return ds;
     }
 
-    // ================== BAR: PHÒNG ĐANG CÓ KHÁCH (THÁNG + NĂM) ==================
+    // ================== BAR: PHÒNG ĐANG CÓ KHÁCH ==================
     private void capNhatLinePhongDangOTheoThang(int thang, int nam, JPanel targetPanel) {
         targetPanel.removeAll();
 
@@ -704,7 +723,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
     private void capNhatLinePhongDangOTheoNam(int nam, JPanel targetPanel) {
         targetPanel.removeAll();
 
-        ChartPanel cp = taoBarChartPhongDangOTheoNam(nam); // ✅ đổi NĂM thành BAR luôn
+        ChartPanel cp = taoBarChartPhongDangOTheoNam(nam);
         if (cp == null) {
             targetPanel.add(createNoDataLabel("Không có dữ liệu phòng đang ở năm " + nam), BorderLayout.CENTER);
         } else {
@@ -792,7 +811,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         yAxis.setLabelFont(F_UI(Font.PLAIN, 12));
         yAxis.setTickLabelFont(F_UI(Font.PLAIN, 11));
         yAxis.setLowerBound(0);
-        yAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits()); // tháng: số nguyên
+        yAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
         renderer.setItemMargin(0.02);
@@ -833,7 +852,6 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         return dataset;
     }
 
-    // ✅✅✅ NĂM: đổi từ LINE -> BAR
     private ChartPanel taoBarChartPhongDangOTheoNam(int nam) {
         Map<Integer, Double> dataCheck = tinhSoPhongDangOTrungBinhTheoThang(nam);
         if (dataCheck == null || dataCheck.isEmpty()) return null;
@@ -870,7 +888,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         yAxis.setLabelFont(F_UI(Font.PLAIN, 12));
         yAxis.setTickLabelFont(F_UI(Font.PLAIN, 11));
         yAxis.setLowerBound(0);
-        yAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits()); // năm: có thể là số thập phân
+        yAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
 
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
         renderer.setItemMargin(0.02);
@@ -880,9 +898,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
     // ================== KẾT LUẬN GỘP ==================
     private String ketLuanPhongDangOTheoThang(int thang, int nam) {
         Map<Integer, Integer> data = tinhSoPhongDangOTheoNgay(thang, nam);
-        if (data == null || data.isEmpty()) {
-            return "Phòng đang ở: Không có dữ liệu.";
-        }
+        if (data == null || data.isEmpty()) return "Phòng đang ở: Không có dữ liệu.";
 
         int min = Collections.min(data.values());
         int max = Collections.max(data.values());
@@ -903,9 +919,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
 
     private String ketLuanPhongDangOTheoNam(int nam) {
         Map<Integer, Double> data = tinhSoPhongDangOTrungBinhTheoThang(nam);
-        if (data == null || data.isEmpty()) {
-            return "Phòng đang ở TB: Không có dữ liệu.";
-        }
+        if (data == null || data.isEmpty()) return "Phòng đang ở TB: Không có dữ liệu.";
 
         double min = Collections.min(data.values());
         double max = Collections.max(data.values());
@@ -926,30 +940,22 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
 
     private String ketLuanLoaiPhongUaChuongTheoThang(int thang, int nam) {
         Map<String, Integer> data = ctPdpDAO.getTongSoNgayOPhongTheoThang(thang, nam);
-        if (data == null || data.isEmpty()) {
-            return "Loại phòng: Không có dữ liệu.";
-        }
+        if (data == null || data.isEmpty()) return "Loại phòng: Không có dữ liệu.";
 
         int max = Collections.max(data.values());
         List<String> loaiMax = new ArrayList<>();
-        for (Map.Entry<String, Integer> e : data.entrySet()) {
-            if (e.getValue() == max) loaiMax.add(e.getKey());
-        }
+        for (Map.Entry<String, Integer> e : data.entrySet()) if (e.getValue() == max) loaiMax.add(e.getKey());
 
         return String.format("Loại phòng ưa chuộng: %s (%d ngày-ở).", String.join(", ", loaiMax), max);
     }
 
     private String ketLuanLoaiPhongUaChuongTheoNam(int nam) {
         Map<String, Integer> data = ctPdpDAO.getTongSoNgayOPhongTheoNam(nam);
-        if (data == null || data.isEmpty()) {
-            return "Loại phòng: Không có dữ liệu.";
-        }
+        if (data == null || data.isEmpty()) return "Loại phòng: Không có dữ liệu.";
 
         int max = Collections.max(data.values());
         List<String> loaiMax = new ArrayList<>();
-        for (Map.Entry<String, Integer> e : data.entrySet()) {
-            if (e.getValue() == max) loaiMax.add(e.getKey());
-        }
+        for (Map.Entry<String, Integer> e : data.entrySet()) if (e.getValue() == max) loaiMax.add(e.getKey());
 
         return String.format("Loại phòng ưa chuộng: %s (%d ngày-ở).", String.join(", ", loaiMax), max);
     }
@@ -964,9 +970,8 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
 
         for (int i = 1; i < list.size(); i++) {
             int curr = list.get(i);
-            if (curr == prev + 1) {
-                prev = curr;
-            } else {
+            if (curr == prev + 1) prev = curr;
+            else {
                 appendRange(sb, start, prev);
                 sb.append(", ");
                 start = prev = curr;
@@ -1001,7 +1006,6 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         return df.format(value) + " VND";
     }
 
-    // ===== STYLE PIE DOANH THU =====
     private void stylePieChartDoanhThu(JFreeChart chart) {
         chart.setBackgroundPaint(COLOR_CARD_BG);
         chart.getTitle().setFont(F_UI(Font.BOLD, 14));
@@ -1011,16 +1015,12 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         plot.setLabelFont(F_UI(Font.PLAIN, 11));
         plot.setBackgroundPaint(COLOR_CARD_BG);
         plot.setOutlineVisible(false);
-
         plot.setSimpleLabels(false);
         plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0} ({2})"));
 
-        if (chart.getLegend() != null) {
-            chart.getLegend().setItemFont(F_UI(Font.PLAIN, 11));
-        }
+        if (chart.getLegend() != null) chart.getLegend().setItemFont(F_UI(Font.PLAIN, 11));
     }
 
-    // ===== STYLE PIE LOẠI PHÒNG =====
     private void stylePieChartLoaiPhong(JFreeChart chart) {
         chart.setBackgroundPaint(COLOR_CARD_BG);
         chart.getTitle().setFont(F_UI(Font.BOLD, 14));
@@ -1032,12 +1032,9 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
         plot.setOutlineVisible(false);
         plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0} ({2})"));
 
-        if (chart.getLegend() != null) {
-            chart.getLegend().setItemFont(F_UI(Font.PLAIN, 11));
-        }
+        if (chart.getLegend() != null) chart.getLegend().setItemFont(F_UI(Font.PLAIN, 11));
     }
 
-    // ===== Test =====
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Thống kê khách sạn Pate");
