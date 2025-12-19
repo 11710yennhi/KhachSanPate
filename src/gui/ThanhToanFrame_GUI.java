@@ -2,7 +2,10 @@ package gui;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.NumberFormatter;
 
 import dao.HoaDon_DAO;
 import dao.KhuyenMai_DAO;
@@ -15,9 +18,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.sql.Date;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 
 public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
 	
@@ -38,12 +43,18 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
     private JLabel lblKM;
     private JLabel lblTongTatCa;
     private JLabel lblTienDua;
-    private JLabel lblTienThoi;
+
     private JButton btnXacNhan;
     
+    private JTextField txtTienDua;
+    private JLabel lblTienThoi;
+    private long tongThanhToan = 0; // set khi tính tổng
+
+
+
+
     private String maPDPglobal;
     public ThanhToanFrame_GUI() {
-    	
     }
     public ThanhToanFrame_GUI(
             String maPDP,
@@ -78,101 +89,228 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         content.setBackground(Color.WHITE);
         content.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        JLabel title = new JLabel("Hóa đơn", SwingConstants.CENTER);
+        /* ================= TITLE ================= */
+        JLabel title = new JLabel("Hóa đơn");
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         content.add(title);
         content.add(Box.createVerticalStrut(20));
 
-        // ===== Thông tin chung =====
+        /* ================= INFO ================= */
         lblMaHD = createInfoLabel("Mã hóa đơn: ---");
         lblTenKH = createInfoLabel("Tên khách hàng: ---");
         lblNgayNhanTra = createInfoLabel("Ngày nhận: ---    Ngày trả: ---");
         lblMaNV = createInfoLabel("Mã nhân viên: ---");
 
-        content.add(lblMaHD);
-        content.add(Box.createVerticalStrut(6));
-        content.add(lblTenKH);
-        content.add(Box.createVerticalStrut(6));
-        content.add(lblNgayNhanTra);
-        content.add(Box.createVerticalStrut(6));
-        content.add(lblMaNV);
-        content.add(Box.createVerticalStrut(18));
+        JPanel infoBox = new JPanel();
+        infoBox.setLayout(new BoxLayout(infoBox, BoxLayout.Y_AXIS));
+        infoBox.setBackground(Color.WHITE);
 
-        // ===== Bảng phòng =====
-        content.add(createSectionLabel("Chi tiết phòng thuê:"));
+        for (JLabel lb : new JLabel[]{lblMaHD, lblTenKH, lblNgayNhanTra, lblMaNV}) {
+            lb.setAlignmentX(Component.LEFT_ALIGNMENT);
+            infoBox.add(lb);
+            infoBox.add(Box.createVerticalStrut(6));
+        }
+
+        JPanel infoWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        infoWrap.setBackground(Color.WHITE);
+        infoWrap.add(infoBox);
+
+        content.add(infoWrap);
+        content.add(Box.createVerticalStrut(20));
+
+        /* ================= TABLE PHÒNG ================= */
+        JLabel lblPhong = createSectionLabel("Chi tiết phòng thuê:");
+        left(lblPhong);
+        lblPhong.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(lblPhong);
+
         tablePhong = createTable(
-                new String[]{"STT", "Mã phòng", "Loại phòng", "Ngày nhận", "Ngày trả","Ngày trả thực","Số đêm", "Giá", "Thành tiền"},
-                new Object[][]{}
+            new String[]{"STT", "Mã phòng", "Loại phòng", "Ngày nhận", "Ngày trả",
+                         "Ngày trả thực", "Số đêm", "Giá", "Thành tiền"},
+            new Object[][]{}
         );
+
         scrollPhong = new JScrollPane(tablePhong);
-        scrollPhong.setPreferredSize(new Dimension(800, 200));
-        scrollPhong.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPhong.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        content.add(scrollPhong);
-        content.add(Box.createVerticalStrut(18));
+        scrollPhong.setPreferredSize(new Dimension(820, 200));
 
-        // ===== Bảng chi phí =====
-        content.add(createSectionLabel("Chi phí phát sinh:"));
+        JPanel phongWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        phongWrap.setBackground(Color.WHITE);
+        phongWrap.add(scrollPhong);
+
+        content.add(phongWrap);
+        content.add(Box.createVerticalStrut(20));
+
+        /* ================= TABLE CHI PHÍ ================= */
+        JLabel lblCP = createSectionLabel("Chi phí phát sinh:");
+        lblCP.setAlignmentX(Component.LEFT_ALIGNMENT);
+        left(lblCP);
+        content.add(lblCP);
+
         tableChiPhi = createTable(
-                new String[]{"STT", "Tên chi phí", "Số lượng", "Giá", "Thành tiền"},
-                new Object[][]{}
+            new String[]{"STT", "Tên chi phí", "Số lượng", "Giá", "Thành tiền"},
+            new Object[][]{}
         );
-        scrollChiPhi = new JScrollPane(tableChiPhi);
-        scrollChiPhi.setPreferredSize(new Dimension(800, 150));
-        scrollChiPhi.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollChiPhi.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        content.add(scrollChiPhi);
-        content.add(Box.createVerticalStrut(18));
 
-        // ===== Tổng tiền =====
+        scrollChiPhi = new JScrollPane(tableChiPhi);
+        scrollChiPhi.setPreferredSize(new Dimension(820, 150));
+
+        JPanel chiPhiWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        chiPhiWrap.setBackground(Color.WHITE);
+        chiPhiWrap.add(scrollChiPhi);
+
+        content.add(chiPhiWrap);
+        content.add(Box.createVerticalStrut(20));
+
+        /* ================= TỔNG TIỀN ================= */
+        lblTong        = createInfoLabel("Tổng tiền phòng: 0");
+        lblTongTien    = createInfoLabel("Chi phí phát sinh: 0");
+        lblKM          = createInfoLabel("Khuyến mãi: 0");
+        lblTongTatCa   = createInfoLabel("Thành tiền: 0");
+        
+        JLabel lblTienDuaTitle = createInfoLabel("Tiền khách đưa:");
+        
+        txtTienDua = new JTextField();
+        txtTienDua.setMaximumSize(new Dimension(240, 32));
+        txtTienDua.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        txtTienDua.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                try {
+                    String raw = txtTienDua.getText().replaceAll("[^0-9]", "");
+                    if (!raw.isEmpty()) {
+                        long v = Long.parseLong(raw);
+                        txtTienDua.setText(dinhDangTien(v).replace(" đ", ""));
+                    }
+                } catch (Exception ignored) {}
+            }
+        });
+
+        
+        txtTienDua.getDocument().addDocumentListener(new DocumentListener() {
+
+            private void tinhTienThoi() {
+                try {
+                    String raw = txtTienDua.getText().replaceAll("[^0-9]", "");
+                    if (raw.isEmpty()) {
+                        lblTienThoi.setText("Tiền thối lại: 0 đ");
+                        return;
+                    }
+
+                    long tienDua = Long.parseLong(raw);
+                    long tienThoi = tienDua - tongThanhToan;
+                    if (tienThoi < 0) tienThoi = 0;
+
+                    lblTienThoi.setText("Tiền thối lại: " + dinhDangTien(tienThoi));
+
+                } catch (Exception ignored) {}
+            }
+
+            @Override public void insertUpdate(DocumentEvent e) { tinhTienThoi(); }
+            @Override public void removeUpdate(DocumentEvent e) { tinhTienThoi(); }
+            @Override public void changedUpdate(DocumentEvent e) {}
+        });
+
+
+        
+
+
+        lblTienThoi = createInfoLabel("Tiền thối lại: 0");
+        
+        cboKhuyenMai = new JComboBox<>();
+        cboPhuongThucTT = new JComboBox<>(new String[]{"Tiền mặt", "Chuyển khoản"});
+      //====================================================
+        
+        Dimension comboSize = new Dimension(240, 32);
+        cboKhuyenMai.setMaximumSize(comboSize);
+        cboPhuongThucTT.setMaximumSize(comboSize);
+
+     // ===== PANEL TỔNG TIỀN =====
         JPanel pAmounts = new JPanel();
         pAmounts.setLayout(new BoxLayout(pAmounts, BoxLayout.Y_AXIS));
         pAmounts.setBackground(Color.WHITE);
 
-        lblTong = createInfoLabel("Tổng: 0");
-        lblTongTien = createInfoLabel("Tổng tiền: 0");
-        lblKM = createInfoLabel("Khuyến mãi: 0");
-        cboKhuyenMai = new JComboBox<>();
-        lblTongTatCa = createInfoLabel("Thành tiền: 0");
-        lblTienDua = createInfoLabel("Tiền khách đưa: 0");
-        lblTienThoi = createInfoLabel("Tiền thối lại: 0");
-        cboPhuongThucTT = new JComboBox<>(new String[]{
-                "Tiền mặt",
-                "Chuyển khoản"
-        });
-        cboPhuongThucTT.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        // Labels
+        lblTong.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblTongTien.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblKM.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblTongTatCa.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblTienThoi.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        Dimension fieldSize = new Dimension(240, 32);
+        cboKhuyenMai.setMaximumSize(fieldSize);
+        cboPhuongThucTT.setMaximumSize(fieldSize);
+        txtTienDua.setMaximumSize(fieldSize);
+
         
+        left(lblTong);
+        left(lblTongTien);
+        left(lblKM);
+        left(cboKhuyenMai);
+        left(lblTongTatCa);
+        left(cboPhuongThucTT);
+        left(lblTienDuaTitle);
+        left(txtTienDua);
+        left(lblTienThoi);
+
         pAmounts.add(lblTong);
+        pAmounts.add(Box.createVerticalStrut(6));
+
         pAmounts.add(lblTongTien);
+        pAmounts.add(Box.createVerticalStrut(6));
+
         pAmounts.add(lblKM);
+        pAmounts.add(Box.createVerticalStrut(6));
+
         pAmounts.add(cboKhuyenMai);
+        pAmounts.add(Box.createVerticalStrut(8));
+
         pAmounts.add(lblTongTatCa);
+        pAmounts.add(Box.createVerticalStrut(10));
+
+        pAmounts.add(createInfoLabel("Phương thức thanh toán:"));
         pAmounts.add(cboPhuongThucTT);
-        pAmounts.add(lblTienDua);
+        pAmounts.add(Box.createVerticalStrut(10));
+
+        pAmounts.add(createInfoLabel("Tiền khách đưa:"));
+        pAmounts.add(txtTienDua);
+        pAmounts.add(Box.createVerticalStrut(6));
+
         pAmounts.add(lblTienThoi);
 
-        content.add(pAmounts);
-        content.add(Box.createVerticalStrut(20));
+        // ===== WRAP CĂN TRÁI =====
+        JPanel amountWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        amountWrap.setBackground(Color.WHITE);
+        amountWrap.add(pAmounts);
 
-        // ===== Nút xác nhận =====
-        JPanel pBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pBtn.setBackground(Color.WHITE);
+        content.add(amountWrap);
+        content.add(Box.createVerticalStrut(25));
+
+        /* ================= BUTTON ================= */
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnPanel.setBackground(Color.WHITE);
+
         btnXacNhan = new JButton("Xác nhận thanh toán");
         btnXacNhan.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        
-        pBtn.add(btnXacNhan);
-        content.add(pBtn);
+        btnPanel.add(btnXacNhan);
+
+        content.add(btnPanel);
 
         root.add(content, BorderLayout.CENTER);
-        add(new JScrollPane(root), BorderLayout.CENTER);
-        
+        add(new JScrollPane(root));
+
         loadKhuyenMai();
-        //===action===========
         btnXacNhan.addActionListener(this);
+
     }
 
-    
+
+    private void left(JComponent c) {
+        c.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+
 
     
     @Override
@@ -379,6 +517,7 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         lblTong.setText("Tổng tiền phòng: " + tongTienPhong);
         lblTongTien.setText("Chi phí phát sinh: " + tongThanhToan);
         
+        capNhatTongTien();
 //        tongTienPhong = tongTienPhong.replaceAll("[^\\d.]", "");
 //        tongThanhToan = tongThanhToan.replaceAll("[^\\d.]", "");
 //
@@ -483,7 +622,7 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
 
         long tienGiam = tinhTienGiam(tongTienPhong);
 
-        long tongThanhToan = tongTienPhong + tongCPPS - tienGiam;
+        tongThanhToan = tongTienPhong + tongCPPS - tienGiam;
         if (tongThanhToan < 0) tongThanhToan = 0;
 
         lblKM.setText("Khuyến mãi: -" + dinhDangTien(tienGiam));
@@ -499,4 +638,5 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         return String.format("%,d đ", tien);
     }
     
+
 }

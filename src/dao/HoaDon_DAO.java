@@ -747,5 +747,145 @@ public class HoaDon_DAO {
 	        return false;
 	    }
 
+
+	    public Object[] getThongTinInHoaDon(String maHoaDon) {
+	        Object[] data = new Object[10];
+
+	        String sql =
+	            "SELECT " +
+	            "hd.maHoaDon, " +
+	            "hd.ngayTao, " +
+	            "nv.hoTen AS tenNhanVien, " +
+	            "kh.hoTen AS tenKhachHang, " +
+	            "kh.soDienThoai, " +
+	            "kh.laNguoiVietNam, " +
+	            "hd.tongTienPhong, " +
+	            "hd.tongTienCPPS, " +
+	            "hd.tongThanhToan, " +
+	            "hd.phuongThucThanhToan " +
+	            "FROM HoaDon hd " +
+	            "JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong " +
+	            "JOIN KhachHang kh ON pdp.maKhachHang = kh.maKhachHang " +
+	            "JOIN NhanVien nv ON pdp.maNhanVien = nv.maNhanVien " +
+	            "WHERE hd.maHoaDon = ?";
+
+	        try (Connection con = ConnectDB.getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setString(1, maHoaDon);
+	            ResultSet rs = ps.executeQuery();
+
+	            if (rs.next()) {
+	                data[0] = rs.getString("maHoaDon");
+	                data[1] = rs.getDate("ngayTao");
+	                data[2] = rs.getString("tenNhanVien");
+	                data[3] = rs.getString("tenKhachHang");
+	                data[4] = rs.getString("soDienThoai");
+	                data[5] = rs.getBoolean("laNguoiVietNam");
+	                data[6] = rs.getDouble("tongTienPhong");
+	                data[7] = rs.getDouble("tongTienCPPS");
+	                data[8] = rs.getDouble("tongThanhToan");
+	                data[9] = rs.getString("phuongThucThanhToan");
+	            }
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+
+	        return data;
+	    }
+	    public String taoNoiDungHoaDon(String maHD) {
+	        StringBuilder sb = new StringBuilder();
+
+	        Object[] info = getThongTinInHoaDon(maHD);
+
+	        // Trường hợp không tìm thấy hóa đơn
+	        if (info == null || info[0] == null) {
+	            return "Không tìm thấy thông tin hóa đơn!";
+	        }
+
+	        String maHoaDon = String.valueOf(info[0]);
+	        String ngayTao = String.valueOf(info[1]);
+	        String tenNhanVien = String.valueOf(info[2]);
+	        String tenKhachHang = String.valueOf(info[3]);
+	        String sdt = String.valueOf(info[4]);
+
+	        double tienPhong = (double) info[6];
+	        double chiPhiPS = (double) info[7];
+	        double tongThanhToan = (double) info[8];
+
+	        String phuongThucTT = String.valueOf(info[9]);
+
+	        sb.append("        🐾 KHÁCH SẠN PATE 🐾\n");
+	        sb.append("12 Nguyễn Văn Bảo, Gò Vấp\n");
+	        sb.append("----------------------------------\n");
+
+	        sb.append("Mã hóa đơn: ").append(maHoaDon).append("\n");
+	        sb.append("Ngày lập: ").append(ngayTao).append("\n");
+	        sb.append("Nhân viên: ").append(tenNhanVien).append("\n");
+	        sb.append("Khách hàng: ").append(tenKhachHang).append("\n");
+	        sb.append("SĐT: ").append(sdt).append("\n");
+
+	        sb.append("----------------------------------\n");
+
+	        sb.append("Tiền phòng: ")
+	          .append(String.format("%,.0f đ", tienPhong)).append("\n");
+
+	        sb.append("Chi phí PS: ")
+	          .append(String.format("%,.0f đ", chiPhiPS)).append("\n");
+
+	        sb.append("TỔNG THANH TOÁN: ")
+	          .append(String.format("%,.0f đ", tongThanhToan)).append("\n");
+
+	        sb.append("----------------------------------\n");
+
+	        sb.append("Thanh toán: ").append(phuongThucTT).append("\n");
+	        sb.append("Cảm ơn quý khách ❤️");
+
+	        return sb.toString();
+	    }
+
 	    
+	    
+	    public Object[] xuLyThongTinHoaDonTrongReport(String maHD) {
+
+	    	    String sql = """
+	    	        SELECT 
+	    	            hd.maHoaDon,
+	    	            hd.ngayTao,
+	    	            nv.hoTen        AS tenNhanVien,
+	    	            km.maKhuyenMai  AS maKhuyenMai
+	    	        FROM HoaDon hd
+	    	        JOIN PhieuDatPhong pdp 
+	    	            ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+	    	        JOIN NhanVien nv 
+	    	            ON pdp.maNhanVien = nv.maNhanVien
+	    	        LEFT JOIN KhuyenMai km 
+	    	            ON hd.maKhuyenMai = km.maKhuyenMai
+	    	        WHERE hd.maHoaDon = ?
+	    	    """;
+
+	    	    try (Connection con = ConnectDB.getConnection();
+	    	         PreparedStatement ps = con.prepareStatement(sql)) {
+
+	    	        ps.setString(1, maHD);
+	    	        ResultSet rs = ps.executeQuery();
+
+	    	        if (rs.next()) {
+	    	            return new Object[]{
+	    	                rs.getString("maHoaDon"),     // [0]
+	    	                rs.getDate("ngayTao"),        // [1]
+	    	                rs.getString("tenNhanVien"),  // [2]
+	    	                rs.getString("maKhuyenMai")   // [3]
+	    	            };
+	    	        }
+
+	    	    } catch (Exception e) {
+	    	        e.printStackTrace();
+	    	    }
+
+	    	    return null;
+	    	}
+
+
 }
