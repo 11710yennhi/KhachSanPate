@@ -13,6 +13,70 @@ import entity.TaiKhoan;
 public class TaiKhoan_DAO {
 	public TaiKhoan_DAO() {
 	}
+	public NhanVien getNhanVienTheoMa(String maNV) {
+	    NhanVien nv = null;
+	    try {
+	        Connection con = ConnectDB.getInstance().getConnection();
+	        String sql = "SELECT * FROM NhanVien WHERE maNhanVien = ?";
+	        PreparedStatement ps = con.prepareStatement(sql);
+	        ps.setString(1, maNV);
+
+	        ResultSet rs = ps.executeQuery();
+	        if (rs.next()) {
+	            nv = new NhanVien(
+	                rs.getString("maNhanVien"),
+	                rs.getString("hoTen"),
+	                rs.getBoolean("gioiTinh"),
+	                rs.getDate("ngaySinh") != null ? rs.getDate("ngaySinh").toLocalDate() : null,
+	                rs.getString("soDienThoai"),
+	                rs.getString("email"),
+	                rs.getBoolean("chucVu"),
+	                rs.getDate("ngayTao") != null ? rs.getDate("ngayTao").toLocalDate() : null,
+	                rs.getBoolean("trangThai")
+	            );
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return nv;
+	}
+
+	public TaiKhoan getTaiKhoanTheoMaNV(String maNV) {
+	    TaiKhoan tk = null;
+	    try {
+	        Connection con = ConnectDB.getInstance().getConnection();
+	        String sql = "SELECT * FROM TaiKhoan WHERE maNhanVien = ?";
+	        PreparedStatement ps = con.prepareStatement(sql);
+	        ps.setString(1, maNV);
+	        ResultSet rs = ps.executeQuery();
+
+	        if (rs.next()) {
+	            tk = new TaiKhoan(
+	                rs.getString("maNhanVien"),
+	                rs.getString("matKhau")
+	            );
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return tk;
+	}
+
+	public boolean doiMatKhau(String maNV, String matKhauMoi) {
+	    try {
+	        Connection con = ConnectDB.getInstance().getConnection();
+	        String sql = "UPDATE TaiKhoan SET matKhau = ? WHERE maNhanVien = ?";
+	        PreparedStatement ps = con.prepareStatement(sql);
+	        ps.setString(1, matKhauMoi);
+	        ps.setString(2, maNV);
+
+	        return ps.executeUpdate() > 0;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return false;
+	}
+
 	public ArrayList<TaiKhoan> docTaiKhoanVaMatKhau() {
 	    ArrayList<TaiKhoan> dsTaiKhoan = new ArrayList<>();
 	    try {
@@ -47,21 +111,7 @@ public class TaiKhoan_DAO {
 	        return false;
 	    }
 	}
-	public boolean doiMatKhau(String maNV, String matKhauMoi) {
-	    try {
-	        Connection con = ConnectDB.getInstance().getConnection();
-	        String sql = "UPDATE TaiKhoan SET matKhau = ? WHERE maNhanVien = ?";
-	        PreparedStatement stmt = con.prepareStatement(sql);
-	        stmt.setString(1, matKhauMoi);
-	        stmt.setString(2, maNV);
 
-	        return stmt.executeUpdate() > 0;
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return false;
-	    }
-	}
-	
 	public boolean kiemTraDangNhap(String maNhanVien, String matKhau) {
 	    try {
 	        Connection con = ConnectDB.getInstance().getConnection();
@@ -110,5 +160,5 @@ public class TaiKhoan_DAO {
 	    }
 	    return false;
 	}
-
+	
 }

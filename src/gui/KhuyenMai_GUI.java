@@ -3,6 +3,7 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,6 +12,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
 
 import com.toedter.calendar.JDateChooser;
 
@@ -31,10 +33,10 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
     private final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 14);
 
     private JTextField txtMaKM, txtTenKM, txtNgayTao, txtSoTienApDung,
-            txtGiaTriGiam, txtGiamToiDa;
-    private JComboBox<String> cboLoaiKM;
+            txtGiaTriGiam, txtGiamToiDa, txtTimTheoMa;
+    private JComboBox<String> cboLoaiKM, cboTimLoaiKM;
     private JDateChooser dateNgayBatDau, dateNgayKetThuc;
-    private JButton btnThem, btnluu, btnTimKiem;
+    private JButton btnThem, btnluu, btnTimKiem, btnTatCa, btnTimLoaiKM, btnConHieuLuc;
     private JTable table;
     private DefaultTableModel modelKM;
 
@@ -153,16 +155,32 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 
 
         // ===== BUTTON =====
+        btnTatCa = createButton("Tất cả", NAVY, Color.WHITE);
+        btnConHieuLuc = createButton("Còn hiệu lực", NAVY, Color.WHITE);
         btnThem = createButton("Thêm", GOLD, NAVY_DARK);
         btnluu = createButton("Lưu", NAVY, Color.WHITE);
-        btnTimKiem = createButton("Tìm kiếm", new Color(230,236,244), NAVY_DARK);
-
+        
+        JLabel lblTimTheoMa = new JLabel("Tìm mã:");
+        txtTimTheoMa = new JTextField(25);
+        txtTimTheoMa.setPreferredSize(new Dimension(25, 30));
+        btnTimKiem = createButton("Tìm",new Color(230,236,244), NAVY_DARK);
+        
+        cboTimLoaiKM = new JComboBox<>(new String[]{"Tiền", "%"});
+        styleCombo(cboTimLoaiKM);
+        btnTimLoaiKM = createButton("Tìm", new Color(230,236,244), NAVY_DARK);
+        
         JPanel pBtn = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         pBtn.setOpaque(false);
+        pBtn.add(btnTatCa);
+        pBtn.add(btnConHieuLuc);
         pBtn.add(btnThem);
         pBtn.add(btnluu);
+        pBtn.add(lblTimTheoMa);
+        pBtn.add(txtTimTheoMa);
         pBtn.add(btnTimKiem);
-
+        pBtn.add(cboTimLoaiKM);
+        pBtn.add(btnTimLoaiKM);
+        
         card.add(pBtn, BorderLayout.SOUTH);
 
         // ===== TABLE =====
@@ -185,10 +203,13 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
         add(center, BorderLayout.CENTER);
 
         // ===== EVENT =====
+        btnTatCa.addActionListener(this);
         btnThem.addActionListener(this);
         btnluu.addActionListener(this);
         btnTimKiem.addActionListener(this);
-
+        btnConHieuLuc.addActionListener(this);
+        btnTimLoaiKM.addActionListener(this);
+        
         generateMaKhuyenMai();
     }
     //============ hỗ trợ giao diện==================
@@ -407,6 +428,7 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object o = e.getSource();
+		
 	    if (o.equals(btnThem)) {
 	    	generateMaKhuyenMai();
 	        KhuyenMai km = getFormData();
@@ -432,6 +454,25 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
 	            JOptionPane.showMessageDialog(null, "Cập nhật thất bại!");
 	        }
 	    }
+	    else if (o.equals(btnConHieuLuc)) {
+	    	hienThiKhuyenMaiConHieuLuc();
+	    	apDungLocConHieuLucVaLoai();
+	    }
+	    else if (o.equals(btnTimKiem)) {
+	    	if (!txtTimTheoMa.getText().trim().isEmpty()) {
+	            timKhuyenMaiTheoMa();
+	        }
+	    }
+	    else if (o.equals(btnTimLoaiKM)) {
+	    	apDungLocConHieuLucVaLoai();
+	    }
+	    else if (o.equals(btnTatCa)) {
+	    	if (table.getRowSorter() != null) {
+	            ((TableRowSorter<?>) table.getRowSorter()).setRowFilter(null);
+	        }
+	    }
+	    
+	    
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
@@ -521,6 +562,86 @@ public class KhuyenMai_GUI extends JPanel implements ActionListener, MouseListen
         h.setBackground(NAVY_DARK);
         h.setForeground(Color.WHITE);
     }
+    private void hienThiKhuyenMaiConHieuLuc() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0); // clear table
+
+        List<KhuyenMai> ds = kmDAO.getKhuyenMaiConHieuLuc();
+
+        int stt = 1;
+        for (KhuyenMai km : ds) {
+            model.addRow(new Object[]{
+                stt++,
+                km.getMaKhuyenMai(),
+                km.getTenKhuyenMai(),
+                km.getNgayTao(),
+                km.getLoaiKhuyenMai(),
+                km.getSoTienApDung(),
+                km.getGiaTriGiam(),
+                km.getGiamToiDa(),
+                km.getNgayBatDau(),
+                km.getNgayKetThuc()
+            });
+        }
+    }
+    
+    private void timKhuyenMaiTheoMa() {
+        String maKM = txtTimTheoMa.getText().trim();
+
+        if (maKM.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Vui lòng nhập mã khuyến mãi!",
+                    "Thông báo",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        model.setRowCount(0); // clear table
+
+        KhuyenMai km = kmDAO.getKhuyenMaiTheoMa(maKM);
+
+        if (km == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Không tìm thấy khuyến mãi có mã: " + maKM,
+                    "Kết quả",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        model.addRow(new Object[]{
+            1,
+            km.getMaKhuyenMai(),
+            km.getTenKhuyenMai(),
+            km.getNgayTao(),
+            km.getLoaiKhuyenMai(),
+            km.getSoTienApDung(),
+            km.getGiaTriGiam(),
+            km.getGiamToiDa(),
+            km.getNgayBatDau(),
+            km.getNgayKetThuc()
+        });
+    }
+    private void apDungLocConHieuLucVaLoai() {
+
+        TableRowSorter<?> sorter =
+                (TableRowSorter<?>) table.getRowSorter();
+
+        if (sorter == null) {
+            sorter = new TableRowSorter<>(modelKM);
+            table.setRowSorter(sorter);
+        }
+
+        List<RowFilter<Object, Object>> filters = new ArrayList<>();
+
+        // lọc theo loại (cột "Loại" index = 4)
+        String loai = cboTimLoaiKM.getSelectedItem().toString();
+        filters.add(RowFilter.regexFilter("^" + loai + "$", 4));
+
+        sorter.setRowFilter(RowFilter.andFilter(filters));
+    }
+
+
  // ===== CHẠY THỬ =====
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

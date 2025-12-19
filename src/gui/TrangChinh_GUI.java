@@ -130,7 +130,7 @@ public class TrangChinh_GUI extends JFrame {
         pnlContent.add(new KhachHang_GUI(), "Khách Hàng");
         pnlContent.add(new NhanVien_GUI(), "Nhân Viên");
         pnlContent.add(new KhuyenMai_GUI(), "Khuyến Mãi");
-//        pnlContent.add(new TaiKhoan_GUI(maNV), "Tài Khoản");
+        pnlContent.add(new TaiKhoan_GUI(maNV), "Tài Khoản");
         pnlContent.add(new HuongDanSuDung_GUI(), "Hướng Dẫn Sử Dụng");
         
 

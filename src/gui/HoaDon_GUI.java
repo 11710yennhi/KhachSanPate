@@ -42,13 +42,15 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
 	private static final Color BORDER = new Color(220, 227, 235);
 	private static final Color LIGHT_BG = new Color(245, 247, 250);
 	private static final String FONT_UI = "Segoe UI";
-
+	
+    private final Font FONT = new Font("Segoe UI", Font.PLAIN, 14);
+    private final Font FONT_BOLD = new Font("Segoe UI", Font.BOLD, 14);
     private JTable tblHoaDon, tblChiTietCTPT, tblChiTietCPPS;
     private DefaultTableModel modelHD, modelCTPT, modelCTCPPS;
 
     private JTextField txtTim,txtTimTheoPDP, txtTongTienPhong, txtTongTienCPPS,txtTongTien,txtTongThanhToan;
     private JDateChooser dateNgayBatDau, dateNgayKetThuc;
-    private JButton btTim,btTimTheoPDP, btLoc, btHomNay, btTatCa;
+    private JButton btTim,btTimTheoPDP, btLoc, btHomNay, btTatCa,btnInHoaDon;
 
     private JLabel lbMaHD, lbNgay, lbPhong, lbNhanVien;
 
@@ -57,7 +59,6 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
     private HoaDon_DAO hdDAO;
     
     public HoaDon_GUI() {
-
         setLayout(new BorderLayout());
         setFont(new Font("Arial", Font.PLAIN, 13));
 
@@ -85,10 +86,10 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         dateNgayBatDau = createDateField();
         dateNgayKetThuc = createDateField();
 
-        btHomNay = new JButton("Hôm nay");
-        btTatCa = new JButton("Tất cả");
-        btLoc = new JButton("Lọc");
-
+        btHomNay = createButton("Hôm nay", NAVY, Color.WHITE);
+        btTatCa = createButton("Tất cả", NAVY, Color.WHITE);
+        btLoc = createButton("Lọc", NAVY, Color.WHITE);
+        
         pnTop.add(btTatCa);
         pnTop.add(btHomNay);
         pnTop.add(new JLabel("Từ ngày:"));
@@ -100,13 +101,13 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         JPanel pnBot = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnBot.setBackground(khungTrenHD);
         txtTim = new JTextField(10);
-        btTim = new JButton("Tìm");
+        btTim = createButton("Tìm", NAVY, Color.WHITE);
         pnBot.add(new JLabel("Tìm mã HD:"));
         pnBot.add(txtTim);
         pnBot.add(btTim);
         
         txtTimTheoPDP= new JTextField(10);
-        btTimTheoPDP = new JButton("Tìm");
+        btTimTheoPDP = createButton("Tìm", NAVY, Color.WHITE);
         pnBot.add(new JLabel("Tìm mã PDP:"));
         pnBot.add(txtTimTheoPDP);
         pnBot.add(btTimTheoPDP);
@@ -259,8 +260,14 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         styleField(txtTongTien);
         styleField(txtTongThanhToan);
         
-        add(pnCT, BorderLayout.EAST);
+        btnInHoaDon = createButton("In hóa đơn", NAVY_DARK, Color.WHITE);
+        JPanel pnIn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnIn.setBackground(khungCTHD);
+        pnIn.add(btnInHoaDon);
+        pnCT.add(Box.createVerticalStrut(10));
+        pnCT.add(pnIn);
 
+        add(pnCT, BorderLayout.EAST);
         //====================== LOAD DỮ LIỆU ============================
         loadHoaDon();
 
@@ -271,6 +278,7 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         btTatCa.addActionListener(this);
         btHomNay.addActionListener(this);
         btLoc.addActionListener(this);
+        btnInHoaDon.addActionListener(this);
     }
 
 //============Load bảng hóa đơn===============
@@ -457,7 +465,38 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
     	    ResultSet rs = hdDAO.timHoaDonTheoMaPDP(ma);
     	    loadHoaDonTuResultSet(rs);
     	}
+    	else if (o.equals(btnInHoaDon)) {
 
+    	    int row = tblHoaDon.getSelectedRow();
+
+    	    // 1. Chưa chọn dòng nào
+    	    if (row == -1) {
+    	        JOptionPane.showMessageDialog(this,
+    	            "Vui lòng chọn hóa đơn cần in!");
+    	        return;
+    	    }
+
+    	    // 2. Lấy dữ liệu từ dòng đang chọn
+    	    String maHD  = tblHoaDon.getValueAt(row, 1).toString();
+    	    String maPDP = tblHoaDon.getValueAt(row, 2).toString();
+    	    String tongTT = tblHoaDon.getValueAt(row, 5).toString();
+
+    	    // 3. Mở dialog in hóa đơn
+    	    HoaDon_ReportDialog dialog = new HoaDon_ReportDialog(
+    	        maHD,
+    	        maPDP,
+    	        modelCTPT,
+    	        modelCTCPPS,
+    	        txtTongTienPhong.getText(),
+    	        txtTongTienCPPS.getText(),
+    	        txtTongTien.getText(),
+    	        tongTT
+    	    );
+
+    	    dialog.setVisible(true);
+    	}
+
+    	
     }
 
     @Override public void mouseClicked(MouseEvent e) { 
@@ -486,6 +525,7 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         txtTongTienCPPS.setText(dinhDangTien(tongCPPS));
         txtTongTien.setText(dinhDangTien(tongTien));
         txtTongThanhToan.setText(dinhDangTien(tongThanhToan));
+
     	}
     @Override public void mousePressed(MouseEvent e) {}
     @Override public void mouseReleased(MouseEvent e) {}
@@ -554,7 +594,16 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         for (int i = 0; i < t.getColumnCount(); i++)
             t.getColumnModel().getColumn(i).setCellRenderer(r);
     }
-
+    private JButton createButton(String text, Color bg, Color fg) {
+        JButton b = new JButton(text);
+        b.setFont(FONT_BOLD);
+        b.setBackground(bg);
+        b.setForeground(fg);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setBorder(new EmptyBorder(10,18,10,18));
+        return b;
+    }
  // ===== CHẠY THỬ =====
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
