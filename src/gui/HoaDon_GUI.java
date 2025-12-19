@@ -269,7 +269,7 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
 
         add(pnCT, BorderLayout.EAST);
         //====================== LOAD DỮ LIỆU ============================
-        loadHoaDon();
+//        loadHoaDon();
 
         //====================== SỰ KIỆN ============================
         tblHoaDon.addMouseListener(this);
