@@ -968,8 +968,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
             dateNgayTra.setDate(null);
             return false;
         }
-
-        //
         long khoangCach = ChronoUnit.DAYS.between(nhan, tra);
         if (khoangCach > 31) {
             JOptionPane.showMessageDialog(this,
@@ -2124,6 +2122,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    lblTongTatCa.setText("Tổng tiền: 0");
 	    txtTienCoc.setText("0");
 	    txtTienCocMoi.setText("0");
+	    txtTienCocCu.setText("0");
 	    
 	    cboTrangThai.setSelectedIndex(0);
 	}

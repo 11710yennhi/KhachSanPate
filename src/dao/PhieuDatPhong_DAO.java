@@ -173,5 +173,40 @@ public class PhieuDatPhong_DAO {
 
         return false;
     }
+    public List<PhieuDatPhong> getPhieuDatPhong2ThangGanNhat() {
+        List<PhieuDatPhong> dsPhieu = new ArrayList<>();
+
+        String sql = """
+            SELECT *
+            FROM PhieuDatPhong
+            WHERE ngayTao >= DATEADD(MONTH, -2, GETDATE())
+              AND trangThai NOT IN (N'Đã hủy', N'Hoàn thành')
+            ORDER BY ngayTao DESC
+        """;
+
+        try (Connection con = ConnectDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                PhieuDatPhong p = new PhieuDatPhong(
+                    rs.getString("maPhieuDatPhong"),
+                    new KhachHang(rs.getString("maKhachHang")),
+                    new NhanVien(rs.getString("maNhanVien")),
+                    rs.getDate("ngayTao").toLocalDate(),
+                    rs.getString("trangThai"),
+                    rs.getInt("soTreEm"),
+                    rs.getInt("soNguoiLon")
+                );
+                dsPhieu.add(p);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return dsPhieu;
+    }
+
 
 }

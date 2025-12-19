@@ -716,5 +716,36 @@ public class HoaDon_DAO {
 	        }
 	        return thangMin;
 	    }
+	    public String taoMaHoaDonMoi() {
+	        LocalDate now = LocalDate.now();
+	        String ngay = now.format(java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"));
+
+	        String maCu = getMaHoaDonCuoiTrongNgay(ngay);
+
+	        int soMoi = 1;
+
+	        if (maCu != null && maCu.matches("HD\\d{8}\\d{3}")) {
+	            String sttCu = maCu.substring(maCu.length() - 3);
+	            soMoi = Integer.parseInt(sttCu) + 1;
+	        }
+
+	        return "HD" + ngay + String.format("%03d", soMoi);
+	    }
+	    public boolean daCoHoaDon(String maPDP) {
+	        String sql = "SELECT COUNT(*) FROM HoaDon WHERE maPhieuDatPhong = ?";
+	        try (Connection con = ConnectDB.getConnection();
+	             PreparedStatement ps = con.prepareStatement(sql)) {
+
+	            ps.setString(1, maPDP);
+	            ResultSet rs = ps.executeQuery();
+	            if (rs.next()) {
+	                return rs.getInt(1) > 0;
+	            }
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	        }
+	        return false;
+	    }
+
 	    
 }
