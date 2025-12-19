@@ -28,6 +28,7 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
     private List<PhieuDatPhong> dsPhieu;
     private KhachHang_DAO khd;
     private String maNV;
+    private JButton btnLocSDT,btnLocMa,btnLocTrangThai,btnReset;
 
     public DanhSachPhieuDatPhong_GUI(String manv) {
         phieuDAO = new PhieuDatPhong_DAO();
@@ -70,37 +71,31 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         Color mauHover = new Color(45, 85, 120);
 
   
-        JButton btnLocSDT = new JButton("🔍");
+         btnLocSDT = new JButton("🔍"); 
         btnLocSDT.setBackground(mauXanhDam);
         btnLocSDT.setForeground(Color.WHITE);
 
     
-        JButton btnLocMa = new JButton("🔍");
+         btnLocMa = new JButton("🔍");
         btnLocMa.setBackground(mauXanhDam);
         btnLocMa.setForeground(Color.WHITE);
 
     
-        JButton btnLocTrangThai = new JButton("🔍");
+         btnLocTrangThai = new JButton("🔍");
         btnLocTrangThai.setBackground(mauVangDong);
         btnLocTrangThai.setForeground(Color.BLACK);
 
  
-        JButton btnReset = new JButton("♻️");
+         btnReset = new JButton("♻️");
         btnReset.setBackground(new Color(102, 187, 106));
         btnReset.setForeground(Color.WHITE);
 
 
 
-        btnLocSDT.addActionListener(e -> locTheoSDT());
-        btnLocMa.addActionListener(e -> locTheoMa());
-        btnLocTrangThai.addActionListener(e -> locTheoTrangThai());
-        btnReset.addActionListener(e -> {
-//            txtSDT.setText("");
-//            txtMaPhieu.setText("");
-            taiDuLieu();
-            cbbLoc.setSelectedIndex(0);
-            locTheoTrangThai();
-        });
+        btnLocSDT.addActionListener(this);
+        btnLocMa.addActionListener(this);
+        btnLocTrangThai.addActionListener(this);
+        btnReset.addActionListener(this);
 
 
         // ======== SẮP XẾP 1 HÀNG ========
@@ -298,11 +293,13 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
      * Xác định trạng thái của phiếu dựa trên toàn bộ dsChiTiet (chỉ dùng ngayNhanThuc và ngayTra)
      */
     private String xacDinhTrangThai(PhieuDatPhong p) {
-    	List<ChiTietPhieuDatPhong> ds= ctDAO.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
-        if (p == null || ds == null ||ds.isEmpty()) return "Không có chi tiết";
+        if (p == null || p.getDsChiTiet() == null || p.getDsChiTiet().isEmpty())
+            return "Không có chi tiết";
 
+        List<ChiTietPhieuDatPhong> ds = p.getDsChiTiet();
         LocalDate today = LocalDate.now();
-        
+        String trangThai = p.getTrangThai();
+
         Optional<LocalDate> minNhan = ds.stream()
                 .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
                 .filter(d -> d != null)
@@ -312,9 +309,10 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
                 .map(ChiTietPhieuDatPhong::getNgayTraThuc)
                 .filter(d -> d != null)
                 .max(LocalDate::compareTo);
-        String trangThai = p.getTrangThai();
+
         LocalDate nhanSomNhat = minNhan.orElse(null);
         LocalDate traTreNhat = maxTra.orElse(null);
+
         if ("Đã hủy".equals(trangThai)) return "Đã hủy";
 
         if ("Đang ở".equals(trangThai)) {
@@ -335,7 +333,6 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         }
 
         return "Hoàn thành";
-
     }
 
     /**
@@ -419,17 +416,22 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        hienThiDanhSach(timKiem());
-    }
+        Object src = e.getSource();
 
-    // Helpers
-    public void forceReloadFromDAO() {
-//        taiDuLieu();
-//        hienThiDanhSach(dsPhieu);
-    	taiDuLieu();
-    	cbbLoc.setSelectedIndex(0);
-    	locTheoTrangThai();
+        if (src == btnLocSDT) {
+            locTheoSDT();
 
+        } else if (src == btnLocMa) {
+            locTheoMa();
+
+        } else if (src == btnLocTrangThai) {
+            locTheoTrangThai();
+
+        } else if (src == btnReset) {
+            taiDuLieu();
+            cbbLoc.setSelectedIndex(0);
+            locTheoTrangThai();
+        }
     }
 
     public List<PhieuDatPhong> getDsPhieuHienTai() {

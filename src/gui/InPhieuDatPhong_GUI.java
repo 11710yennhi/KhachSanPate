@@ -12,7 +12,7 @@ import dao.PhieuDatPhong_DAO;
 import dao.Phong_DAO;
 import entity.*;
 
-public class InPhieuDatPhong_GUI extends JFrame implements ActionListener {
+public class InPhieuDatPhong_GUI extends JFrame {
 
     private DefaultTableModel modelPhong;
 
@@ -26,7 +26,7 @@ public class InPhieuDatPhong_GUI extends JFrame implements ActionListener {
     private KhachHang_DAO khd;
     private Phong_DAO pd;
 
-    private JLabel lblTongTien, lblTienCoc, lblTienCocMoi;
+    private JLabel lblTongTien, lblTienCoc, lblTienCocMoi, lblTienCocCu,lblTienCocPhaiTT;
 
     public InPhieuDatPhong_GUI(
             PhieuDatPhong phieu,
@@ -35,7 +35,7 @@ public class InPhieuDatPhong_GUI extends JFrame implements ActionListener {
             String maNV,
             String trangThai,
             PhieuDatPhong p,
-            double tienCocMoi) {
+            double tienCocMoi, double tienCocCu) {
 
         this.phieu = phieu;
         this.modelPhong = modelPhong;
@@ -150,28 +150,26 @@ public class InPhieuDatPhong_GUI extends JFrame implements ActionListener {
         JPanel money = new JPanel(new GridLayout(3, 1));
         money.setOpaque(false);
 
-        lblTongTien = new JLabel("Tổng tiền: " + String.format("%,.0f VNĐ", p.getTongTien()));
+        lblTongTien = new JLabel("Tổng tiền phòng: " + String.format("%,.0f VNĐ", p.getTongTien()));
         lblTienCoc = new JLabel("Tổng tiền cọc: " + String.format("%,.0f VNĐ", p.getTienCoc()));
         lblTienCocMoi = new JLabel("Tiền cọc mới: " + String.format("%,.0f VNĐ", tienCocMoi));
+        lblTienCocCu= new JLabel("Tiền cọc cũ: " + String.format("%,.0f VNĐ", tienCocCu));
+        lblTienCocPhaiTT= new JLabel("Tiền cọc phải thanh toán: " + String.format("%,.0f VNĐ", (p.getTienCoc()-tienCocCu)));
+        
 
         lblTongTien.setFont(new Font("SansSerif", Font.BOLD, 15));
 
         money.add(lblTongTien);
         money.add(lblTienCoc);
         money.add(lblTienCocMoi);
-
+        money.add(lblTienCocCu);
+        money.add(lblTienCocPhaiTT);
         main.add(money);
 
         main.add(Box.createVerticalStrut(20));
 
-        // ===== KHÔNG CÓ NÚT XÁC NHẬN =====
-        // đã bỏ hoàn toàn phần button
-
         setVisible(true);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        // Không còn xử lý gì vì đã bỏ nút
-    }
+  
 }

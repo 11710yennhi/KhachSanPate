@@ -43,15 +43,15 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
    
     // ====== BIẾN TOÀN CỤC ======
     private JDateChooser dateNgayNhan, dateNgayTra;
-    private JTextField txtSDT, txtTenKH, txtNgayTao, txtTienCoc, txtNV, txtMKH, txtMPDP, txtNguoiLon, txtTreEm, txtThucTe, txtSoNguoiThuc,txtTienCocMoi;
+    private JTextField txtSDT, txtTenKH, txtNgayTao, txtTienCoc, txtNV, txtMKH, txtMPDP, txtNguoiLon, txtTreEm, txtThucTe, txtSoNguoiThuc,txtTienCocMoi, txtTienCocCu;
     private JCheckBox chkVN;
     private DefaultTableModel dlp, dlctps;
     private JComboBox<String> cboTrangThai, cboChiPhi;
     private JButton btnInPhieu, btnXoa, btnThemCP, btnXoaCP, btnLuu, btnHuy, btnTT, btnXR, btnCapNhat, btnXNDP, btnTPS, btnGoiY;
     private JTable tblPhong, tblChiPhi;
-    private JLabel lblTongTien, lblTongCP, lblTongTatCa,lblThongBao;
+    private JLabel lblTongTien, lblTongCP, lblTongTatCa,lblThongBao, lblTienCocCu;
     private Color mauXanhDam, mauVangDong;
-    private final Color MAU_PHONG_DA_CHON = new Color(214, 234, 248);
+    private final Color MAU_PHONG_DA_CHON =  new Color(214, 234, 248);
     private LoaiPhong_DAO dslp;
     private Phong_DAO dsp;
     private ChiTietPhieuDatPhong_DAO dsctpdp;
@@ -100,6 +100,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         txtNguoiLon= new JTextField();
         txtTreEm= new JTextField();
         txtThucTe = new JTextField("0");
+        txtTienCocCu= new JTextField("0");
+	    txtTienCocCu.setEditable(false);
+
 
         // ====== CHIA KHUNG CHÍNH ======
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -218,6 +221,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         txtTienCocMoi.setEditable(getFocusTraversalKeysEnabled());
         txtTienCocMoi.setPreferredSize(inputSize);
         pThongTin.add(txtTienCocMoi, gbc);
+        txtTienCocMoi.setEditable(false);
 
 
         // HÀNG 4 – Trạng thái + Nút xác nhận đặt phòng
@@ -266,7 +270,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         btnXoa = new JButton("Xóa");
         lblTongTien = new JLabel("Tổng tiền: 0 VNĐ");
         btnXNDP= new JButton("Tạo Phiếu");
-        btnTPS= new JButton("Trả phòng");
+        btnTPS= new JButton("Trả phòng/hủy đặt phòng");
+        txtTienCocCu= new JTextField("0");
+        txtTienCocCu.setPreferredSize(new Dimension(100, 27));
+        lblTienCocCu= new JLabel("Tiền cọc cũ:");
+        pPhongBtn.add(lblTienCocCu);
+        pPhongBtn.add(txtTienCocCu);
         pPhongBtn.add(btnXNDP);
         pPhongBtn.add(btnTPS);
         pPhongBtn.add(btnXoa);
@@ -383,23 +392,27 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		    int soTreEmVL = (txtTreEm.getText().trim().isEmpty()
                     || txtTreEm.getText().trim().equals("0"))? 1 : Integer.parseInt(txtTreEm.getText().trim());
 
-		    PhieuDatPhong phieuTam = new PhieuDatPhong(
-		       taoMaPhieuDatPhongTuDong(),
-		        checkKH,
-		        new NhanVien(txtNV.getText()),
-		        LocalDate.now(),
-		        cboTrangThai.getSelectedItem().toString(),
-		        soNguoiLonVL,
-		        soTreEmVL
-		    );
+//		    PhieuDatPhong phieuTam = new PhieuDatPhong(
+//		       taoMaPhieuDatPhongTuDong(),
+//		        checkKH,
+//		        new NhanVien(txtNV.getText()),
+//		        LocalDate.now(),
+//		        cboTrangThai.getSelectedItem().toString(),
+//		        soNguoiLonVL,
+//		        soTreEmVL
+//		    );
 		    int luaChon = JOptionPane.showConfirmDialog( null, "Bấm Yes để xác nhận tạo phiếu", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
-		    if (luaChon == JOptionPane.YES_OPTION) {
+		    if (luaChon == JOptionPane.YES_OPTION) {		    	
+		    	double tienCocCu= Double.parseDouble(txtTienCocCu.getText());
 		    	xuLyNutInPhieu();
+		    	PhieuDatPhong phieuTam= pdp.timPhieuDatPhongTheoMa(txtMPDP.getText());
 		    	 new InPhieuDatPhong_GUI( phieuTam, (DefaultTableModel) tblPhong.getModel(), checkKH, txtNV.getText(),
-				 cboTrangThai.getSelectedItem().toString(), doiTuongTongTienPhong(), Double.parseDouble(txtTienCocMoi.getText()));
+				 cboTrangThai.getSelectedItem().toString(), doiTuongTongTienPhong(), Double.parseDouble(txtTienCocMoi.getText()),tienCocCu);
 		    	txtMPDP.setText(phieuTam.getMaPhieuDatPhong());
 		    	txtMKH.setText(phieuTam.getKhachHang().getMaKhachHang());
 				 getDSLP();
+				 PhieuDatPhong tam= doiTuongTongTienPhong();
+				 txtTienCocCu.setText(String.valueOf(tam.getTienCoc()));
 		    } 
 
 		   
@@ -407,8 +420,14 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
 		else if(o.equals(btnXNDP)) {
 			if(dieuKienNguoi()) {
-				moKhungNhap();
-				kiemTraDeThemCPPS();
+				if(txtMPDP.getText().trim().length()==0) {
+					moKhungNhap();
+					kiemTraDeThemCPPS();
+				}else {
+					JOptionPane.showMessageDialog(null,"Phiếu đặt phòng đã có");
+					return;
+				}
+				
 			}
 			
 		}
@@ -440,6 +459,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 			if( kiemTraDuLieuNhap()&&dieuKienNguoi()&&kiemTraTrangThai(pdp.timPhieuDatPhongTheoMa(txtMPDP.getText().trim()))) {
 				if(xuLyNutLuu()) {
 					kiemTraDeThemCPPS();
+					PhieuDatPhong tam= doiTuongTongTienPhong();
+					txtTienCocCu.setText(String.valueOf(tam.getTienCoc()));
 					JOptionPane.showMessageDialog(null,"Lưu thành công!");
 					getDSLP();
 					return;
@@ -1065,7 +1086,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 long soDemO = ChronoUnit.DAYS.between(ngayNhan, ngayTra);
                 double gia = phong.getLoaiPhong().getGia();
                 double thanhTien = soDemO * gia;
-                
+             String tt= String.format("%,.0f", thanhTien);
                 dlp.addRow(new Object[]{
                     dlp.getRowCount() + 1,                 // STT
                     phong.getMaPhong(),                    // Mã phòng
@@ -1075,7 +1096,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                     ngayTra,
                     soDemO,                                // Số đêm ở
                     gia,                                   // Giá/đêm
-                    thanhTien                              // Thành tiền
+                    tt                              // Thành tiền
                 });
                 dsPhongDaChon.add(maPhong);
                 btnPhong.setBackground(MAU_PHONG_DA_CHON);
@@ -1162,15 +1183,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         pPhongTrong.add(pTop, BorderLayout.NORTH);
         pPhongTrong.add(lblThongBao, BorderLayout.CENTER);
 
-        // ====== SỰ KIỆN ======
-//        btnCapNhat.addActionListener(e -> {
-//        	if(xuLyChonNgay()) {
-//        		 getDSLP();
-//                 pPhongTrong.revalidate();
-//                 pPhongTrong.repaint();
-//        	}
-//           
-//        });
+ 
 
         btnThemNguoi.addActionListener(e -> {
             JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Nhập số người", true);
@@ -1645,11 +1658,11 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         lblTongCP.setText("Tổng tiền: " + df.format(phieu.getTongTienChiPhiPhatSinh()));
         lblTongTatCa.setText("Tổng thanh toán: " + df.format(phieu.getTongTien()));
         String maTam = txtMPDP.getText().trim();
-        if (maTam.isEmpty()) {
-            txtTienCocMoi.setText("0");
-            txtTienCocMoi.setEditable(false);
-            return;
-        }
+//        if (maTam.isEmpty()) {
+//            txtTienCocMoi.setText("0");
+//            txtTienCocMoi.setEditable(false);
+//            return;
+//        }
         txtTienCocMoi.setText(String.valueOf(tinhTienCocMoi()));
         
     }
@@ -1696,8 +1709,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
    		LoaiPhong loai = phong.getLoaiPhong() == null ? new LoaiPhong() : phong.getLoaiPhong();
    		double gia = (loai.getGia() > 0) ? loai.getGia() : 1;
    		double thanhTien = soDemO * gia;
+   		String tt= String.format("%,.0f", thanhTien);
            dlp.addRow(new Object[]{ dlp.getRowCount() + 1, phong.getMaPhong(), phong.getLoaiPhong().getTenLoaiPhong(),
-           		tam.getNgayNhanThuc(), tam.getNgayTraThuc(), tam.getNgayTra(), soDemO, gia, thanhTien });
+           		tam.getNgayNhanThuc(), tam.getNgayTraThuc(), tam.getNgayTra(), soDemO, gia, tt});
            hienThiTienCocVaTienTongTienPhong();
            if(pdphong.getTrangThai().equals("Đã hủy")) {
        		khoaTatCaTruong();
@@ -1708,12 +1722,15 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
    	for(ChiTietChiPhiPhatSinh tam: dsctcppss) {
    		ChiPhiPhatSinh t= cppsd.getChiPhiTheoMa(tam.getChiPhiPhatSinh().getMaChiPhiPhatSinh());
    		dlctps.addRow(new Object[] { t.getTenChiPhiPhatSinh(),t.getGia(), tam.getSoLuong(),
-   				t.getGia()*tam.getSoLuong(),tam.getChiPhiPhatSinh().getMaChiPhiPhatSinh()});
+   				String.format("%,.0f", t.getGia()*tam.getSoLuong()),tam.getChiPhiPhatSinh().getMaChiPhiPhatSinh()});
    				hienThiTienCocVaTienTongTienPhong();    		
    	}
    	if(pdphong.getTrangThai().equals("Hoàn thành")||pdphong.getTrangThai().equals("Đã hủy")) {
    		khoaTatCaTruong();
+   		
    	}
+   	PhieuDatPhong tam= doiTuongTongTienPhong();
+	txtTienCocCu.setText(String.valueOf(tam.getTienCoc()));
    }
    
    
@@ -1838,13 +1855,15 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
        try {
     	   String maPDP = txtMPDP.getText().trim();
-    	   if(maPDP.length()==0) {
-    		   maPDP= taoMaPhieuDatPhongTuDong();
-    	   }
+    	   if (maPDP.isEmpty()) {
+    		    maPDP = taoMaPhieuDatPhongTuDong();
+    		    txtMPDP.setText(maPDP); 
+    		}
            // ====== 1. KHÁCH HÀNG ======
            String maKH = txtMKH.getText().trim();
            if(maKH.length()==0) {
         	   maKH= taoMaKhachHangTuDong();
+        	   txtMKH.setText(maKH);
            }
            String tenKH = txtTenKH.getText().trim();
            String sdt = txtSDT.getText().trim();
@@ -2061,6 +2080,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    txtThucTe.setEditable(false);
 	    txtSoNguoiThuc.setEditable(false);
 	    txtTienCocMoi.setEditable(false);
+	    txtTienCocCu.setEditable(false);
 	    // Khóa JButton
 	    btnInPhieu.setEnabled(false);
 	    btnXoa.setEnabled(false);
