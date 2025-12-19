@@ -1,9 +1,12 @@
 package gui;
 
-
 import dao.ChiTietPhieuDatPhong_DAO;
 import dao.HoaDon_DAO;
+import dao.PhieuDatPhong_DAO;
 import dao.Phong_DAO;
+import entity.ChiTietPhieuDatPhong;
+import entity.PhieuDatPhong;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -25,10 +28,10 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Dashboard_GUI extends JPanel {
 
@@ -46,23 +49,23 @@ public class Dashboard_GUI extends JPanel {
     private static final Color DOWN = new Color(220, 50, 50);
     private static final Color WARN = new Color(217, 119, 6);
 
- // ===== NEW: GRADIENT COLORS FOR METRIC CARDS (ONLY CHANGE REQUESTED) =====
-    private static final Color GRAD_DT_TOP   = new Color(255, 224, 153); // vàng đậm hơn
-    private static final Color GRAD_DT_BOT   = new Color(255, 255, 255); // trắng
+    // ===== GRADIENT COLORS FOR METRIC CARDS =====
+    private static final Color GRAD_DT_TOP   = new Color(255, 224, 153);
+    private static final Color GRAD_DT_BOT   = new Color(255, 255, 255);
 
-    private static final Color GRAD_CI_TOP   = new Color(190, 224, 255); // xanh dương đậm hơn
+    private static final Color GRAD_CI_TOP   = new Color(190, 224, 255);
     private static final Color GRAD_CI_BOT   = new Color(255, 255, 255);
 
-    private static final Color GRAD_SAFE_TOP = new Color(216, 198, 255); // tím pastel đậm hơn
+    private static final Color GRAD_SAFE_TOP = new Color(216, 198, 255);
     private static final Color GRAD_SAFE_BOT = new Color(255, 255, 255);
 
     // ===== CONFIG =====
-
     private final Phong_DAO pDao = new Phong_DAO();
     private final HoaDon_DAO hdDAO = new HoaDon_DAO();
+    private final PhieuDatPhong_DAO pdpDAO = new PhieuDatPhong_DAO();
     private final ChiTietPhieuDatPhong_DAO ctPdpDAO = new ChiTietPhieuDatPhong_DAO();
     private final DecimalFormat dfMoney = new DecimalFormat("#,##0");
-    
+
     private static final long BASE_CASH_IN_SAFE = 10_000_000L;
 
     // header
@@ -127,11 +130,10 @@ public class Dashboard_GUI extends JPanel {
         g.fill = GridBagConstraints.BOTH;
         g.insets = new Insets(10, 0, 0, 0);
 
-        // ===== ROW 1: metric cards (THU HẸP ~ 3cm) =====
+        // ===== ROW 1: metric cards =====
         JPanel row1 = new JPanel(new GridLayout(1, 3, 16, 16));
         row1.setOpaque(false);
 
-        // Compact cards để hàng 1 thấp hơn
         cardDoanhThu = new MetricCard("DOANH THU THÁNG NÀY", "💰", true);
         cardCheckin  = new MetricCard("LƯỢT CHECK-IN THÀNH CÔNG", "📌", true);
         cardTienKet  = new MetricCard("TIỀN TRONG KÉT (HÔM NAY)", "💵", true);
@@ -141,10 +143,10 @@ public class Dashboard_GUI extends JPanel {
         row1.add(cardTienKet);
 
         g.gridy = 0;
-        g.weighty = 0.12; // << THU HẸP MẠNH (tầm ~3cm tùy màn)
+        g.weighty = 0.10; // ✅ giảm nhẹ row 1
         content.add(row1, g);
 
-        // ===== ROW 2: 2 pie (TO RA NHIỀU) =====
+        // ===== ROW 2: 2 pie (RỘNG / TO HƠN) =====
         JPanel row2 = new JPanel(new GridLayout(1, 2, 16, 16));
         row2.setOpaque(false);
 
@@ -160,10 +162,10 @@ public class Dashboard_GUI extends JPanel {
         row2.add(card5);
 
         g.gridy = 1;
-        g.weighty = 0.62; // << TĂNG LỚN ĐỂ PIE TO RA
+        g.weighty = 0.74; // ✅ tăng mạnh row 2 để 2 pie “rộng/to” ra
         content.add(row2, g);
 
-        // ===== ROW 3: Warning + Bar =====
+        // ===== ROW 3: Warning + Bar (THU HẸP) =====
         JPanel row3 = new JPanel(new GridBagLayout());
         row3.setOpaque(false);
 
@@ -175,26 +177,27 @@ public class Dashboard_GUI extends JPanel {
         // Warning card
         pnlCanhBaoBody = new JPanel(new BorderLayout(10, 10));
         pnlCanhBaoBody.setBackground(CARD_BG);
-        pnlCanhBaoBody.setBorder(new EmptyBorder(12, 12, 12, 12));
+        pnlCanhBaoBody.setBorder(new EmptyBorder(8, 8, 8, 8)); // ✅ giảm padding cho gọn
         JPanel card6 = wrapCard("CẢNH BÁO NGÀY HIỆN TẠI", pnlCanhBaoBody);
 
         r.gridx = 0;
-        r.weightx = 0.9;
+        r.weightx = 0.55; // ✅ cảnh báo hẹp hơn (giữ như bạn set)
         r.insets = new Insets(0, 0, 0, 0);
         row3.add(card6, r);
 
         // Bar card
         pnlBarMatDo = new JPanel(new BorderLayout());
         pnlBarMatDo.setBackground(CARD_BG);
+        pnlBarMatDo.setBorder(new EmptyBorder(4, 4, 4, 4)); // ✅ giảm padding để card gọn
         JPanel card7 = wrapCard(" MẬT ĐỘ PHÒNG Ở THEO NGÀY CỦA THÁNG NÀY", pnlBarMatDo);
 
         r.gridx = 1;
-        r.weightx = 2.1;
+        r.weightx = 2.45; // ✅ bar rộng hơn trong row 3
         r.insets = new Insets(0, 16, 0, 0);
         row3.add(card7, r);
 
         g.gridy = 2;
-        g.weighty = 0.26; // << còn lại
+        g.weighty = 0.16; // ✅ giảm row 3 để “thu hẹp cảnh báo + mật độ phòng”
         content.add(row3, g);
 
         add(content, BorderLayout.CENTER);
@@ -243,10 +246,10 @@ public class Dashboard_GUI extends JPanel {
         buildPieNguonDoanhThu(thang, nam);
         buildPiePhongHomNay(today);
 
-        // ===== WARNING (NO CHART) =====
+        // ===== WARNING =====
         buildCanhBaoNoChart();
 
-        // ===== BAR (Y integer) =====
+        // ===== BAR =====
         buildBarMatDo_IntegerY(thang, nam);
     }
 
@@ -266,15 +269,13 @@ public class Dashboard_GUI extends JPanel {
             dataset.setValue("Dịch vụ", dtDv);
             dataset.setValue("Phí phạt", dtPhat);
 
-            JFreeChart chart = ChartFactory.createPieChart(
-                    null, // << bỏ title trong chart để bánh tròn to hơn
-                    dataset, true, true, false
-            );
-
+            JFreeChart chart = ChartFactory.createPieChart(null, dataset, true, true, false);
             stylePieBigger(chart);
+
             ChartPanel cp = new ChartPanel(chart);
             cp.setBorder(new EmptyBorder(0, 0, 0, 0));
             cp.setOpaque(false);
+            cp.setMouseWheelEnabled(true);
 
             pnlPieNguonDoanhThu.add(cp, BorderLayout.CENTER);
         }
@@ -297,15 +298,13 @@ public class Dashboard_GUI extends JPanel {
         ds.setValue("Trống", trong);
         ds.setValue("Bảo trì", baoTri);
 
-        JFreeChart chart = ChartFactory.createPieChart(
-                null, // << bỏ title trong chart để bánh tròn to hơn
-                ds, true, true, false
-        );
-
+        JFreeChart chart = ChartFactory.createPieChart(null, ds, true, true, false);
         stylePieBigger(chart);
+
         ChartPanel cp = new ChartPanel(chart);
         cp.setBorder(new EmptyBorder(0, 0, 0, 0));
         cp.setOpaque(false);
+        cp.setMouseWheelEnabled(true);
 
         pnlPiePhongHomNay.add(cp, BorderLayout.CENTER);
 
@@ -313,7 +312,7 @@ public class Dashboard_GUI extends JPanel {
         pnlPiePhongHomNay.repaint();
     }
 
-    // ===================== BAR: MẬT ĐỘ (Y = integer 0,1,2,3...) =====================
+    // ===================== BAR: MẬT ĐỘ (Y = integer) =====================
     private Map<Integer, Integer> tinhSoPhongDangOTheoNgay(int thang, int nam) {
         Map<Integer, Integer> map = new LinkedHashMap<>();
 
@@ -334,6 +333,7 @@ public class Dashboard_GUI extends JPanel {
         }
         return map;
     }
+
     private void buildBarMatDo_IntegerY(int thang, int nam) {
         Map<Integer, Integer> map = tinhSoPhongDangOTheoNgay(thang, nam);
 
@@ -342,13 +342,7 @@ public class Dashboard_GUI extends JPanel {
             ds.addValue(e.getValue(), "Số phòng đang ở", String.valueOf(e.getKey()));
         }
 
-        YearMonth ym = YearMonth.of(nam, thang);
-
-        JFreeChart chart = ChartFactory.createBarChart(
-                null,
-                "Ngày", "Số phòng",
-                ds
-        );
+        JFreeChart chart = ChartFactory.createBarChart(null, "Ngày", "Số phòng", ds);
 
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
@@ -365,26 +359,66 @@ public class Dashboard_GUI extends JPanel {
         renderer.setMaximumBarWidth(0.06);
 
         pnlBarMatDo.removeAll();
-        pnlBarMatDo.add(new ChartPanel(chart), BorderLayout.CENTER);
+        ChartPanel cp = new ChartPanel(chart);
+        cp.setMouseWheelEnabled(true);
+        pnlBarMatDo.add(cp, BorderLayout.CENTER);
         pnlBarMatDo.revalidate();
         pnlBarMatDo.repaint();
     }
 
     // ===================== WARNING: NO CHART =====================
+    private String xacDinhTrangThai(PhieuDatPhong p) {
+        List<ChiTietPhieuDatPhong> ds = ctPdpDAO.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
+        if (p == null || ds == null || ds.isEmpty()) return "Không có chi tiết";
+
+        LocalDate today = LocalDate.now();
+
+        Optional<LocalDate> minNhan = ds.stream()
+                .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
+                .filter(d -> d != null)
+                .min(LocalDate::compareTo);
+
+        Optional<LocalDate> maxTra = ds.stream()
+                .map(ChiTietPhieuDatPhong::getNgayTraThuc)
+                .filter(d -> d != null)
+                .max(LocalDate::compareTo);
+
+        String trangThai = p.getTrangThai();
+        LocalDate nhanSomNhat = minNhan.orElse(null);
+        LocalDate traTreNhat = maxTra.orElse(null);
+
+        if ("Đã hủy".equals(trangThai)) return "Đã hủy";
+
+        if ("Đang ở".equals(trangThai)) {
+            if (traTreNhat != null && today.isAfter(traTreNhat)) return "Trễ hạn trả phòng";
+            if (traTreNhat != null && today.isEqual(traTreNhat)) return "Tới ngày trả";
+            return "Đang ở";
+        }
+
+        if ("Đã đặt".equals(trangThai)) {
+            if (nhanSomNhat != null && nhanSomNhat.isBefore(today)) return "Chưa nhận phòng";
+            if (nhanSomNhat != null && today.isEqual(nhanSomNhat)) return "Tới ngày nhận";
+            if (nhanSomNhat != null && today.isBefore(nhanSomNhat)) return "Đã đặt";
+        }
+
+        return "Hoàn thành";
+    }
+
+    private int countCheckTrangThaiPDP(String trangThai) {
+        List<PhieuDatPhong> ds = pdpDAO.getAllPhieuDatPhong();
+        return (int) ds.stream().filter(pdp -> xacDinhTrangThai(pdp).equals(trangThai)).count();
+    }
+
     private void buildCanhBaoNoChart() {
         pnlCanhBaoBody.removeAll();
 
-        int canIn  = ctPdpDAO.countCanCheckInHomNay();
-        int canOut = ctPdpDAO.countCanCheckOutHomNay();
+        int canIn  = countCheckTrangThaiPDP("Tới ngày nhận");
+        int canOut = countCheckTrangThaiPDP("Tới ngày trả");
 
-//        JLabel lblDate = new JLabel("Hôm nay: " + today);
-//        lblDate.setFont(new Font("Tahoma", Font.BOLD, 14));
-//        lblDate.setForeground(COLOR_NAVY);
-
-        JPanel kpiRow = new JPanel(new GridLayout(1, 2, 10, 10));
-        kpiRow.setOpaque(false);
-        kpiRow.add(buildKpiPill("Check-in cần xử lý", canIn, new Color(225, 248, 235), UP));
-        kpiRow.add(buildKpiPill("Check-out cần xử lý", canOut, new Color(255, 242, 226), WARN));
+        JPanel kpiCol = new JPanel(new GridLayout(2, 1, 0, 8)); // ✅ gọn hơn
+        kpiCol.setOpaque(false);
+        kpiCol.add(buildKpiPill("Check-in cần xử lý", canIn, new Color(225, 248, 235), UP));
+        kpiCol.add(buildKpiPill("Check-out cần xử lý", canOut, new Color(255, 242, 226), WARN));
 
         JLabel tip = new JLabel("<html><span style='color:#667085'>Lưu ý:</span> Nhấn Làm mới sau khi có phát sinh phiếu mới.</html>");
         tip.setFont(new Font("Tahoma", Font.PLAIN, 12));
@@ -393,11 +427,10 @@ public class Dashboard_GUI extends JPanel {
         JPanel wrap = new JPanel();
         wrap.setOpaque(false);
         wrap.setLayout(new BoxLayout(wrap, BoxLayout.Y_AXIS));
-//        wrap.add(lblDate);
-        wrap.add(Box.createVerticalStrut(10));
-        wrap.add(kpiRow);
+        wrap.add(Box.createVerticalStrut(6));
+        wrap.add(kpiCol);
         wrap.add(Box.createVerticalGlue());
-        wrap.add(Box.createVerticalStrut(10));
+        wrap.add(Box.createVerticalStrut(6));
         wrap.add(tip);
 
         pnlCanhBaoBody.add(wrap, BorderLayout.CENTER);
@@ -427,13 +460,12 @@ public class Dashboard_GUI extends JPanel {
     private void stylePieBigger(JFreeChart chart) {
         chart.setBackgroundPaint(CARD_BG);
         chart.setPadding(new RectangleInsets(2, 2, 2, 2));
-        chart.setTitle((TextTitle) null); // chắc chắn không chiếm chỗ
+        chart.setTitle((TextTitle) null);
 
         PiePlot plot = (PiePlot) chart.getPlot();
         plot.setBackgroundPaint(CARD_BG);
         plot.setOutlineVisible(false);
 
-        // giảm khoảng trống để bánh tròn “phình” ra
         plot.setInteriorGap(0.02);
         plot.setLabelGap(0.02);
         plot.setShadowPaint(null);
@@ -445,7 +477,6 @@ public class Dashboard_GUI extends JPanel {
                 new DecimalFormat("0%")
         ));
 
-        // đưa legend sang phải để tăng chiều cao pie
         LegendTitle legend = chart.getLegend();
         if (legend != null) {
             legend.setItemFont(new Font("Tahoma", Font.PLAIN, 11));
@@ -468,8 +499,10 @@ public class Dashboard_GUI extends JPanel {
 
         JPanel inner = new JPanel(new BorderLayout());
         inner.setBackground(CARD_BG);
-        inner.setBorder(new CompoundBorder(new RoundBorder(18, new Color(235, 238, 244)),
-                new EmptyBorder(6, 6, 6, 6)));
+        inner.setBorder(new CompoundBorder(
+                new RoundBorder(18, new Color(235, 238, 244)),
+                new EmptyBorder(6, 6, 6, 6)
+        ));
 
         TitledBorder tb = BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(230, 232, 236), 1),
@@ -507,7 +540,6 @@ public class Dashboard_GUI extends JPanel {
             int pad = compact ? 10 : 14;
             int valueSize = compact ? 22 : 26;
 
-            // ===== ONLY CHANGE: use gradient background panel (each card different color) =====
             Color[] grad = pickGradientForMetric(title);
             JPanel inner = new GradientCardPanel(grad[0], grad[1]);
             inner.setLayout(new BorderLayout(10, 6));
@@ -589,7 +621,6 @@ public class Dashboard_GUI extends JPanel {
         }
     }
 
-    // ===== ONLY CHANGE: choose gradient per metric card =====
     private Color[] pickGradientForMetric(String title) {
         if (title != null) {
             String t = title.toUpperCase();
@@ -600,7 +631,6 @@ public class Dashboard_GUI extends JPanel {
         return new Color[]{CARD_BG, CARD_BG};
     }
 
-    // ===== ONLY CHANGE: Gradient panel for card background =====
     private static class GradientCardPanel extends JPanel {
         private final Color top;
         private final Color bottom;
@@ -617,16 +647,13 @@ public class Dashboard_GUI extends JPanel {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             GradientPaint gp = new GradientPaint(0, 0, top, 0, getHeight(), bottom);
             g2.setPaint(gp);
-            // fill rounded to match your RoundBorder radius
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
             g2.dispose();
             super.paintComponent(g);
         }
     }
 
-    private Color COLOR_NEUTRAL() {
-        return new Color(60, 70, 90);
-    }
+    private Color COLOR_NEUTRAL() { return new Color(60, 70, 90); }
 
     // ===================== BACKGROUND PANEL =====================
     @Override
