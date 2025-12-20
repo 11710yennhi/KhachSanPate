@@ -1,267 +1,337 @@
 package gui;
 
 import javax.swing.*;
+import javax.swing.border.*;
 import java.awt.*;
-import java.util.*;
-import java.util.List;
 
 public class HuongDanSuDung_GUI extends JPanel {
 
-    private JComboBox<String> cbbChucNang;
-    private JTextArea txtHuongDan;
+    // ===== THEME =====
+    private static final Color BG_TOP = new Color(230, 242, 255);
+    private static final Color BG_BOTTOM = new Color(245, 247, 251);
 
-    private List<String> dsChucNang;
-    private Map<String, String> noiDungHuongDan;
+    private static final Color CARD = Color.WHITE;
+    private static final Color BORDER = new Color(226, 232, 240);
+
+    // Header xanh thường (không gradient)
+    private static final Color HEADER_BLUE = new Color(10, 52, 89);
+    private static final Color HEADER_SUB = new Color(225, 240, 255);
+
+    private static final Color TEXT = new Color(31, 41, 55);
+    private static final Color MUTED = new Color(107, 114, 128);
+
+    // Content
+    private JEditorPane editor;
+    private JScrollPane scrollEditor;
 
     public HuongDanSuDung_GUI() {
-        setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
+        setLayout(new BorderLayout(16, 16));
+        setOpaque(false);
+        setBorder(new EmptyBorder(16, 16, 16, 16));
 
-        taoDuLieu();
         taoGiaoDien();
-        ganSuKien();
+        hienThiNoiDungHuongDan();
     }
 
-    // ================= DỮ LIỆU =================
-    private void taoDuLieu() {
-        dsChucNang = Arrays.asList(
-            "Trang Chủ",
-            "Quản Lý Đặt Phòng",
-            "Danh Sách Phiếu Đặt Phòng",
-            "Tạo Phiếu Đặt Phòng",
-            "Quản Lý Phòng",
-            "Khuyến Mãi",
-            "Chi Phí Phát Sinh",
-            "Hóa Đơn",
-            "Thống Kê",
-            "Khách Hàng",
-            "Nhân Viên",
-            "Tài Khoản"
-        );
+    // ====== NỀN FULL TRANG ======
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        noiDungHuongDan = new HashMap<>();
+        int w = getWidth(), h = getHeight();
+        GradientPaint gp = new GradientPaint(0, 0, BG_TOP, 0, h, BG_BOTTOM);
+        g2.setPaint(gp);
+        g2.fillRect(0, 0, w, h);
 
-        noiDungHuongDan.put("Trang Chủ",
-            "MỤC ĐÍCH:\n"
-          + "- Hiển thị tổng quan hệ thống\n\n"
-          + "CHỨC NĂNG:\n"
-          + "- Truy cập nhanh các chức năng\n"
-          + "- Theo dõi tình trạng hoạt động");
-
-        noiDungHuongDan.put("Quản Lý Đặt Phòng",
-            "MỤC ĐÍCH:\n"
-          + "- Quản lý hoạt động đặt phòng\n\n"
-          + "BAO GỒM:\n"
-          + "- Tạo phiếu đặt phòng\n"
-          + "- Xem danh sách phiếu đặt");
-
-        noiDungHuongDan.put("Danh Sách Phiếu Đặt Phòng",
-                "MỤC LỤC:\n"
-              + "1. Mục đích màn hình\n"
-              + "2. Cách xem danh sách phiếu đặt phòng\n"
-              + "3. Ý nghĩa ngày nhận – ngày trả\n"
-              + "4. Ý nghĩa các trạng thái phiếu\n"
-              + "5. Lọc theo trạng thái\n"
-              + "6. Tìm kiếm theo SĐT khách hàng\n"
-              + "7. Tìm kiếm theo mã phiếu\n"
-              + "8. Xem chi tiết và chỉnh sửa phiếu\n"
-              + "9. Làm mới dữ liệu\n\n"
-
-              + "1. MỤC ĐÍCH MÀN HÌNH:\n"
-              + "- Màn hình dùng để quản lý toàn bộ phiếu đặt phòng trong hệ thống.\n"
-              + "- Nhân viên có thể theo dõi tình trạng lưu trú của khách theo thời gian thực.\n"
-              + "- Hỗ trợ tìm kiếm nhanh phiếu theo khách hàng, mã phiếu hoặc trạng thái.\n\n"
-
-              + "2. CÁCH XEM DANH SÁCH PHIẾU ĐẶT PHÒNG:\n"
-              + "- Khi mở màn hình, hệ thống tự động tải tất cả phiếu đặt phòng từ cơ sở dữ liệu.\n"
-              + "- Mỗi phiếu được hiển thị dưới dạng thẻ (card).\n"
-              + "- Thông tin hiển thị gồm: mã phiếu, tên khách hàng, số điện thoại và trạng thái.\n\n"
-
-              + "3. Ý NGHĨA NGÀY NHẬN – NGÀY TRẢ:\n"
-              + "- Ngày nhận phòng: là ngày khách bắt đầu lưu trú tại khách sạn.\n"
-              + "- Ngày trả phòng: là ngày khách kết thúc lưu trú.\n"
-              + "- Hệ thống so sánh các ngày này với ngày hiện tại để xác định trạng thái phiếu.\n"
-              + "- Nếu một phiếu có nhiều phòng, hệ thống sẽ lấy ngày nhận sớm nhất và ngày trả muộn nhất.\n\n"
-
-              + "4. Ý NGHĨA CÁC TRẠNG THÁI PHIẾU:\n"
-              + "- Đã đặt: Phiếu đã được tạo nhưng chưa tới ngày nhận phòng.\n"
-              + "- Tới ngày nhận: Ngày hiện tại trùng với ngày nhận phòng.\n"
-              + "- Chưa nhận phòng: Đã quá ngày nhận nhưng khách chưa check-in.\n"
-              + "- Đang ở: Khách đã nhận phòng và đang lưu trú.\n"
-              + "- Tới ngày trả: Hôm nay là ngày trả phòng.\n"
-              + "- Trễ hạn trả phòng: Đã quá ngày trả nhưng khách chưa trả phòng.\n"
-              + "- Đã hủy: Phiếu đã bị hủy và không còn hiệu lực.\n"
-              + "- Hoàn thành: Phiếu đã kết thúc và khách đã trả phòng.\n\n"
-
-              + "5. LỌC THEO TRẠNG THÁI:\n"
-              + "- Chọn trạng thái cần xem trong danh sách lọc trạng thái.\n"
-              + "- Nhấn nút tìm để hệ thống hiển thị các phiếu phù hợp.\n"
-              + "- Chỉ những phiếu có trạng thái đúng với lựa chọn mới được hiển thị.\n\n"
-
-              + "6. TÌM KIẾM THEO SỐ ĐIỆN THOẠI KHÁCH HÀNG:\n"
-              + "- Nhập số điện thoại của khách hàng (gồm đúng 10 chữ số).\n"
-              + "- Nhấn biểu tượng kính lúp để thực hiện tìm kiếm.\n"
-              + "- Hệ thống sẽ hiển thị tất cả phiếu thuộc khách hàng đó.\n\n"
-
-              + "7. TÌM KIẾM THEO MÃ PHIẾU:\n"
-              + "- Nhập mã phiếu đặt phòng vào ô tìm kiếm.\n"
-              + "- Có thể nhập một phần mã, hệ thống sẽ tìm các mã tương ứng.\n"
-              + "- Nhấn biểu tượng kính lúp để xem kết quả.\n\n"
-
-              + "8. XEM CHI TIẾT VÀ CHỈNH SỬA PHIẾU:\n"
-              + "- Nhấp chuột vào thẻ phiếu trong danh sách.\n"
-              + "- Màn hình chi tiết phiếu sẽ được mở ra.\n"
-              + "- Tại đây, nhân viên có thể xem thông tin phòng, ngày ở và trạng thái phiếu.\n\n"
-
-              + "9. LÀM MỚI DỮ LIỆU:\n"
-              + "- Nhấn nút làm mới để tải lại toàn bộ danh sách phiếu.\n"
-              + "- Trạng thái lọc sẽ được đưa về mặc định ban đầu.\n"
-        );
-
-        noiDungHuongDan.put("Tạo Phiếu Đặt Phòng",
-                "MỤC LỤC:\n"
-              + "1. Mục đích chức năng\n"
-              + "2. Nhập thời gian lưu trú\n"
-              + "3. Nhập số lượng người\n"
-              + "4. Gợi ý và chọn phòng\n"
-              + "5. Nhập thông tin khách hàng\n"
-              + "6. Xác nhận và tạo phiếu\n"
-              + "7. Các lưu ý và lỗi thường gặp\n\n"
-
-              + "1. MỤC ĐÍCH CHỨC NĂNG:\n"
-              + "- Chức năng dùng để tạo phiếu đặt phòng cho khách hàng.\n"
-              + "- Nhân viên có thể đặt phòng theo thời gian lưu trú và số lượng người.\n"
-              + "- Hệ thống hỗ trợ gợi ý phòng phù hợp và kiểm tra tính hợp lệ dữ liệu.\n\n"
-
-              + "2. NHẬP THỜI GIAN LƯU TRÚ:\n"
-              + "- Nhân viên nhập ngày nhận phòng và ngày trả phòng theo yêu cầu khách.\n"
-              + "- Ngày nhận phải nhỏ hơn ngày trả.\n"
-              + "- Nếu ngày nhận lớn hơn hoặc bằng ngày trả, hệ thống sẽ hiển thị thông báo lỗi.\n\n"
-
-              + "3. NHẬP SỐ LƯỢNG NGƯỜI:\n"
-              + "- Nhân viên nhập số lượng người dự kiến lưu trú.\n"
-              + "- Thông tin này được dùng để gợi ý phòng có sức chứa phù hợp.\n\n"
-
-              + "4. GỢI Ý VÀ CHỌN PHÒNG:\n"
-              + "- Nhấn nút Gợi ý phòng để hệ thống tìm phòng trống theo thời gian và số lượng người.\n"
-              + "- Nếu có phòng phù hợp, hệ thống hiển thị danh sách phòng gợi ý.\n"
-              + "- Nhân viên có thể chọn phòng theo gợi ý hoặc bấm Cập nhật phòng để tự chọn.\n"
-              + "- Nếu không còn phòng trống, hệ thống sẽ hiển thị thông báo kết thúc thao tác.\n\n"
-
-              + "5. NHẬP THÔNG TIN KHÁCH HÀNG:\n"
-              + "- Sau khi chọn phòng, nhấn Tạo phiếu để tiếp tục.\n"
-              + "- Hệ thống tạo mã phiếu đặt phòng và mã khách hàng.\n"
-              + "- Nhân viên nhập số điện thoại khách hàng.\n"
-              + "- Nếu số điện thoại đã tồn tại, hệ thống tự động hiển thị thông tin khách.\n"
-              + "- Nếu chưa tồn tại, nhân viên nhập đầy đủ thông tin khách hàng mới.\n\n"
-
-              + "6. XÁC NHẬN VÀ TẠO PHIẾU:\n"
-              + "- Nhân viên bấm Xác nhận đặt phòng.\n"
-              + "- Hệ thống hiển thị hộp thoại xác nhận.\n"
-              + "- Chọn Yes để hoàn tất tạo phiếu.\n"
-              + "- Hệ thống lưu phiếu đặt phòng, thông tin khách hàng và phòng thuê.\n"
-              + "- Sau khi lưu thành công, hệ thống hiển thị bill phiếu đặt phòng.\n\n"
-
-              + "7. CÁC LƯU Ý VÀ LỖI THƯỜNG GẶP:\n"
-              + "- Ngày nhận phải nhỏ hơn ngày trả.\n"
-              + "- Phòng được chọn phải đủ sức chứa cho số lượng người.\n"
-              + "- Không thể tạo phiếu nếu không còn phòng trống trong thời gian đã chọn.\n"
-              + "- Cần nhập đúng định dạng số điện thoại khách hàng.\n"
-        );
-
-
-        noiDungHuongDan.put("Quản Lý Phòng",
-            "CHỨC NĂNG:\n"
-          + "- Thêm, sửa, cập nhật phòng\n"
-          + "- Xem tình trạng phòng");
-
-        noiDungHuongDan.put("Khuyến Mãi",
-            "CHỨC NĂNG:\n"
-          + "- Quản lý chương trình khuyến mãi\n"
-          + "- Áp dụng cho hóa đơn");
-
-        noiDungHuongDan.put("Chi Phí Phát Sinh",
-            "CHỨC NĂNG:\n"
-          + "- Ghi nhận chi phí phát sinh\n"
-          + "- Cộng vào hóa đơn");
-
-        noiDungHuongDan.put("Hóa Đơn",
-            "CHỨC NĂNG:\n"
-          + "- Thanh toán\n"
-          + "- In hóa đơn");
-
-        noiDungHuongDan.put("Thống Kê",
-            "CHỨC NĂNG:\n"
-          + "- Thống kê doanh thu\n"
-          + "- Báo cáo sử dụng phòng");
-
-        noiDungHuongDan.put("Khách Hàng",
-            "CHỨC NĂNG:\n"
-          + "- Quản lý thông tin khách hàng");
-
-        noiDungHuongDan.put("Nhân Viên",
-            "CHỨC NĂNG:\n"
-          + "- Quản lý nhân viên\n"
-          + "- Phân quyền");
-
-        noiDungHuongDan.put("Tài Khoản",
-            "CHỨC NĂNG:\n"
-          + "- Quản lý tài khoản\n"
-          + "- Đổi mật khẩu");
+        g2.dispose();
     }
 
     // ================= GIAO DIỆN =================
     private void taoGiaoDien() {
 
-        // ----- PANEL TRÊN (10%) -----
-        JPanel pnlTop = new JPanel(new BorderLayout());
-        pnlTop.setBackground(Color.WHITE);
-        pnlTop.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        pnlTop.setPreferredSize(new Dimension(0, 80)); // ~10%
+        // ===== Header (xanh thường) =====
+        JPanel header = new SolidHeaderPanel();
+        header.setLayout(new BorderLayout(12, 12));
+        header.setBorder(new EmptyBorder(16, 18, 16, 18));
+        header.setPreferredSize(new Dimension(0, 92));
+
+        JPanel left = new JPanel();
+        left.setOpaque(false);
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
 
         JLabel lblTitle = new JLabel("HƯỚNG DẪN SỬ DỤNG");
-        lblTitle.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 20));
+        lblTitle.setForeground(Color.WHITE);
+        lblTitle.setFont(new Font("Segoe UI Semibold", Font.PLAIN, 26));
 
-        cbbChucNang = new JComboBox<>(dsChucNang.toArray(new String[0]));
-        cbbChucNang.setPreferredSize(new Dimension(280, 35));
+        JLabel lblSub = new JLabel("Quy trình nghiệp vụ nhân viên • Quy trình quản lý • Quy định vận hành");
+        lblSub.setForeground(HEADER_SUB);
+        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
-        JPanel pnlRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        pnlRight.setBackground(Color.WHITE);
-        pnlRight.add(new JLabel("Chức năng: "));
-        pnlRight.add(cbbChucNang);
+        left.add(lblTitle);
+        left.add(Box.createVerticalStrut(4));
+        left.add(lblSub);
 
-        pnlTop.add(lblTitle, BorderLayout.WEST);
-        pnlTop.add(pnlRight, BorderLayout.EAST);
+        header.add(left, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
 
-        add(pnlTop, BorderLayout.NORTH);
+        // ===== BODY (chỉ 1 content) =====
+        ShadowRoundPanel contentCard = new ShadowRoundPanel(18);
+        contentCard.setBackground(CARD);
+        contentCard.setLayout(new BorderLayout());
+        contentCard.setBorder(new CompoundBorder(
+                new LineBorder(BORDER, 1, true),
+                new EmptyBorder(0, 0, 0, 0)
+        ));
 
-        // ----- NỘI DUNG (90%) -----
-        txtHuongDan = new JTextArea();
-        txtHuongDan.setEditable(false);
-        txtHuongDan.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        txtHuongDan.setLineWrap(true);
-        txtHuongDan.setWrapStyleWord(true);
-        txtHuongDan.setMargin(new Insets(15, 20, 15, 20));
+        editor = new JEditorPane();
+        editor.setContentType("text/html");
+        editor.setEditable(false);
+        editor.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        editor.setOpaque(false);
 
-        JScrollPane scroll = new JScrollPane(txtHuongDan);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
-        add(scroll, BorderLayout.CENTER);
+        scrollEditor = new JScrollPane(editor);
+        scrollEditor.setBorder(BorderFactory.createEmptyBorder());
+        scrollEditor.getViewport().setBackground(CARD);
+        scrollEditor.getVerticalScrollBar().setUnitIncrement(16);
 
-        // Mặc định
-        cbbChucNang.setSelectedIndex(0);
-        txtHuongDan.setText(noiDungHuongDan.get("Trang Chủ"));
+        contentCard.add(scrollEditor, BorderLayout.CENTER);
+        add(contentCard, BorderLayout.CENTER);
     }
 
-    // ================= SỰ KIỆN =================
-    private void ganSuKien() {
-        cbbChucNang.addActionListener(e -> {
-            String key = (String) cbbChucNang.getSelectedItem();
-            txtHuongDan.setText(
-                noiDungHuongDan.getOrDefault(
-                    key,
-                    "Chưa có hướng dẫn cho chức năng này."
-                )
-            );
+    // ================= NỘI DUNG HƯỚNG DẪN =================
+    private void hienThiNoiDungHuongDan() {
+        String css =
+                "<style>"
+                        + "body{font-family:Segoe UI, Arial; font-size:14px;color:#1f2937; line-height:1.65; padding:22px;}"
+                        + "h1{font-size:24px; margin:0 0 8px 0; color:#0f172a;}"
+                        + "h2{font-size:16px; margin:18px 0 8px 0; color:#0f172a;}"
+                        + "h3{font-size:14px; margin:14px 0 6px 0; color:#0f172a;}"
+                        + "p{margin:7px 0;}"
+                        + ".muted{color:#6b7280;}"
+                        + ".badge{display:inline-block; padding:3px 10px; border-radius:999px; background:#e8f1fd; color:#1565c0; font-size:12px; font-weight:700;}"
+                        + ".box{background:#f8fafc; border:1px solid #e5e7eb; border-radius:14px; padding:14px; margin:12px 0;}"
+                        + ".warn{background:#fff7ed; border:1px solid #fed7aa;}"
+                        + ".ok{background:#f0fdf4; border:1px solid #bbf7d0;}"
+                        + "ul{margin:8px 0 8px 18px;}"
+                        + "li{margin:5px 0;}"
+                        + "table{border-collapse:separate; border-spacing:0; width:100%; margin:12px 0; overflow:hidden; border-radius:12px;}"
+                        + "th,td{border:1px solid #e5e7eb; padding:10px; text-align:left; vertical-align:top;}"
+                        + "th{background:#f1f5f9;}"
+                        + ".toc a{color:#1565c0; text-decoration:none; font-weight:600;}"
+                        + ".toc a:hover{text-decoration:underline;}"
+                        + "</style>";
+
+        String body =
+                "<h1>Hướng dẫn sử dụng – Nghiệp vụ nhân viên <span class='badge'>QLKS Pate</span></h1>"
+                      //  + "<p class='muted'>Tài liệu này chỉ tập trung vào <b>quy trình nghiệp vụ</b> và <b>quy định vận hành</b> để nhân viên thao tác đúng – nhanh – hạn chế sai sót.</p>"
+
+//                        + "<div class='box toc'>"
+//                        + "<h2>Mục lục</h2>"
+//                        + "<ul>"
+//                        + "<li><a href='#nv'>I. Quy trình nghiệp vụ nhân viên</a></li>"
+//                        + "<li><a href='#ql'>II. Quy trình nghiệp vụ nhân viên quản lý</a></li>"
+//                        + "<li><a href='#qd'>III. Quy định & nguyên tắc áp dụng</a></li>"
+//                        + "</ul>"
+//                        + "</div>"
+
+                        // ===== I. Nhân viên =====
+                        + "<a name='nv'></a>"
+                        + "<h2>I. Quy trình nghiệp vụ nhân viên</h2>"
+                        + "<div class='box'>"
+                        + "<h3>1) Tiếp nhận đặt phòng (tại quầy/điện thoại)</h3>"
+                        + "<ul>"
+                        + "<li>B1: Hỏi nhu cầu: <b>ngày nhận</b> – <b>ngày trả</b> – <b>số người</b> – <b>loại phòng</b>.</li>"
+                        + "<li>B2: Kiểm tra phòng trống theo ngày.</li>"
+                        + "<li>B3: Nhập thông tin khách: <b>Họ tên</b>, <b>SĐT</b>, (CCCD nếu có).</li>"
+                        + "<li>B4: Xác nhận <b>tiền cọc</b> theo quy định → lưu phiếu.</li>"
+                        + "<li>B5: Nhắc khách chính sách <b>đổi/hủy</b> (mốc 24h).</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box'>"
+                        + "<h3>2) Check-in (nhận phòng)</h3>"
+                        + "<ul>"
+                        + "<li>B1: Tra cứu phiếu theo <b>SĐT</b> hoặc <b>mã phiếu</b>.</li>"
+                        + "<li>B2: Đối chiếu <b>giấy tờ</b> (CCCD/Passport) và thông tin đặt phòng.</li>"
+                        + "<li>B3: Xác nhận thời gian lưu trú, số người, thu phần còn lại (nếu có).</li>"
+                        + "<li>B4: Cập nhật trạng thái phiếu: <b>Đang ở</b> và trạng thái phòng tương ứng.</li>"
+                        + "<li>B5: Bàn giao chìa khóa/thẻ phòng và nhắc quy định giờ giấc – tài sản.</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box'>"
+                        + "<h3>3) Ghi nhận chi phí phát sinh (trong thời gian khách ở)</h3>"
+                        + "<ul>"
+                        + "<li>B1: Chọn phiếu/khách đang ở.</li>"
+                        + "<li>B2: Thêm phát sinh: minibar/giặt ủi/bồi thường…</li>"
+                        + "<li>B3: Ghi rõ <b>mô tả</b> + <b>số tiền</b> + thời điểm phát sinh để dễ đối chiếu.</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box'>"
+                        + "<h3>4) Check-out (trả phòng) & xuất hóa đơn</h3>"
+                        + "<ul>"
+                        + "<li>B1: Tra cứu phiếu → kiểm tra phát sinh và khuyến mãi (nếu có).</li>"
+                        + "<li>B2: Tính tổng tiền: tiền phòng + phát sinh + phạt (nếu có) – khuyến mãi – trừ cọc.</li>"
+                        + "<li>B3: Thu tiền/hoàn tiền (nếu thừa) → in/xuất hóa đơn.</li>"
+                        + "<li>B4: Cập nhật trạng thái phiếu: <b>Hoàn thành</b>; phòng chuyển sang <b>Dọn dẹp</b> (hoặc theo quy trình nội bộ).</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        // ===== II. Quản lý =====
+                        + "<a name='ql'></a>"
+                        + "<h2>II. Quy trình nghiệp vụ nhân viên quản lý</h2>"
+                        + "<div class='box'>"
+                        + "<h3>1) Kiểm soát tình trạng phòng & chất lượng vận hành</h3>"
+                        + "<ul>"
+                        + "<li>Đầu ca: kiểm tra danh sách phòng <b>Trống/Đang ở/Đặt trước/Dọn dẹp/Bảo trì</b>.</li>"
+                        + "<li>Kiểm tra các phòng tới ngày nhận/trả để nhắc lễ tân xử lý.</li>"
+                        + "<li>Phòng bảo trì phải có lý do + thời gian dự kiến hoàn tất.</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box'>"
+                        + "<h3>2) Duyệt và quản lý khuyến mãi</h3>"
+                        + "<ul>"
+                        + "<li>Kiểm tra điều kiện mã, thời hạn, giới hạn áp dụng.</li>"
+                        + "<li>Nguyên tắc: <b>mỗi hóa đơn chỉ áp dụng 01 mã</b> (không chồng).</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box'>"
+                        + "<h3>3) Quản lý nhân sự & tài khoản</h3>"
+                        + "<ul>"
+                        + "<li>Phân quyền đúng vai trò: hạn chế thao tác sai chức năng.</li>"
+                        + "<li>Không dùng chung tài khoản; đổi mật khẩu định kỳ.</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box ok'>"
+                        + "<h3>4) Đối chiếu cuối ngày/cuối ca</h3>"
+                        + "<ul>"
+                        + "<li>Đối chiếu doanh thu, số hóa đơn, phát sinh và tiền mặt.</li>"
+                        + "<li>Kiểm tra các phiếu còn treo: chưa nhận, tới ngày trả, trễ hạn…</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        // ===== III. Quy định =====
+                        + "<a name='qd'></a>"
+                        + "<h2>III. Quy định & nguyên tắc áp dụng</h2>"
+
+                        + "<table>"
+                        + "<tr><th>Nội dung</th><th>Quy định</th></tr>"
+                        + "<tr><td>Giờ nhận – trả</td><td>Check-in từ <b>14:00</b>, check-out trước <b>12:00</b> hôm sau</td></tr>"
+                        + "<tr><td>Tiền cọc</td><td>1 đêm: <b>100%</b>; từ 2 đêm: <b>50%</b> giá trị đặt phòng</td></tr>"
+                        + "<tr><td>Khuyến mãi</td><td>Mỗi hóa đơn áp dụng <b>01 mã</b>, không chồng</td></tr>"
+                        + "<tr><td>Trẻ em</td><td>&lt; 6 tuổi: miễn phí; ≥ 7 tuổi: tính như 1 người</td></tr>"
+                        + "</table>"
+
+                        + "<div class='box warn'>"
+                        + "<h3>Phạt trả phòng trễ</h3>"
+                        + "<ul>"
+                        + "<li>12:00–&lt;15:00: +30% giá phòng/đêm</li>"
+                        + "<li>15:00–&lt;18:00: +50% giá phòng/đêm</li>"
+                        + "<li>≥18:00: tính như 1 đêm mới</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box warn'>"
+                        + "<h3>Đổi / hủy đặt phòng</h3>"
+                        + "<ul>"
+                        + "<li>Đổi/hủy trước <b>≥ 24h</b>: xử lý theo chính sách hoàn cọc của khách sạn.</li>"
+                        + "<li>Đổi/hủy <b>&lt; 24h</b> trước check-in: xem như hủy, tạo phiếu mới (nếu đặt lại) theo quy định nội bộ.</li>"
+                        + "<li>Khách đến trễ không báo: giữ phòng tối đa đến <b>23:59</b> ngày check-in.</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<div class='box'>"
+                        + "<h3>Nguyên tắc an toàn dữ liệu</h3>"
+                        + "<ul>"
+                        + "<li>Chỉ nhân sự được phân quyền mới thao tác các mục nhạy cảm.</li>"
+                        + "<li>Không chia sẻ mật khẩu; không ghi mật khẩu ra giấy tại quầy.</li>"
+                        + "<li>Luôn thoát tài khoản khi đổi ca.</li>"
+                        + "</ul>"
+                        + "</div>"
+
+                        + "<p class='muted'>Cuối cùng: nếu phát sinh tình huống ngoài quy định, báo ngay quản lý để xử lý thống nhất.</p>";
+
+        editor.setText("<html><head>" + css + "</head><body>" + body + "</body></html>");
+        editor.setCaretPosition(0);
+    }
+
+    // ================= UI COMPONENTS =================
+
+    // Header xanh thường (solid)
+    private static class SolidHeaderPanel extends JPanel {
+        public SolidHeaderPanel() {
+            setOpaque(false);
+        }
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int w = getWidth(), h = getHeight();
+            g2.setColor(HEADER_BLUE);
+            g2.fillRoundRect(0, 0, w, h, 22, 22);
+
+            g2.setColor(new Color(255, 255, 255, 60));
+            g2.drawRoundRect(0, 0, w - 1, h - 1, 22, 22);
+
+            g2.dispose();
+        }
+    }
+
+    // Card bo góc + shadow
+    private static class ShadowRoundPanel extends JPanel {
+        private final int radius;
+        public ShadowRoundPanel(int radius) {
+            this.radius = radius;
+            setOpaque(false);
+        }
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int w = getWidth(), h = getHeight();
+
+            // shadow
+            g2.setColor(new Color(0, 0, 0, 16));
+            g2.fillRoundRect(4, 5, w - 8, h - 9, radius, radius);
+
+            // bg
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, w - 1, h - 1, radius, radius);
+
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // ================= TEST RIÊNG =================
+    public static void testUI() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception ignored) {}
+
+            JFrame f = new JFrame("Test - Hướng dẫn sử dụng | Khách sạn Pate");
+            f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            HuongDanSuDung_GUI panel = new HuongDanSuDung_GUI();
+            f.setContentPane(panel);
+
+            f.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            f.setLocationRelativeTo(null);
+            f.setVisible(true);
         });
+    }
+
+    public static void main(String[] args) {
+        testUI();
     }
 }
