@@ -53,15 +53,15 @@ public class TrangChinh_GUI extends JFrame {
         taoMenuTrai();
         taoNoiDung();
         
-//        showPanel("Dashboard");
-//        for (Component c : pnlMenu.getComponents()) {
-//            if (c instanceof JButton btn) {
-//                if ("Dashboard".equals(btn.getText())) {
-//                    doiNutDangChon(btn);
-//                    break;
-//                }
-//            }
-//        }
+        showPanel("Dashboard");
+        for (Component c : pnlMenu.getComponents()) {
+            if (c instanceof JButton btn) {
+                if ("Dashboard".equals(btn.getText())) {
+                    doiNutDangChon(btn);
+                    break;
+                }
+            }
+        }
     }
 
     // ===== PHÂN QUYỀN =====

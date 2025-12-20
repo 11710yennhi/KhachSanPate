@@ -10,6 +10,11 @@ import entity.PhieuDatPhong;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+
+// ✅ FIX: thêm 2 import này để xoay nhãn trục X cho dễ nhìn khi đông dữ liệu
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
@@ -28,10 +33,11 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 
 public class Dashboard_GUI extends JPanel {
 
@@ -143,10 +149,10 @@ public class Dashboard_GUI extends JPanel {
         row1.add(cardTienKet);
 
         g.gridy = 0;
-        g.weighty = 0.10; // ✅ giảm nhẹ row 1
+        g.weighty = 0.10;
         content.add(row1, g);
 
-        // ===== ROW 2: 2 pie (RỘNG / TO HƠN) =====
+        // ===== ROW 2: 2 pie =====
         JPanel row2 = new JPanel(new GridLayout(1, 2, 16, 16));
         row2.setOpaque(false);
 
@@ -162,10 +168,10 @@ public class Dashboard_GUI extends JPanel {
         row2.add(card5);
 
         g.gridy = 1;
-        g.weighty = 0.74; // ✅ tăng mạnh row 2 để 2 pie “rộng/to” ra
+        g.weighty = 0.74;
         content.add(row2, g);
 
-        // ===== ROW 3: Warning + Bar (THU HẸP) =====
+        // ===== ROW 3: Warning + Bar =====
         JPanel row3 = new JPanel(new GridBagLayout());
         row3.setOpaque(false);
 
@@ -177,27 +183,27 @@ public class Dashboard_GUI extends JPanel {
         // Warning card
         pnlCanhBaoBody = new JPanel(new BorderLayout(10, 10));
         pnlCanhBaoBody.setBackground(CARD_BG);
-        pnlCanhBaoBody.setBorder(new EmptyBorder(8, 8, 8, 8)); // ✅ giảm padding cho gọn
+        pnlCanhBaoBody.setBorder(new EmptyBorder(8, 8, 8, 8));
         JPanel card6 = wrapCard("CẢNH BÁO NGÀY HIỆN TẠI", pnlCanhBaoBody);
 
         r.gridx = 0;
-        r.weightx = 0.55; // ✅ cảnh báo hẹp hơn (giữ như bạn set)
+        r.weightx = 0.55;
         r.insets = new Insets(0, 0, 0, 0);
         row3.add(card6, r);
 
         // Bar card
         pnlBarMatDo = new JPanel(new BorderLayout());
         pnlBarMatDo.setBackground(CARD_BG);
-        pnlBarMatDo.setBorder(new EmptyBorder(4, 4, 4, 4)); // ✅ giảm padding để card gọn
+        pnlBarMatDo.setBorder(new EmptyBorder(4, 4, 4, 4));
         JPanel card7 = wrapCard(" MẬT ĐỘ PHÒNG Ở THEO NGÀY CỦA THÁNG NÀY", pnlBarMatDo);
 
         r.gridx = 1;
-        r.weightx = 2.45; // ✅ bar rộng hơn trong row 3
+        r.weightx = 2.45;
         r.insets = new Insets(0, 16, 0, 0);
         row3.add(card7, r);
 
         g.gridy = 2;
-        g.weighty = 0.16; // ✅ giảm row 3 để “thu hẹp cảnh báo + mật độ phòng”
+        g.weighty = 0.16;
         content.add(row3, g);
 
         add(content, BorderLayout.CENTER);
@@ -334,88 +340,158 @@ public class Dashboard_GUI extends JPanel {
         return map;
     }
 
+    // ✅ FIX: hàm tính tick “đẹp” cho trục Y (tự dãn ra 5–10–20…)
+    private int calcNiceTickUnitInt(int max) {
+        if (max <= 10) return 1;
+        if (max <= 20) return 2;
+        if (max <= 50) return 5;
+        if (max <= 100) return 10;
+        if (max <= 200) return 20;
+        if (max <= 500) return 50;
+        return 100;
+    }
+
+    // ✅ FIX: làm tròn upperBound để trục Y đẹp hơn (ví dụ max=37 tick=10 => upper=40)
+    private int ceilToMultiple(int value, int unit) {
+        if (unit <= 0) return value;
+        return ((value + unit - 1) / unit) * unit;
+    }
+
     private void buildBarMatDo_IntegerY(int thang, int nam) {
         Map<Integer, Integer> map = tinhSoPhongDangOTheoNgay(thang, nam);
 
-        DefaultCategoryDataset ds = new DefaultCategoryDataset();
-        for (Map.Entry<Integer, Integer> e : map.entrySet()) {
-            ds.addValue(e.getValue(), "Số phòng đang ở", String.valueOf(e.getKey()));
+        pnlBarMatDo.removeAll();
+
+        // ✅ FIX: nếu không có dữ liệu thì show emptyState để không vỡ layout
+        if (map == null || map.isEmpty()) {
+            pnlBarMatDo.add(emptyState("Không có dữ liệu mật độ phòng tháng " + thang + "/" + nam), BorderLayout.CENTER);
+            pnlBarMatDo.revalidate();
+            pnlBarMatDo.repaint();
+            return;
         }
 
-        JFreeChart chart = ChartFactory.createBarChart(null, "Ngày", "Số phòng", ds);
+        DefaultCategoryDataset ds = new DefaultCategoryDataset();
+        int max = 0;
+        for (Map.Entry<Integer, Integer> e : map.entrySet()) {
+            int v = e.getValue() == null ? 0 : e.getValue();
+            if (v > max) max = v;
+            ds.addValue(v, "Số phòng đang ở", String.valueOf(e.getKey()));
+        }
+
+        JFreeChart chart = ChartFactory.createBarChart(
+                null, "Ngày", "Số phòng", ds
+        );
+
+        // ===== STYLE (giống bên Thống kê nhưng gọn theo Dashboard) =====
+        chart.setBackgroundPaint(CARD_BG);
+        chart.getRenderingHints().put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
-        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-
-        yAxis.setLowerBound(0);
-        yAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-        yAxis.setTickUnit(new NumberTickUnit(1));
-
         plot.setBackgroundPaint(new Color(250, 250, 252));
         plot.setRangeGridlinePaint(new Color(230, 232, 236));
+        plot.setDomainGridlinesVisible(false);
+
+        // ✅ FIX 1: Trục Y “tự dãn” như Thống kê (20,40,..) => bỏ ép tick=1
+        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        yAxis.setLowerBound(0);
+
+        int tick = calcNiceTickUnitInt(max);
+        int upper = ceilToMultiple(max, tick);
+
+        // Không bắt buộc nhưng giúp form đẹp, tránh cột đụng sát trần
+        yAxis.setUpperBound(Math.max(upper, tick));
+        yAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        yAxis.setTickUnit(new NumberTickUnit(tick)); // ✅ tick = 2/5/10/20...
+
+        // ❌ BỎ cái này (lỗi form của bạn là ở đây)
+        // yAxis.setTickUnit(new NumberTickUnit(1));
+
+        // ✅ FIX 2: Trục X xoay chữ cho dễ nhìn khi đông (tùy bạn)
+        CategoryAxis xAxis = plot.getDomainAxis();
+      //  xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45); // xoay 45 độ
+        xAxis.setCategoryLabelPositions(CategoryLabelPositions.STANDARD); // ✅ đứng thẳng
+
+        xAxis.setTickLabelFont(new Font("Tahoma", Font.PLAIN, 10));
+        xAxis.setLabelFont(new Font("Tahoma", Font.PLAIN, 12));
+
+        yAxis.setTickLabelFont(new Font("Tahoma", Font.PLAIN, 11));
+        yAxis.setLabelFont(new Font("Tahoma", Font.PLAIN, 12));
 
         BarRenderer renderer = (BarRenderer) plot.getRenderer();
         renderer.setItemMargin(0.02);
         renderer.setMaximumBarWidth(0.06);
 
-        pnlBarMatDo.removeAll();
         ChartPanel cp = new ChartPanel(chart);
         cp.setMouseWheelEnabled(true);
+        cp.setPopupMenu(null); // gọn UI
+        cp.setDomainZoomable(false);
+        cp.setRangeZoomable(false);
+
         pnlBarMatDo.add(cp, BorderLayout.CENTER);
         pnlBarMatDo.revalidate();
         pnlBarMatDo.repaint();
     }
 
     // ===================== WARNING: NO CHART =====================
-    private String xacDinhTrangThai(PhieuDatPhong p) {
-        List<ChiTietPhieuDatPhong> ds = ctPdpDAO.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
-        if (p == null || ds == null || ds.isEmpty()) return "Không có chi tiết";
+    private boolean isToiNgayNhan(PhieuDatPhong p) {
+        if (!"Đã đặt".equals(p.getTrangThai())) return false;
+
+        List<ChiTietPhieuDatPhong> ds =
+            ctPdpDAO.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
+
+        if (ds == null || ds.isEmpty()) return false;
 
         LocalDate today = LocalDate.now();
 
-        Optional<LocalDate> minNhan = ds.stream()
-                .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
-                .filter(d -> d != null)
-                .min(LocalDate::compareTo);
-
-        Optional<LocalDate> maxTra = ds.stream()
-                .map(ChiTietPhieuDatPhong::getNgayTraThuc)
-                .filter(d -> d != null)
-                .max(LocalDate::compareTo);
-
-        String trangThai = p.getTrangThai();
-        LocalDate nhanSomNhat = minNhan.orElse(null);
-        LocalDate traTreNhat = maxTra.orElse(null);
-
-        if ("Đã hủy".equals(trangThai)) return "Đã hủy";
-
-        if ("Đang ở".equals(trangThai)) {
-            if (traTreNhat != null && today.isAfter(traTreNhat)) return "Trễ hạn trả phòng";
-            if (traTreNhat != null && today.isEqual(traTreNhat)) return "Tới ngày trả";
-            return "Đang ở";
-        }
-
-        if ("Đã đặt".equals(trangThai)) {
-            if (nhanSomNhat != null && nhanSomNhat.isBefore(today)) return "Chưa nhận phòng";
-            if (nhanSomNhat != null && today.isEqual(nhanSomNhat)) return "Tới ngày nhận";
-            if (nhanSomNhat != null && today.isBefore(nhanSomNhat)) return "Đã đặt";
-        }
-
-        return "Hoàn thành";
+        return ds.stream()
+            .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
+            .filter(Objects::nonNull)
+            .min(LocalDate::compareTo)
+            .map(today::isEqual)
+            .orElse(false);
     }
+    private boolean isToiNgayTra(PhieuDatPhong p) {
+        if (!"Đang ở".equals(p.getTrangThai())) return false;
 
-    private int countCheckTrangThaiPDP(String trangThai) {
-        List<PhieuDatPhong> ds = pdpDAO.getAllPhieuDatPhong();
-        return (int) ds.stream().filter(pdp -> xacDinhTrangThai(pdp).equals(trangThai)).count();
+        List<ChiTietPhieuDatPhong> ds =
+            ctPdpDAO.getChiTietTheoMaPhieu(p.getMaPhieuDatPhong());
+
+        if (ds == null || ds.isEmpty()) return false;
+
+        LocalDate today = LocalDate.now();
+
+        return ds.stream()
+            .map(ChiTietPhieuDatPhong::getNgayTraThuc)
+            .filter(Objects::nonNull)
+            .max(LocalDate::compareTo)
+            .map(today::isEqual)
+            .orElse(false);
+    }
+    private Map<String, Integer> thongKeCanInOut() {
+
+        int canIn = 0;
+        int canOut = 0;
+
+        for (PhieuDatPhong p : pdpDAO.getAllPhieuDatPhong()) {
+            if (isToiNgayNhan(p)) canIn++;
+            if (isToiNgayTra(p))  canOut++;
+        }
+
+        Map<String, Integer> result = new HashMap<>();
+        result.put("Tới ngày nhận", canIn);
+        result.put("Tới ngày trả", canOut);
+
+        return result;
     }
 
     private void buildCanhBaoNoChart() {
         pnlCanhBaoBody.removeAll();
 
-        int canIn  = countCheckTrangThaiPDP("Tới ngày nhận");
-        int canOut = countCheckTrangThaiPDP("Tới ngày trả");
+        Map<String, Integer> thongKe = thongKeCanInOut();
+        int canIn  = thongKe.get("Tới ngày nhận");
+        int canOut = thongKe.get("Tới ngày trả");
 
-        JPanel kpiCol = new JPanel(new GridLayout(2, 1, 0, 8)); // ✅ gọn hơn
+        JPanel kpiCol = new JPanel(new GridLayout(2, 1, 0, 8));
         kpiCol.setOpaque(false);
         kpiCol.add(buildKpiPill("Check-in cần xử lý", canIn, new Color(225, 248, 235), UP));
         kpiCol.add(buildKpiPill("Check-out cần xử lý", canOut, new Color(255, 242, 226), WARN));
