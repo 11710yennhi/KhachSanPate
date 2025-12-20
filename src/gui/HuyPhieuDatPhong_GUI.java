@@ -19,11 +19,13 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
     private PhieuDatPhong tam;        
     private KhachHang khach;
     private DefaultTableModel modelDaChot; 
+    private String maHoaDon="";
 
     // ===== CONSTRUCTOR =====
     public HuyPhieuDatPhong_GUI(String maPhieu,
                                 PhieuDatPhong pDaChot,
-                                DefaultTableModel dlpDaChot) {
+                                DefaultTableModel dlpDaChot, String maHD) {
+    	maHoaDon= maHD;
 
         this.tam = pDaChot;
         this.modelDaChot = dlpDaChot;
@@ -82,6 +84,7 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
     	JPanel info = new JPanel(new GridLayout(5, 1, 3, 3));
         info.setOpaque(false);
 
+        info.add(new JLabel("Mã hóa đơn: " + maHoaDon ));
         info.add(new JLabel("Mã phiếu: " + phieu.getMaPhieuDatPhong()));
         info.add(new JLabel("Tên khách hàng: " + khach.getHoTen()));
         info.add(new JLabel("Số điện thoại: " + khach.getSoDienThoai()));

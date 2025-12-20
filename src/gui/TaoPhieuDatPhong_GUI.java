@@ -68,6 +68,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     private String mNV;
     private String maHD;
     private Set<String> dsPhongDaChon = new HashSet<>();
+    private Map<String, JButton> mapNutPhong = new HashMap<>();
+
     
     public TaoPhieuDatPhong_GUI(String maNV) {
     	mNV= maNV;
@@ -392,15 +394,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		    int soTreEmVL = (txtTreEm.getText().trim().isEmpty()
                     || txtTreEm.getText().trim().equals("0"))? 1 : Integer.parseInt(txtTreEm.getText().trim());
 
-//		    PhieuDatPhong phieuTam = new PhieuDatPhong(
-//		       taoMaPhieuDatPhongTuDong(),
-//		        checkKH,
-//		        new NhanVien(txtNV.getText()),
-//		        LocalDate.now(),
-//		        cboTrangThai.getSelectedItem().toString(),
-//		        soNguoiLonVL,
-//		        soTreEmVL
-//		    );
 		    int luaChon = JOptionPane.showConfirmDialog( null, "Bấm Yes để xác nhận tạo phiếu", "Xác nhận", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE );
 		    if (luaChon == JOptionPane.YES_OPTION) {		    	
 		    	double tienCocCu= Double.parseDouble(txtTienCocCu.getText());
@@ -413,6 +406,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 				 getDSLP();
 				 PhieuDatPhong tam= doiTuongTongTienPhong();
 				 txtTienCocCu.setText(String.valueOf(tam.getTienCoc()));
+				 btnTT.setEnabled(true);
+					btnHuy.setEnabled(true);
 		    } 
 
 		   
@@ -456,6 +451,10 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		}else if(o.equals(btnXoaCP)) {
 			xoaCPPSXB();
 		}else if(o.equals(btnLuu)) {
+			if(txtMPDP.getText().trim().isEmpty()) {
+				JOptionPane.showMessageDialog(null,"Chưa có phiếu đặt phòng để lưu!");
+				return;
+			}
 			if( kiemTraDuLieuNhap()&&dieuKienNguoi()&&kiemTraTrangThai(pdp.timPhieuDatPhongTheoMa(txtMPDP.getText().trim()))) {
 				if(xuLyNutLuu()) {
 					kiemTraDeThemCPPS();
@@ -463,6 +462,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 					txtTienCocCu.setText(String.valueOf(tam.getTienCoc()));
 					JOptionPane.showMessageDialog(null,"Lưu thành công!");
 					getDSLP();
+					btnTT.setEnabled(true);
+					btnHuy.setEnabled(true);
 					return;
 				}else {
 					JOptionPane.showMessageDialog(null,"Lưu thất bại!");
@@ -541,11 +542,13 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		            JOptionPane.QUESTION_MESSAGE
 		    );
 		    if (chon == JOptionPane.YES_OPTION) {
-		        huyDatPhong();  
+		    	String maHD= taoMaHoaDon();
+		        huyDatPhong(maHD);  
 		       PhieuDatPhong p= doiTuongTongTienPhong();
 		       KhuyenMai km= new KhuyenMai("Không");
-		       hdd.themHoaDon(taoMaHoaDon(), txtMPDP.getText(), null, "Chuyển khoản", p.getTongTienPhong(), 0.0, p.getTongTien(), LocalDate.now());
 		       
+		       hdd.themHoaDon(maHD, txtMPDP.getText(), null, "Chuyển khoản", p.getTongTienPhong(), 0.0, p.getTongTien(), LocalDate.now());
+		         
 		    }
 		}
 		else if(o.equals(btnCapNhat)) {
@@ -558,39 +561,66 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	}
 	public void xoaPhong() {
 	    int x = tblPhong.getSelectedRow();
+
+	    // 1️⃣ Chưa chọn dòng
 	    if (x == -1) {
-	        JOptionPane.showMessageDialog(null, "Vui lòng chọn dòng cần xóa!");
+	        JOptionPane.showMessageDialog(
+	            null,
+	            "Vui lòng chọn dòng cần xóa!",
+	            "Thông báo",
+	            JOptionPane.WARNING_MESSAGE
+	        );
 	        return;
 	    }
 
+	    // 2️⃣ Lấy mã phòng
 	    String maPhong = dlp.getValueAt(x, 1).toString();
 
-	    // Lấy danh sách chi tiết phiếu từ DB
-	    List<ChiTietPhieuDatPhong> ds = dsctpdp.getChiTietTheoMaPhieu(txtMPDP.getText());
+	    // 3️⃣ Kiểm tra trong DB
+	    List<ChiTietPhieuDatPhong> ds =
+	            dsctpdp.getChiTietTheoMaPhieu(txtMPDP.getText());
 
 	    for (ChiTietPhieuDatPhong ct : ds) {
 	        if (ct.getPhong() == null) continue;
 
 	        if (maPhong.equals(ct.getPhong().getMaPhong())) {
 	            JOptionPane.showMessageDialog(
-	                    null,
-	                    "Phòng này đã có trong hệ thống,\n" +
-	                    "không thể xóa.\n" +
-	                    "Bạn có thể chọn trả phòng sớm!",
-	                    "Không thể xóa",
-	                    JOptionPane.WARNING_MESSAGE
+	                null,
+	                "Phòng này đã có trong hệ thống,\n" +
+	                "không thể xóa.\n" +
+	                "Bạn có thể chọn trả phòng sớm!",
+	                "Không thể xóa",
+	                JOptionPane.WARNING_MESSAGE
 	            );
-	            return;
+	            return; // ❗ KHÔNG xóa gì hết
 	        }
 	    }
 
-	    // Nếu KHÔNG có trong DB → cho xóa
+	    // 4️⃣ XÓA THÀNH CÔNG → mới cập nhật trạng thái
 	    dlp.removeRow(x);
 	    capNhatSoThuTu();
+
+	    // 5️⃣ Xóa khỏi danh sách đã chọn
+	    dsPhongDaChon.remove(maPhong);
+
+	    // 6️⃣ Reset màu nút phòng
+	    JButton btn = mapNutPhong.get(maPhong);
+	    if (btn != null) {
+	        btn.setBackground(Color.WHITE);
+	        btn.setForeground(mauXanhDam);
+	    }
+
+	    // 7️⃣ Cập nhật tiền
 	    hienThiTienCocVaTienTongTienPhong();
 
-	    JOptionPane.showMessageDialog(null, "Xóa thành công!");
+	    JOptionPane.showMessageDialog(
+	        null,
+	        "Xóa thành công!",
+	        "Thông báo",
+	        JOptionPane.INFORMATION_MESSAGE
+	    );
 	}
+
 
 	
 	private void capNhatSoThuTu() {
@@ -752,7 +782,9 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         txtNV.setEditable(false);
         btnLuu = new JButton("💾 Lưu");
         btnHuy = new JButton("❌ Hủy đặt phòng");
+        btnHuy.setEnabled(false);
         btnTT = new JButton("💳 Thanh toán");
+        btnTT.setEnabled(false);
         btnXR = new JButton("Tạo phiếu mới");
         lblTongTatCa = new JLabel("Tổng thanh toán: 0 VNĐ");
         pBottom.add(lblNV);
@@ -1001,6 +1033,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         // ====== Tạo nút cho từng mã phòng ======
         for (String maPhong : dsMaPhong) {
             JButton btnPhong = new JButton(maPhong);
+            mapNutPhong.put(maPhong, btnPhong);
             btnPhong.setBackground(Color.WHITE);
             btnPhong.setFocusPainted(false);
             btnPhong.setBorder(BorderFactory.createLineBorder(mauXanhDam, 1, true));
@@ -1064,8 +1097,15 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 }
 
                 // Kiểm tra trùng phòng trong bảng
+                if (dlp.getRowCount() >= 12) {
+                    JOptionPane.showMessageDialog(null, "Chỉ được đặt tối đa 12 phòng");
+                    return;
+                }
+
+                if (!xuLyChonNgay()) return;
+
                 for (int i = 0; i < dlp.getRowCount(); i++) {
-                    String ma = dlp.getValueAt(i, 1).toString(); // cột Mã phòng
+                    String ma = dlp.getValueAt(i, 1).toString();
                     if (ma.equals(maPhong)) {
                         JOptionPane.showMessageDialog(null,
                             "Phòng này đã được chọn!",
@@ -1073,11 +1113,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                             JOptionPane.WARNING_MESSAGE);
                         return;
                     }
-                    if(dlp.getRowCount()>11) {
-                    	JOptionPane.showMessageDialog(null,"Chỉ được đặt tối đa 12 phòng");
-                    	return;
-                    }
-                    if(!xuLyChonNgay()) return;
                 }
 
                 //  Tính số đêm ở và thành tiền
@@ -1729,6 +1764,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
    	}
    	PhieuDatPhong tam= doiTuongTongTienPhong();
 	txtTienCocCu.setText(String.valueOf(tam.getTienCoc()));
+	btnTT.setEnabled(true);
+	btnHuy.setEnabled(true);
    }
    
    
@@ -1956,7 +1993,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    return true;
 	}
 
-   public void huyDatPhong() {
+   public void huyDatPhong(String maHoaDon) {
 
 	    PhieuDatPhong p = pdp.timPhieuDatPhongTheoMa(txtMPDP.getText().trim());
 	    if (p == null) {
@@ -2055,7 +2092,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    new HuyPhieuDatPhong_GUI(
 	            p.getMaPhieuDatPhong(),
 	            doiTuongTongTienPhong(),
-	            dlp
+	            dlp, maHoaDon
 	    ).setVisible(true);
 	}
 
@@ -2110,8 +2147,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    btnThemCP.setEnabled(true);
 	    btnXoaCP.setEnabled(true);
 	    btnLuu.setEnabled(true);
-	    btnHuy.setEnabled(true);
-	    btnTT.setEnabled(true);
+	    btnHuy.setEnabled(false);
+	    btnTT.setEnabled(false);
 	    btnXR.setEnabled(true);
 	    btnCapNhat.setEnabled(true);
 	    btnXNDP.setEnabled(true);
@@ -2161,6 +2198,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		  btnThemCP.setEnabled(false);
 		  btnXoaCP.setEnabled(false);
 	  }else {
+		  
 		  btnThemCP.setEnabled(true);
 		  btnXoaCP.setEnabled(true);
 	  }

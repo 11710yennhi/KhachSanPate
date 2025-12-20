@@ -45,7 +45,7 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         hdd= new HoaDon_DAO();
         
 
-//        taiDuLieu();
+        taiDuLieu();
 //        hienThiDanhSach(dsPhieu);
 //        locTheoTrangThai();
     }
