@@ -234,6 +234,21 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
         gbc.gridx = 1;
         cboTrangThai = new JComboBox<>(new String[]{"Đã đặt", "Đang ở", "Hoàn thành", "Đã hủy"});
+        cboTrangThai.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(
+                JList<?> list, Object value, int index,
+                boolean isSelected, boolean cellHasFocus) {
+
+                if ("Hoàn thành".equals(value) || "Đã hủy".equals(value)) {
+                    return new JLabel(""); // ẨN
+                }
+
+                return super.getListCellRendererComponent(
+                        list, value, index, isSelected, cellHasFocus);
+            }
+        });
+
         pThongTin.add(cboTrangThai, gbc);
 
         // Nút xác nhận

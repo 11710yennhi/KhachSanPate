@@ -79,7 +79,7 @@ public class TraPhong_GUI {
                 ngayTraMoi = ngayGiua;
             }
 
-            capNhatUI(model, row, ngayNhan, ngayTraMoi, ngayTraMoi);
+            capNhatUI(model, row, ngayNhan, ngayTraMoi, ngayTra);
             tinhTien(model, row, maPhong, ngayNhan, ngayTraMoi);
             JOptionPane.showMessageDialog(null, "Trả phòng thành công!");
             return;
