@@ -16,14 +16,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>src/gui/GioiThieu_GUI.java</name>
-			<type>1</type>
-			<location>C:/Users/1710y/Downloads/GioiThieu_GUI.java</location>
-		</link>
-		<link>
 			<name>src/gui/TrangChinh_GUI.java</name>
 			<type>1</type>
-			<location>C:/Users/1710y/Downloads/TrangChinh_GUI.java</location>
+			<location>E:/HongHa/PTUD/KhachSanPate/src/gui/TrangChinh_GUI.java</location>
 		</link>
 	</linkedResources>
 </projectDescription>
