@@ -1395,7 +1395,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
     	txtTenKH.setEditable(true);
     	btnInPhieu.setEnabled(true);
     	}
-    	else JOptionPane.showMessageDialog(null,"Vui lòng chọn phòng trước khi xác nhận");
+    	else JOptionPane.showMessageDialog(null,"Vui lòng chọn phòng trước khi tạo phiếu");
     	
     }
 
@@ -2080,6 +2080,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    cboTrangThai.setSelectedItem("Đã hủy");
 
 	    hienThiTienCocVaTienTongTienPhong();
+	    double tcc= Double.parseDouble(txtTienCocCu.getText());
 	    xuLyNutLuu();
 	    khoaTatCaTruong();
 	   
@@ -2087,7 +2088,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    new HuyPhieuDatPhong_GUI(
 	            p.getMaPhieuDatPhong(),
 	            doiTuongTongTienPhong(),
-	            dlp, maHoaDon
+	            dlp, maHoaDon,tcc
 	    ).setVisible(true);
 	}
 

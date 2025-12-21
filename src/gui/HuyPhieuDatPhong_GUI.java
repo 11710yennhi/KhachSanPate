@@ -20,13 +20,13 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
     private KhachHang khach;
     private DefaultTableModel modelDaChot; 
     private String maHoaDon="";
-
+    private double tienCocCu=0;
     // ===== CONSTRUCTOR =====
     public HuyPhieuDatPhong_GUI(String maPhieu,
                                 PhieuDatPhong pDaChot,
-                                DefaultTableModel dlpDaChot, String maHD) {
+                                DefaultTableModel dlpDaChot, String maHD, double tcc) {
     	maHoaDon= maHD;
-
+    	tienCocCu=tcc;
         this.tam = pDaChot;
         this.modelDaChot = dlpDaChot;
 
@@ -126,10 +126,11 @@ public class HuyPhieuDatPhong_GUI extends JFrame {
                 formatVND(tam.getTongTienPhong()), bold));
 
         money.add(labelBold("TIỀN ĐÃ CỌC: " +
-                formatVND(tam.getTienCoc()), bold));
-
-        money.add(labelBold("TIỀN KHÁCH CẦN TRẢ: " +
-                formatVND(tam.getTongTienPhong() - tam.getTienCoc()), bold));
+                formatVND(tienCocCu), bold));
+//        money.add(labelBold("TIỀN : " +
+//                formatVND(tam.getTienCoc()), bold));
+        money.add(labelBold("Tổng thanh toán: " +
+                formatVND(tam.getTongTienPhong() - tienCocCu), bold));
 
         main.add(money);
     }
