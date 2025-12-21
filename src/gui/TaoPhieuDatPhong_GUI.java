@@ -237,21 +237,6 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
                 "Đã đặt", "Đang ở", "Hoàn thành", "Đã hủy"
         });
 
-        cboTrangThai.addItemListener(e -> {
-            if (e.getStateChange() == ItemEvent.SELECTED) {
-                String trangThai = e.getItem().toString();
-
-                if (trangThai.equals("Hoàn thành") || trangThai.equals("Đã hủy")) {
-                    JOptionPane.showMessageDialog(null,
-                            "Không được chọn trạng thái này!",
-                            "Cảnh báo",
-                            JOptionPane.WARNING_MESSAGE);
-
-                    cboTrangThai.setSelectedItem("Đã đặt");
-                }
-            }
-        });
-
         pThongTin.add(cboTrangThai, gbc);
 
         // Nút xác nhận
@@ -402,6 +387,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		if (o.equals(btnInPhieu)&&kiemTraDuLieuNhap()&&dieuKienNguoi()) {
 		    if (!ktraThongTinPDP())
 		        return;
+		    if(!kiemTraKhongChoBamTrangThai()) return;
 		    if(!kiemTraTrangThaiXacNhanDatPhong()) return;
 		    KhachHang checkKH= khd.getKhachHangTheoSDT(txtSDT.getText());
 		    if(checkKH==null) {
@@ -474,6 +460,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 				JOptionPane.showMessageDialog(null,"Chưa có phiếu đặt phòng để lưu!");
 				return;
 			}
+			if(!kiemTraKhongChoBamTrangThai()) return;
 			if( kiemTraDuLieuNhap()&&dieuKienNguoi()&&kiemTraTrangThai(pdp.timPhieuDatPhongTheoMa(txtMPDP.getText().trim()))) {
 				if(xuLyNutLuu()) {
 					kiemTraDeThemCPPS();
@@ -846,7 +833,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         String nam = String.valueOf(ngayHienTai.getYear());
 
         // Lấy danh sách khách hàng hiện có (từ database hoặc DAO)
-        List<KhachHang> danhSachKhachHang = khd.getKhachHangHomNay();
+        List<KhachHang> danhSachKhachHang = khd.getAllKhachHang();
 
         // Đếm số khách hàng tạo trong ngày hiện tại
         int dem = 0;
@@ -2277,5 +2264,18 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    }
 	    return true;
   }
+  public boolean kiemTraKhongChoBamTrangThai() {
+	  if(cboTrangThai.getSelectedItem().equals("Hoàn thành")||cboTrangThai.getSelectedItem().equals("Đã hủy")) {
+		  JOptionPane.showMessageDialog(null,
+		            "Bạn không được chọn trạng thái này!",
+		            "Thông báo",
+		            JOptionPane.WARNING_MESSAGE);
+		        return false;
+		    }
+  
+	  return true;
+              
+          }
+     
+  }
 
-}

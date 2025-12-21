@@ -193,7 +193,7 @@ public class DangNhap_GUI extends JFrame implements ActionListener {
 	}
 
 	public void xoaTrangThongTin() {
-		txtTenDN.setText("NV01062021030");
+		txtTenDN.setText("NV08012024001");
 		txtMatKhau.setText("123456");
 		txtTenDN.requestFocus();
 	}
