@@ -8,97 +8,164 @@ import dao.TaiKhoan_DAO;
 
 public class DangNhap_GUI extends JFrame implements ActionListener {
 	private static final long serialVersionUID = 1L;
+	
+	private static final Color GOLD = new Color(218, 177, 55);
+    private static final Color NAVY = new Color(10, 52, 89);
+	private static final Color NAVY_DARK = new Color(7, 40, 68);
+	private static final Color BORDER = new Color(220, 227, 235);
+	private static final Color LIGHT_BG = new Color(245, 247, 250);
+	private static final String FONT_UI = "Segoe UI";
+	
+    JLabel lblten, lblMatKhau;
+    JTextField txtTenDN;
+    JPasswordField txtMatKhau;
+    JButton btnDangNhap, btnXoaTrang;
 
-	JLabel lblten, lblMatKhau;
-	JTextField txtTenDN;
-	JPasswordField txtMatKhau;
-	JButton btnDangNhap, btnXoaTrang;
-	private TaiKhoan_DAO dao;
-	public DangNhap_GUI() {
-		dao = new TaiKhoan_DAO();
-		setTitle("Đăng nhập");
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+    private TaiKhoan_DAO dao;
 
-		// Hình nền
-		ImageIcon bgIcon = new ImageIcon("src/image/bglogin3.jpg");
-		Image img = bgIcon.getImage().getScaledInstance(500, 400, Image.SCALE_SMOOTH);
-		JLabel nen = new JLabel(new ImageIcon(img));
-		nen.setLayout(new BorderLayout());
-		setContentPane(nen);
+    public DangNhap_GUI() {
+        dao = new TaiKhoan_DAO();
+        setTitle("Đăng nhập");
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(1000, 600);
+        setResizable(false);
+        setLocationRelativeTo(null);
 
-		Font font = new Font("Arial", Font.BOLD, 16);
+        Font font = new Font("Arial", Font.BOLD, 16);
 
-		// Panel tiêu đề
-		JPanel pTieuDe = new JPanel();
-		pTieuDe.setLayout(new GridBagLayout());
-		JLabel lblTieuDe = new JLabel("Đăng nhập");
-		lblTieuDe.setFont(new Font("Arial", Font.BOLD, 30));
-		lblTieuDe.setForeground(Color.BLACK);
-		pTieuDe.add(lblTieuDe);
-		pTieuDe.setPreferredSize(new Dimension(400, 100));
+        /* ================= PANEL TRÁI (ĐĂNG NHẬP) ================= */
+        JPanel pTieuDe = new JPanel(new GridBagLayout());
+        JLabel lblTieuDe = new JLabel("ĐĂNG NHẬP");
+        lblTieuDe.setFont(new Font("Arial", Font.BOLD, 28));
+        lblTieuDe.setForeground(NAVY);
+        pTieuDe.add(lblTieuDe);
+        pTieuDe.setPreferredSize(new Dimension(200, 100));
+        pTieuDe.setOpaque(false);
 
-		// Các dòng nhập liệu và nút
-		Box pTkhoan, pMkhau, pNut;
-		Box pBody = Box.createVerticalBox();
+        Box pBody = Box.createVerticalBox();
+        Box pTkhoan, pMkhau, pNut;
 
-		pBody.add(pTkhoan = Box.createHorizontalBox());
-		pTkhoan.add(lblten = new JLabel("Tên đăng nhập:"));
-		lblten.setFont(font);
-		pTkhoan.add(Box.createHorizontalStrut(20));
-		txtTenDN = new JTextField();
-		pTkhoan.add(txtTenDN);
+        pBody.add(pTkhoan = Box.createHorizontalBox());
+        pTkhoan.add(lblten = new JLabel("Tên đăng nhập:"));
+        lblten.setFont(font);
+        pTkhoan.add(Box.createHorizontalStrut(15));
+        txtTenDN = new JTextField();
+        txtTenDN.setPreferredSize(new Dimension(200, 28));
+        pTkhoan.add(txtTenDN);
 
-		pBody.add(Box.createVerticalStrut(5));
-		pBody.add(pMkhau = Box.createHorizontalBox());
-		pMkhau.add(lblMatKhau = new JLabel("Mật khẩu:"));
-		lblMatKhau.setFont(font);
-		pMkhau.add(Box.createHorizontalStrut(20));
-		txtMatKhau = new JPasswordField();
-		pMkhau.add(txtMatKhau);
+        pBody.add(Box.createVerticalStrut(10));
 
-		pBody.add(Box.createVerticalStrut(30));
-		pBody.add(pNut = Box.createHorizontalBox());
-		pNut.add(btnDangNhap = new JButton("Đăng nhập"));
-		pNut.add(Box.createHorizontalStrut(10));
-		pNut.add(btnXoaTrang = new JButton("Xoá trắng"));
+        pBody.add(pMkhau = Box.createHorizontalBox());
+        pMkhau.add(lblMatKhau = new JLabel("Mật khẩu:"));
+        lblMatKhau.setFont(font);
+        lblMatKhau.setPreferredSize(lblten.getPreferredSize());
+        pMkhau.add(Box.createHorizontalStrut(15));
+        txtMatKhau = new JPasswordField();
+        txtMatKhau.setPreferredSize(new Dimension(200, 28));
+        pMkhau.add(txtMatKhau);
 
-		lblMatKhau.setPreferredSize(lblten.getPreferredSize());
-		txtTenDN.setPreferredSize(new Dimension(200, 25));
-		txtMatKhau.setPreferredSize(new Dimension(200, 25));
+        pBody.add(Box.createVerticalStrut(30));
 
-		btnDangNhap.setBackground(new Color(133, 72, 54));
-		btnDangNhap.setForeground(Color.WHITE);
-		btnDangNhap.setFocusPainted(false);
-		btnDangNhap.setBorderPainted(false);
-		btnDangNhap.setOpaque(true);
+        pBody.add(pNut = Box.createHorizontalBox());
+        btnDangNhap = new JButton("Đăng nhập");
+        btnXoaTrang = new JButton("Xoá trắng");
+        
+        btnDangNhap.setBackground(NAVY);
+        btnDangNhap.setForeground(Color.WHITE);
+        btnDangNhap.setFocusPainted(false);
 
-		btnXoaTrang.setBackground(new Color(255, 178, 44));
-		btnXoaTrang.setForeground(Color.WHITE);
-		btnXoaTrang.setFocusPainted(false);
-		btnXoaTrang.setBorderPainted(false);
-		btnXoaTrang.setOpaque(true);
+        btnXoaTrang.setBackground(GOLD);
+        btnXoaTrang.setForeground(Color.WHITE);
+        btnXoaTrang.setFocusPainted(false);
 
-		JPanel pnlNoiDung = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		pnlNoiDung.add(pBody);
+        pNut.add(btnDangNhap);
+        pNut.add(Box.createHorizontalStrut(10));
+        pNut.add(btnXoaTrang);
 
-		btnDangNhap.addActionListener(this);
-		btnXoaTrang.addActionListener(this);
+        JPanel pnlNoiDung = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        pnlNoiDung.add(pBody);
+        pnlNoiDung.setOpaque(false);
 
-		add(pTieuDe, BorderLayout.NORTH);
-		add(pnlNoiDung, BorderLayout.CENTER);
+        Box pLeftContent = Box.createVerticalBox();
+        pLeftContent.setPreferredSize(new Dimension(420, 260));
 
-		// Đặt nền trong suốt cho các box
-		pTieuDe.setOpaque(false);
-		pnlNoiDung.setOpaque(false);
-		pBody.setOpaque(false);
-		pTkhoan.setOpaque(false);
-		pMkhau.setOpaque(false);
-		pNut.setOpaque(false);
+        pLeftContent.add(pTieuDe);
+        pLeftContent.add(Box.createVerticalStrut(20));
+        pLeftContent.add(pnlNoiDung);
 
-		setSize(500, 400);
-		setResizable(false);
-		setLocationRelativeTo(null);
-	}
+        JPanel pnlLeft = new JPanel(new GridBagLayout());
+        
+        pnlLeft.setBackground(LIGHT_BG);
+
+        GridBagConstraints gbcLeft = new GridBagConstraints();
+        gbcLeft.gridx = 0;
+        gbcLeft.gridy = 0;
+        gbcLeft.weightx = 2.0;
+        gbcLeft.weighty = 2.0;
+        gbcLeft.anchor = GridBagConstraints.CENTER;
+        gbcLeft.fill = GridBagConstraints.NONE;
+        gbcLeft.insets = new Insets(0, 0, 0, 0);
+        
+        pnlLeft.add(pLeftContent, gbcLeft);
+        
+
+        /* ================= PANEL PHẢI (ẢNH FULL) ================= */
+        ImageIcon icon = new ImageIcon(
+        	    DangNhap_GUI.class.getResource("/img/KS_Dangnhapimg.jpg")
+        	);
+        	Image img = icon.getImage();
+
+        JPanel pnlRight = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                int panelW = getWidth();
+                int panelH = getHeight();
+
+                int imgW = img.getWidth(this);
+                int imgH = img.getHeight(this);
+
+                if (imgW <= 0 || imgH <= 0) return;
+
+                double scale = Math.max(
+                        (double) panelW / imgW,
+                        (double) panelH / imgH
+                );
+
+                int drawW = (int) (imgW * scale);
+                int drawH = (int) (imgH * scale);
+
+                int x = (panelW - drawW) / 2;
+                int y = (panelH - drawH) / 2;
+
+                g.drawImage(img, x, y, drawW, drawH, this);
+            }
+        };
+
+        /* ================= PANEL CHÍNH (1/3 - 2/3) ================= */
+        JPanel pnlMain = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1;
+
+        // Trái: 1/3
+        gbc.gridx = 0;
+        gbc.weightx = 1;
+        pnlMain.add(pnlLeft, gbc);
+
+        // Phải: 2/3
+        gbc.gridx = 1;
+        gbc.weightx = 2;
+        pnlMain.add(pnlRight, gbc);
+
+        setContentPane(pnlMain);
+
+        /* ================= SỰ KIỆN ================= */
+        btnDangNhap.addActionListener(this);
+        btnXoaTrang.addActionListener(this);
+
+       }
 
 	@Override
 	public void actionPerformed(ActionEvent e) {

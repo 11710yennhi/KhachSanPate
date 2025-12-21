@@ -64,15 +64,42 @@ public class HoaDon_DAO {
 	                   tongThanhToan,
 	                   ngayTao
 	            FROM HoaDon
-	            WHERE maPhieuDatPhong = ?
+	            WHERE maPhieuDatPhong LIKE ?
 	        """;
 
 	        PreparedStatement ps = ConnectDB.getInstance()
 	                                        .getConnection()
 	                                        .prepareStatement(sql);
-	        ps.setString(1, maPDP);
+	        ps.setString(1, "%" + maPDP + "%"); // 👈 tìm tương đối
 	        rs = ps.executeQuery();
 
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return rs;
+	}
+	
+	public ResultSet timHoaDonTheoSDT(String sdt) {
+	    ResultSet rs = null;
+	    try {
+	        String sql = """
+	            SELECT hd.maHoaDon,
+	                   hd.maPhieuDatPhong,
+	                   hd.maKhuyenMai,
+	                   hd.phuongThucThanhToan,
+	                   hd.tongThanhToan,
+	                   hd.ngayTao
+	            FROM HoaDon hd
+	            JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+	            JOIN KhachHang kh ON pdp.maKhachHang = kh.maKhachHang
+	            WHERE kh.soDienThoai LIKE ?
+	        """;
+
+	        PreparedStatement ps = ConnectDB.getInstance()
+	                                        .getConnection()
+	                                        .prepareStatement(sql);
+	        ps.setString(1, "%" + sdt + "%"); // 🔍 tìm tương đối
+	        rs = ps.executeQuery();
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
@@ -82,23 +109,25 @@ public class HoaDon_DAO {
 
 
 
+
 //========================Xử lý hiển thị thông tin cơ bản ======================
 	public Object[] getThongTinHoaDon(String maHoaDon) {
 
-        String sql = """
-            SELECT 
-                hd.maHoaDon,
-                hd.ngayTao,
-                nv.hoTen AS tenNhanVien,
-                STRING_AGG(p.maPhong, ', ') AS danhSachPhong
-            FROM HoaDon hd
-            JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
-            JOIN NhanVien nv ON pdp.maNhanVien = nv.maNhanVien
-            JOIN ChiTietPhieuDatPhong ctpdp ON pdp.maPhieuDatPhong = ctpdp.maPhieuDatPhong
-            JOIN Phong p ON ctpdp.maPhong = p.maPhong
-            WHERE hd.maHoaDon = ?
-            GROUP BY hd.maHoaDon, hd.ngayTao, nv.hoTen
-        """;
+		String sql = """
+			    SELECT 
+			        hd.maHoaDon,
+			        hd.ngayTao,
+			        nv.hoTen AS tenNhanVien,
+			        pdp.trangThai,
+			        STRING_AGG(p.maPhong, ', ') AS danhSachPhong
+			    FROM HoaDon hd
+			    JOIN PhieuDatPhong pdp ON hd.maPhieuDatPhong = pdp.maPhieuDatPhong
+			    JOIN NhanVien nv ON pdp.maNhanVien = nv.maNhanVien
+			    JOIN ChiTietPhieuDatPhong ctpdp ON pdp.maPhieuDatPhong = ctpdp.maPhieuDatPhong
+			    JOIN Phong p ON ctpdp.maPhong = p.maPhong
+			    WHERE hd.maHoaDon = ?
+			    GROUP BY hd.maHoaDon, hd.ngayTao, nv.hoTen, pdp.trangThai
+			""";
 
         try (Connection con = ConnectDB.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -107,12 +136,13 @@ public class HoaDon_DAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                return new Object[] {
-                    rs.getString("maHoaDon"),
-                    rs.getDate("ngayTao"),
-                    rs.getString("tenNhanVien"),
-                    rs.getString("danhSachPhong")
-                };
+            	return new Object[] {
+            		    rs.getString("maHoaDon"),
+            		    rs.getDate("ngayTao"),
+            		    rs.getString("tenNhanVien"),
+            		    rs.getString("danhSachPhong"),
+            		    rs.getString("trangThai")
+            		};
             }
 
         } catch (Exception e) {
@@ -258,33 +288,32 @@ public class HoaDon_DAO {
 	    }
 	}
 //============================= tìm hóa đơn theo mã hóa đơn =========================
-	public ResultSet timHoaDonTheoMa(String maHD) {
-
-	    String sql = """
-	        SELECT 
-	            maHoaDon,
-	            maPhieuDatPhong,
-	            maKhuyenMai,
-	            phuongThucThanhToan,
-	            tongThanhToan,
-	            ngayTao
-	        FROM HoaDon
-	        WHERE maHoaDon LIKE ?
-	        ORDER BY ngayTao DESC
-	    """;
-
+	public ResultSet timHoaDonTheoMa(String ma) {
+	    ResultSet rs = null;
 	    try {
-	        Connection con = ConnectDB.getInstance().getConnection();
-	        PreparedStatement ps = con.prepareStatement(sql);
+	        String sql = """
+	            SELECT maHoaDon,
+	                   maPhieuDatPhong,
+	                   maKhuyenMai,
+	                   phuongThucThanhToan,
+	                   tongThanhToan,
+	                   ngayTao
+	            FROM HoaDon
+	            WHERE maHoaDon LIKE ?
+	        """;
 
-	        ps.setString(1, "%" + maHD + "%");
+	        PreparedStatement ps = ConnectDB.getInstance()
+	                                        .getConnection()
+	                                        .prepareStatement(sql);
+	        ps.setString(1, "%" + ma + "%"); // tìm tương đối
+	        rs = ps.executeQuery();
 
-	        return ps.executeQuery();
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	        return null;
 	    }
+	    return rs;
 	}
+
 
 
 	public boolean themHoaDon(

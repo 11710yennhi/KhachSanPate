@@ -48,11 +48,11 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
     private JTable tblHoaDon, tblChiTietCTPT, tblChiTietCPPS;
     private DefaultTableModel modelHD, modelCTPT, modelCTCPPS;
 
-    private JTextField txtTim,txtTimTheoPDP, txtTongTienPhong, txtTongTienCPPS,txtTongTien,txtTongThanhToan;
+    private JTextField txtTim,txtTimTheoPDP, txtTongTienPhong, txtTongTienCPPS,txtTongTien,txtTongThanhToan,txtTimSDT;
     private JDateChooser dateNgayBatDau, dateNgayKetThuc;
-    private JButton btTim,btTimTheoPDP, btLoc, btHomNay, btTatCa,btnInHoaDon;
+    private JButton btTim,btTimTheoPDP, btLoc, btHomNay, btTatCa,btnInHoaDon,btnTimSDT;
 
-    private JLabel lbMaHD, lbNgay, lbPhong, lbNhanVien;
+    private JLabel lbMaHD, lbNgay, lbPhong, lbNhanVien,lbTrangThai;
 
     private Color khungTrenHD = LIGHT_BG;
     private Color khungCTHD = LIGHT_BG;
@@ -112,11 +112,19 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         pnBot.add(txtTimTheoPDP);
         pnBot.add(btTimTheoPDP);
         
+        JPanel pnBot1 = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pnBot1.setBackground(khungTrenHD);
+        txtTimSDT = new JTextField(10);
+        btnTimSDT = createButton("Tìm", NAVY, Color.WHITE);
+        pnBot1.add(new JLabel("Tìm SDT:"));
+        pnBot1.add(txtTimSDT);
+        pnBot1.add(btnTimSDT);
+        
         pnBar.add(pnTop);
         pnBar.add(pnBot);
+        pnBar.add(pnBot1);
+        
         khung.add(pnBar, BorderLayout.NORTH);
-        
-        
         //====================== BẢNG HÓA ĐƠN ============================
         String[] colHD = {"STT", "Mã hóa đơn", "Mã PDP", "Mã khuyến mãi", "PTTT", "Tổng tiền","Ngày tạo"};
         modelHD = new DefaultTableModel(colHD, 0) {
@@ -150,29 +158,33 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         JPanel pnTT2 = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel pnTT3 = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JPanel pnTT4 = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel pnTT5 = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
         lbMaHD = new JLabel("Mã hóa đơn: ");
         lbNgay = new JLabel("Ngày lập: ");
         lbPhong = new JLabel("Phòng: ");
         lbNhanVien = new JLabel("Nhân viên: ");
-        
-        
+        lbTrangThai = new JLabel("Trạng Thái: ");
         
         pnCT.setBackground(khungCTHD);
         pnTT1.setBackground(khungCTHD);
         pnTT2.setBackground(khungCTHD);
         pnTT3.setBackground(khungCTHD);
         pnTT4.setBackground(khungCTHD);
+        pnTT5.setBackground(khungCTHD);
         
         pnTT1.add(lbMaHD);
         pnTT2.add(lbNhanVien);
         pnTT3.add(lbPhong);
         pnTT4.add(lbNgay);
+        pnTT5.add(lbTrangThai);
         
         pnCT.add(pnTT1);
         pnCT.add(pnTT2);
         pnCT.add(pnTT3);
         pnCT.add(pnTT4);
+        pnCT.add(pnTT5);
+        
 //Chi tiết 1==============================
         pnCT.add(Box.createVerticalStrut(10));
         JPanel pnTam1 = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -252,13 +264,14 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         styleTable(tblHoaDon);
         styleTable(tblChiTietCTPT);
         styleTable(tblChiTietCPPS);
-
+        
         styleField(txtTim);
         styleField(txtTimTheoPDP);
         styleField(txtTongTienPhong);
         styleField(txtTongTienCPPS);
         styleField(txtTongTien);
         styleField(txtTongThanhToan);
+        styleField(txtTimSDT);
         
         btnInHoaDon = createButton("In hóa đơn", NAVY_DARK, Color.WHITE);
         JPanel pnIn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -279,6 +292,7 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         btHomNay.addActionListener(this);
         btLoc.addActionListener(this);
         btnInHoaDon.addActionListener(this);
+        btnTimSDT.addActionListener(this);
     }
 
 //============Load bảng hóa đơn===============
@@ -316,6 +330,8 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
         lbNgay.setText("Ngày lập: " + data[1]);
         lbNhanVien.setText("Nhân viên: " + data[2]);
         lbPhong.setText("Phòng: " + data[3]);
+        lbTrangThai.setText("Trạng thái: " + data[4]);
+
     }
     private long tinhTongTienPhong() {
         long tong = 0;
@@ -494,6 +510,17 @@ public class HoaDon_GUI extends JPanel implements ActionListener, MouseListener 
     	    );
 
     	    dialog.setVisible(true);
+    	}
+    	else if (o.equals(btnTimSDT)) {
+    	    String sdt = txtTimSDT.getText().trim();
+
+    	    if (sdt.isEmpty()) {
+    	        JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!");
+    	        return;
+    	    }
+
+    	    ResultSet rs = hdDAO.timHoaDonTheoSDT(sdt);
+    	    loadHoaDonTuResultSet(rs);
     	}
 
     	
