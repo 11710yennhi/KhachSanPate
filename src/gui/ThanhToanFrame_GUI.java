@@ -77,7 +77,7 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
 
     private void initComponents() {
         setTitle("Hóa đơn thanh toán");
-        setSize(900, 900);
+        setSize(900, 1000);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -109,7 +109,7 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         for (JLabel lb : new JLabel[]{lblMaHD, lblTenKH, lblNgayNhanTra, lblMaNV}) {
             lb.setAlignmentX(Component.LEFT_ALIGNMENT);
             infoBox.add(lb);
-            infoBox.add(Box.createVerticalStrut(6));
+            infoBox.add(Box.createVerticalStrut(3));
         }
 
         JPanel infoWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -117,7 +117,6 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         infoWrap.add(infoBox);
 
         content.add(infoWrap);
-        content.add(Box.createVerticalStrut(20));
 
         /* ================= TABLE PHÒNG ================= */
         JLabel lblPhong = createSectionLabel("Chi tiết phòng thuê:");
@@ -132,14 +131,13 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         );
 
         scrollPhong = new JScrollPane(tablePhong);
-        scrollPhong.setPreferredSize(new Dimension(820, 200));
+        scrollPhong.setPreferredSize(new Dimension(820, 100));
 
         JPanel phongWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         phongWrap.setBackground(Color.WHITE);
         phongWrap.add(scrollPhong);
 
         content.add(phongWrap);
-        content.add(Box.createVerticalStrut(20));
 
         /* ================= TABLE CHI PHÍ ================= */
         JLabel lblCP = createSectionLabel("Chi phí phát sinh:");
@@ -153,15 +151,14 @@ public class ThanhToanFrame_GUI extends JFrame implements ActionListener{
         );
 
         scrollChiPhi = new JScrollPane(tableChiPhi);
-        scrollChiPhi.setPreferredSize(new Dimension(820, 150));
+        scrollChiPhi.setPreferredSize(new Dimension(820, 100));
 
         JPanel chiPhiWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         chiPhiWrap.setBackground(Color.WHITE);
         chiPhiWrap.add(scrollChiPhi);
 
         content.add(chiPhiWrap);
-        content.add(Box.createVerticalStrut(20));
-
+        
         /* ================= TỔNG TIỀN ================= */
         lblTong        = createInfoLabel("Tổng tiền phòng: 0");
         lblTongTien    = createInfoLabel("Chi phí phát sinh: 0");
