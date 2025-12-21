@@ -817,7 +817,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         String nam = String.valueOf(ngayHienTai.getYear());
 
         // Lấy danh sách phiếu hiện có (từ database hoặc list)
-        List<PhieuDatPhong> danhSachPhieu = pdp.getAllPhieuDatPhong();
+        List<PhieuDatPhong> danhSachPhieu = pdp.getPhieuDatPhongHomNay();
 
         // Đếm số phiếu trong ngày hiện tại
         int dem = 0;
@@ -846,7 +846,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         String nam = String.valueOf(ngayHienTai.getYear());
 
         // Lấy danh sách khách hàng hiện có (từ database hoặc DAO)
-        List<KhachHang> danhSachKhachHang = khd.getAllKhachHang();
+        List<KhachHang> danhSachKhachHang = khd.getKhachHangHomNay();
 
         // Đếm số khách hàng tạo trong ngày hiện tại
         int dem = 0;
