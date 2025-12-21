@@ -149,7 +149,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
 
         pnlFilterTrai.add(createFilterLabel("Năm:"));
         cboNamTrai = new JComboBox<>();
-        for (int y = 2020; y <= yearNow; y++) cboNamTrai.addItem(y);
+        for (int y = 2024; y <= yearNow; y++) cboNamTrai.addItem(y);
         pnlFilterTrai.add(cboNamTrai);
 
         btnXemThangTrai = createPrimaryButton("Tháng");
@@ -168,7 +168,7 @@ public class ThongKe_GUI extends JPanel implements ActionListener {
 
         pnlFilterPhai.add(createFilterLabel("Năm:"));
         cboNamPhai = new JComboBox<>();
-        for (int y = 2020; y <= yearNow; y++) cboNamPhai.addItem(y);
+        for (int y = 2024; y <= yearNow; y++) cboNamPhai.addItem(y);
         pnlFilterPhai.add(cboNamPhai);
 
         btnXemThangPhai = createPrimaryButton("Tháng");
