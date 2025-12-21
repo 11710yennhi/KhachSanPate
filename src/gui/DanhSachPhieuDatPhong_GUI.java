@@ -64,9 +64,8 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         JLabel lblMa = new JLabel("Mã phiếu:");
         JLabel lblLoc = new JLabel("Trạng thái:");
 
-        txtSDT = new JTextField(14);        // dài hơn
-        txtMaPhieu = new JTextField(14);    // dài hơn
-
+        txtSDT = new JTextField(14);        
+        txtMaPhieu = new JTextField(14);    
         cbbLoc = new JComboBox<>(new String[] {
                 "Đã đặt", "Tới ngày nhận","Đang ở","Chưa nhận phòng", "Tới ngày trả","Trễ hạn trả phòng"
         });
@@ -130,16 +129,12 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
             JOptionPane.showMessageDialog(this, "Vui lòng nhập SĐT để lọc");
             return;
         }
-
-        // 🔹 Tìm khách hàng theo SĐT chính xác
         KhachHang kh = khd.getKhachHangTheoSDT(sdt);
 
         if (kh == null) {
             JOptionPane.showMessageDialog(this, "Không tìm thấy khách hàng có SĐT: " + sdt);
             return;
         }
-
-        // 🔹 Lọc các phiếu của đúng khách hàng đó
         List<PhieuDatPhong> kq = new ArrayList<>();
         for (PhieuDatPhong p : dsPhieu) {
             if (p.getKhachHang() != null
@@ -148,7 +143,6 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
             }
         }
 
-        // 🔹 Nếu không có phiếu
         if (kq.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Khách hàng này chưa có phiếu đặt phòng");
         }
@@ -322,19 +316,11 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
 
         List<ChiTietPhieuDatPhong> ds = p.getDsChiTiet();
         LocalDate today = LocalDate.now();
-
-//        // Nếu đã hủy sẵn
-//        if ("Đã hủy".equals(p.getTrangThai()))
-//            return "Đã hủy";
-
-        // ===== LẤY NGÀY NHẬN SỚM NHẤT =====
         LocalDate nhanSomNhat = ds.stream()
                 .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
                 .filter(d -> d != null)
                 .min(LocalDate::compareTo)
                 .orElse(null);
-
-        // ===== LẤY NGÀY TRẢ TRỄ NHẤT =====
         LocalDate traTreNhat = ds.stream()
                 .map(ChiTietPhieuDatPhong::getNgayTraThuc)
                 .filter(d -> d != null)
@@ -345,9 +331,7 @@ public class DanhSachPhieuDatPhong_GUI extends JPanel implements ActionListener 
         long soNgay = java.time.temporal.ChronoUnit.DAYS.between(nhanSomNhat, traTreNhat);
         LocalDate ngayGiua = nhanSomNhat.plusDays(soNgay / 2);
         if ("Đã đặt".equals(p.getTrangThai())) {
-
-            // 🔥 AUTO HỦY DO KHÔNG ĐẾN
-            if (ngayGiua.isBefore(today)) {
+            if (ngayGiua.isBefore(today) || ngayGiua.isEqual(today)) {
                 p.setTrangThai("Đã hủy");
                 return "Đã hủy do không đến";
             }

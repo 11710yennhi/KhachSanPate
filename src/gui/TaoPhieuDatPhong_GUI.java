@@ -233,19 +233,22 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
         pThongTin.add(new JLabel("Trạng thái:"), gbc);
 
         gbc.gridx = 1;
-        cboTrangThai = new JComboBox<>(new String[]{"Đã đặt", "Đang ở", "Hoàn thành", "Đã hủy"});
-        cboTrangThai.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(
-                JList<?> list, Object value, int index,
-                boolean isSelected, boolean cellHasFocus) {
+        cboTrangThai = new JComboBox<>(new String[]{
+                "Đã đặt", "Đang ở", "Hoàn thành", "Đã hủy"
+        });
 
-                if ("Hoàn thành".equals(value) || "Đã hủy".equals(value)) {
-                    return new JLabel(""); // ẨN
+        cboTrangThai.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                String trangThai = e.getItem().toString();
+
+                if (trangThai.equals("Hoàn thành") || trangThai.equals("Đã hủy")) {
+                    JOptionPane.showMessageDialog(null,
+                            "Không được chọn trạng thái này!",
+                            "Cảnh báo",
+                            JOptionPane.WARNING_MESSAGE);
+
+                    cboTrangThai.setSelectedItem("Đã đặt");
                 }
-
-                return super.getListCellRendererComponent(
-                        list, value, index, isSelected, cellHasFocus);
             }
         });
 
@@ -399,6 +402,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 		if (o.equals(btnInPhieu)&&kiemTraDuLieuNhap()&&dieuKienNguoi()) {
 		    if (!ktraThongTinPDP())
 		        return;
+		    if(!kiemTraTrangThaiXacNhanDatPhong()) return;
 		    KhachHang checkKH= khd.getKhachHangTheoSDT(txtSDT.getText());
 		    if(checkKH==null) {
 		    	checkKH= new KhachHang( taoMaKhachHangTuDong(), txtTenKH.getText(), txtSDT.getText(), chkVN.isSelected() );
@@ -489,24 +493,12 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 			
 		}
 		else if(o.equals(btnXR)) {
-			String mpdp= txtMPDP.getText();
-			if(mpdp.trim().length()!=0) {
 				moKhoaTatCaTruong();
-				txtMPDP.setText("");
-				txtMKH.setText("");
-				txtTenKH.setText("");
-				txtTenKH.setEditable(false);
-				txtSDT.setText("");
-				txtSDT.setEditable(false);
-				txtNgayTao.setText(LocalDate.now().toString());
-				dlp.setRowCount(0);
-				dlctps.setRowCount(0);
-				soNguoiLon= 0;
-			   	soTreEm= 0;
-			    txtSoNguoiThuc.setText("0");  
+				dsPhongDaChon.clear();
+				mapNutPhong.clear();
 			    kiemTraDeThemCPPS();
 				
-			}
+			
 		}else if (o.equals(btnGoiY)) {
 		    List<Phong> dsPhongTrong = layDanhSachPhongTrong();
 		    int soNguoi = 0;
@@ -1731,6 +1723,7 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
    	cboTrangThai.setSelectedItem(pdphong.getTrangThai());
    	soNguoiLon= pdphong.getSoNguoiLon();
    	soTreEm= pdphong.getSoTreEm();
+    txtTienCoc.setEditable(false);
    	 int nl =soNguoiLon;
         int te = soTreEm;
         int thuc = nl + (int) Math.ceil(te / 2.0);
@@ -2146,9 +2139,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    btnGoiY.setEnabled(false);
 	}
    private void moKhoaTatCaTruong() {
-	    // Mở JDateChooser
-	    dateNgayNhan.setEnabled(true);
-	    dateNgayTra.setEnabled(true);
+	   dateNgayNhan.setEnabled(true);
+	   dateNgayTra.setEnabled(true);
 	    // Mở JTextField
 //	    txtSDT.setEditable(true);
 //	    txtTenKH.setEditable(true);
@@ -2175,7 +2167,19 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	    txtTienCoc.setText("0");
 	    txtTienCocMoi.setText("0");
 	    txtTienCocCu.setText("0");
-	    
+	    txtTienCoc.setEditable(false);
+	    txtMPDP.setText("");
+		txtMKH.setText("");
+		txtTenKH.setText("");
+		txtTenKH.setEditable(false);
+		txtSDT.setText("");
+		txtSDT.setEditable(false);
+		txtNgayTao.setText(LocalDate.now().toString());
+		dlp.setRowCount(0);
+		dlctps.setRowCount(0);
+		soNguoiLon= 0;
+	   	soTreEm= 0;
+	    txtSoNguoiThuc.setText("0");  
 	    cboTrangThai.setSelectedIndex(0);
 	}
    private Object[][] convertTableModelToArray(JTable table) {
@@ -2238,9 +2242,8 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 	            JOptionPane.WARNING_MESSAGE);
 	        return false;
 	    }
-
+	    
 	    LocalDate today = LocalDate.now();
-
 	    LocalDate nhanSomNhat = ds.stream()
 	        .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
 	        .filter(d -> d != null)
@@ -2256,5 +2259,23 @@ public class TaoPhieuDatPhong_GUI extends JPanel implements ActionListener, Mous
 
 	    return true;
 	}
+  public boolean kiemTraTrangThaiXacNhanDatPhong() {
+	  List<ChiTietPhieuDatPhong> ds = doiTuongTongTienPhong().getDsChiTiet();	      
+	    LocalDate today = LocalDate.now();
+
+	    LocalDate nhanSomNhat = ds.stream()
+	        .map(ChiTietPhieuDatPhong::getNgayNhanThuc)
+	        .filter(d -> d != null)
+	        .min(LocalDate::compareTo)
+	        .orElse(null);
+	    if (nhanSomNhat != null && today.isBefore(nhanSomNhat)&&!cboTrangThai.getSelectedItem().equals("Đã đặt")) {
+	        JOptionPane.showMessageDialog(null,
+	            "Bạn không được đổi trạng thái là Đang ở khi chưa tới ngày nhận phòng!",
+	            "Thông báo",
+	            JOptionPane.WARNING_MESSAGE);
+	        return false;
+	    }
+	    return true;
+  }
 
 }

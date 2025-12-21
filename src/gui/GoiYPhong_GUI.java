@@ -177,7 +177,7 @@ public class GoiYPhong_GUI extends JDialog {
         }
 
         JLabel lblSuc = new JLabel("• Tổng sức chứa: " + tongSuc + " người");
-        JLabel lblTien = new JLabel("• Tổng tiền: " + tongTien + " VNĐ");
+        JLabel lblTien = new JLabel("• Tổng tiền: " + tongTien + " VNĐ/1 đêm");
 
         lblSuc.setFont(new Font("Arial", Font.PLAIN, 14));
         lblTien.setFont(new Font("Arial", Font.BOLD, 15));
