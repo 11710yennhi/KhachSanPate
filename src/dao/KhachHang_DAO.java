@@ -181,4 +181,34 @@ public class KhachHang_DAO {
             return false;
         }
     }
+    
+    public List<KhachHang> getKhachHangHomNay() {
+        List<KhachHang> dsKH = new ArrayList<>();
+
+        String sql = """
+            SELECT maKhachHang, hoTen, soDienThoai, laNguoiVietNam
+            FROM KhachHang
+            WHERE ngayTao = CAST(GETDATE() AS DATE)
+        """;
+
+        try (Connection con = ConnectDB.getInstance().getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                KhachHang kh = new KhachHang(
+                    rs.getString("maKhachHang"),
+                    rs.getString("hoTen"),
+                    rs.getString("soDienThoai"),
+                    rs.getBoolean("laNguoiVietNam")
+                );
+                dsKH.add(kh);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return dsKH;
+    }
 }
